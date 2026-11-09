@@ -1,0 +1,58 @@
+# The socket belongs to Darim's isolated CI Docker daemon.
+when:
+  - event: [push, manual]
+    branch: main
+
+steps:
+  - name: tests-and-build
+    image: docker:27-cli
+    volumes:
+      - /run/ci/docker.sock:/var/run/docker.sock
+    commands:
+      - |
+        image="darim-frontend:$CI_COMMIT_SHA"
+        docker build --label "org.opencontainers.image.revision=$CI_COMMIT_SHA" -t "$image" .
+        docker run --rm --entrypoint sh "$image" -ec '
+          nginx
+          test "$(wget -qO- http://127.0.0.1/health)" = ok
+          wget -qO /tmp/index.html http://127.0.0.1/
+          grep -q "id=\"root\"" /tmp/index.html
+        '
+
+  - name: publish-verified-image
+    image: docker:27-cli
+    volumes:
+      - /run/ci/docker.sock:/var/run/docker.sock
+    commands:
+      - |
+        repository=127.0.0.1:5000/darim-frontend
+        docker tag "darim-frontend:$CI_COMMIT_SHA" "$repository:$CI_COMMIT_SHA"
+        docker push "$repository:$CI_COMMIT_SHA"
+        docker tag "$repository:$CI_COMMIT_SHA" "$repository:production"
+        docker push "$repository:production"
+    when:
+      - event: push
+        branch: main
+
+  - name: request-coolify-deployment
+    image: alpine:3.22
+    environment:
+      COOLIFY_DEPLOY_WEBHOOK:
+        from_secret: coolify_deploy_webhook
+      COOLIFY_TOKEN:
+        from_secret: coolify_token
+    commands:
+      - apk add --no-cache curl jq
+      - |
+        test -n "$COOLIFY_DEPLOY_WEBHOOK" && test -n "$COOLIFY_TOKEN" || {
+          echo 'Configure coolify_deploy_webhook and coolify_token in Woodpecker' >&2
+          exit 1
+        }
+        response=$(curl --fail --silent --show-error --max-time 30 \
+          --proto '=https' --header "Authorization: Bearer $COOLIFY_TOKEN" \
+          "$COOLIFY_DEPLOY_WEBHOOK")
+        printf '%s\n' "$response" |
+          jq -er '.deployments[] | .deployment_uuid | select(type == "string" and length > 0)'
+    when:
+      - event: push
+        branch: main

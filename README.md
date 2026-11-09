@@ -23,3 +23,7 @@ npm run build
 ```
 
 Сборка сохраняется в `dist/`. Команда `npm run preview` запускает её локальный просмотр.
+
+## CI и деплой
+
+[Настройка Woodpecker и Coolify](ops/README.md).
