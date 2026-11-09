@@ -1,7 +1,7 @@
 # The socket belongs to Darim's isolated CI Docker daemon.
 when:
   - event: [push, manual]
-    branch: main
+    branch: [main, test]
 
 steps:
   - name: tests-and-build
@@ -26,26 +26,34 @@ steps:
     commands:
       - |
         repository=127.0.0.1:5000/darim-frontend
+        case "$CI_COMMIT_BRANCH" in
+          main) tag=production ;;
+          test) tag=test ;;
+          *) exit 1 ;;
+        esac
         docker tag "darim-frontend:$CI_COMMIT_SHA" "$repository:$CI_COMMIT_SHA"
         docker push "$repository:$CI_COMMIT_SHA"
-        docker tag "$repository:$CI_COMMIT_SHA" "$repository:production"
-        docker push "$repository:production"
+        docker tag "$repository:$CI_COMMIT_SHA" "$repository:$tag"
+        docker push "$repository:$tag"
     when:
       - event: push
+        branch: test
+      - event: push
         branch: main
+        evaluate: &production-enabled 'false'
 
-  - name: request-coolify-deployment
+  - name: deploy-production
     image: alpine:3.22
     environment:
       COOLIFY_DEPLOY_WEBHOOK:
         from_secret: coolify_deploy_webhook
       COOLIFY_TOKEN:
         from_secret: coolify_token
-    commands:
+    commands: &deploy
       - apk add --no-cache curl jq
       - |
         test -n "$COOLIFY_DEPLOY_WEBHOOK" && test -n "$COOLIFY_TOKEN" || {
-          echo 'Configure coolify_deploy_webhook and coolify_token in Woodpecker' >&2
+          echo 'Configure the Coolify webhook for this environment and coolify_token in Woodpecker' >&2
           exit 1
         }
         response=$(curl --fail --silent --show-error --max-time 30 \
@@ -56,3 +64,16 @@ steps:
     when:
       - event: push
         branch: main
+        evaluate: *production-enabled
+
+  - name: deploy-test
+    image: alpine:3.22
+    environment:
+      COOLIFY_DEPLOY_WEBHOOK:
+        from_secret: coolify_test_deploy_webhook
+      COOLIFY_TOKEN:
+        from_secret: coolify_token
+    commands: *deploy
+    when:
+      - event: push
+        branch: test
