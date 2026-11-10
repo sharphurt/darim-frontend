@@ -1,0 +1,87 @@
+import { useState } from 'react'
+import chevron from '../assets/chevron.svg'
+import menuIcon from '../assets/menu.svg'
+
+const viewNames = { board: 'Доска желаний', mine: 'Мой вишлист', giving: 'Я дарю' }
+
+export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, onLogout }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  function choose(action) {
+    setMenuOpen(false)
+    action()
+  }
+
+  return (
+    <header className="board-nav">
+      <nav aria-label="Разделы">
+        {Object.entries(viewNames).map(([value, label]) => (
+          <button key={value} type="button" className="pill" aria-current={view === value ? 'page' : undefined}
+            disabled={!me || (value === 'board' && !company)} onClick={() => onView(value)}>{label}</button>
+        ))}
+      </nav>
+      {me && <div className="board-menu" onBlur={event => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false)
+      }} onKeyDown={event => {
+        if (event.key === 'Escape') {
+          event.currentTarget.querySelector('.board-menu__toggle').focus()
+          setMenuOpen(false)
+        }
+      }}>
+        <button type="button" className="pill board-menu__toggle" aria-label="Меню" aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(open => !open)}><img src={menuIcon} width="42" height="42" alt="" /></button>
+        {menuOpen && <div className="board-menu__panel">
+          <button type="button" onClick={() => choose(() => onMenu('create'))}>Добавить желание</button>
+          <button type="button" onClick={() => choose(() => onMenu('profile'))}>Мой профиль</button>
+          <button type="button" onClick={() => choose(onArchive)}>{archived ? 'Активные желания' : 'Архив желаний'}</button>
+          <button type="button" disabled={pending} onClick={() => choose(onLogout)}>Выйти</button>
+        </div>}
+      </div>}
+    </header>
+  )
+}
+
+export function BoardHeading({ view, company, companies, onCompany }) {
+  return (
+    <div className="board-heading">
+      <h1>{viewNames[view]}</h1>
+      {view === 'board' && company && <label className="company-picker">
+        <span className="company-picker__name" aria-hidden="true">{company.name}</span>
+        <img src={chevron} alt="" width="64" height="64" />
+        <select aria-label="Компания" value={company.id} onChange={event => onCompany(event.target.value)}>
+          {companies.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+        </select>
+      </label>}
+    </div>
+  )
+}
+
+function FilterSelect({ label, value, options, onChange, kind }) {
+  return (
+    <label className={`pill filter-select filter-select--${kind}`} data-active={Boolean(value)}>
+      <span className="sr-only">{label}</span>
+      <select value={value} onChange={event => onChange(event.target.value)}>
+        <option value="">{label}</option>
+        {options.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+      </select>
+      <img src={chevron} width="16" height="16" alt="" />
+    </label>
+  )
+}
+
+export function BoardFilters({ people, owner, onOwner, occasions, occasion, onOccasion, price, onPrice }) {
+  return (
+    <div className="board-filters">
+      {people.length > 0 && <div className="board-filters__people" aria-label="Участники">
+        <button className="pill" type="button" aria-pressed={!owner} onClick={() => onOwner('')}>ПОЛНЫЙ СОСТАВ</button>
+        {people.map(person => <button className="pill" type="button" key={person.id}
+          aria-pressed={owner === person.id} onClick={() => onOwner(person.id)}>{person.name}</button>)}
+      </div>}
+      <div className="board-filters__selects">
+        <FilterSelect kind="occasion" label="Поводы" value={occasion} options={occasions.map(value => [value, value])} onChange={onOccasion} />
+        <FilterSelect kind="price" label="Цена" value={price} onChange={onPrice} options={[
+          ['5000', 'До 5 000 ₽'], ['10000', 'До 10 000 ₽'], ['20000', 'До 20 000 ₽'],
+        ]} />
+      </div>
+    </div>
+  )
+}

@@ -1,10 +1,80 @@
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
+:root {
+  font-family: 'Onest Variable', Onest, system-ui, sans-serif;
+  font-style: normal;
+  color: #111;
+  background: #f3f3f3;
+  --ui-primary-size: 24px;
+  --ui-secondary-size: 18px;
+  --ui-tertiary-size: 14px;
+  --ui-button-size: 18px;
+  --ui-tracking: -.03em;
+  --surface: #fff;
+  --accent: #5693ee;
+  --accent-text: #356bb7;
+  --card-back: #e7f1ff;
+  --cta: #fe7159;
+  --page-inset: clamp(20px, 6.25vw, 120px);
+  --page-width: 1920px;
 }
 
-main {
-  max-width: 64rem;
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-width: 280px;
+  font-size: var(--ui-secondary-size);
+  font-weight: 500;
+  line-height: calc(23 / 18);
+  letter-spacing: var(--ui-tracking);
+}
+button, input, textarea, select { font: inherit; letter-spacing: inherit; color: inherit; }
+button, select { cursor: pointer; }
+button:disabled { cursor: default; }
+a { color: var(--accent-text); }
+img { display: block; }
+:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 4px; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.page-inset {
+  width: min(100%, var(--page-width));
   margin-inline: auto;
-  padding: 2rem 1rem;
+  padding-inline: var(--page-inset);
+}
+
+.pill, .gift-action, .board-menu__panel button {
+  font-size: var(--ui-button-size);
+  font-weight: 600;
+  line-height: calc(23 / 18);
+  letter-spacing: var(--ui-tracking);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 24px;
+  background: var(--surface);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pill[aria-current] { color: var(--accent); }
+.pill[aria-pressed="true"] { color: #fff; background: var(--accent); }
+
+@media (hover: hover) {
+  a:not(.pill):hover { color: color-mix(in srgb, var(--accent-text), black 14%); }
+  .pill:not(:disabled):hover { background: color-mix(in srgb, var(--surface), var(--accent) 10%); }
+  .pill[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--accent), black 10%); }
 }
