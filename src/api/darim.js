@@ -8,6 +8,9 @@ export function createDarimApi() {
     me: signal => http.get('/api/me', signal),
     demoLogin: index => http.write(`/auth/demo/${index}`, 'POST'),
     logout: () => http.write('/api/logout', 'POST'),
+    createCompany: name => http.write('/api/company', 'POST', { name }),
+    joinCompany: token => http.write('/api/company/join?returnCompany=true', 'POST', { token }),
+    issueInvite: companyId => http.write('/api/company/invite', 'POST', { companyId, maxUses: 1 }),
     gifts: (view, companyId, signal) => {
       if (view === 'mine') return http.get('/api/gifts/mine', signal)
       if (view === 'giving') return http.get('/api/gifts/giving', signal)

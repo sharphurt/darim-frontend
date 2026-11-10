@@ -31,6 +31,11 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
           onClick={() => setMenuOpen(open => !open)}><img src={menuIcon} width="42" height="42" alt="" /></button>
         {menuOpen && <div className="board-menu__panel">
           <button type="button" onClick={() => choose(() => onMenu('create'))}>Добавить желание</button>
+          <button type="button" onClick={() => choose(() => onMenu('create-company'))}>Создать компанию</button>
+          <button type="button" onClick={() => choose(() => onMenu('join-company'))}>Вступить по приглашению</button>
+          {company?.isOrganizer && <button type="button" onClick={() => choose(() => onMenu('invite-company'))}>
+            Пригласить участника
+          </button>}
           <button type="button" onClick={() => choose(() => onMenu('profile'))}>Мой профиль</button>
           <button type="button" onClick={() => choose(onArchive)}>{archived ? 'Активные желания' : 'Архив желаний'}</button>
           <button type="button" disabled={pending} onClick={() => choose(onLogout)}>Выйти</button>

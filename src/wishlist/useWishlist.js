@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createDarimApi } from '../api/darim.js'
+import { invitationToken } from './companyInvite.js'
 
 export function useWishlist() {
   const [api, setApi] = useState(createDarimApi)
@@ -57,10 +58,10 @@ export function useWishlist() {
     setPending(true)
     setActionError('')
     try {
-      await request(api)
+      const response = await request(api)
       if (refreshSession) setApi(createDarimApi())
       else setRevision(value => value + 1)
-      return true
+      return { response }
     } catch (error) {
       setActionError(error.message)
       if (error.status === 401) setApi(createDarimApi())
@@ -74,6 +75,19 @@ export function useWishlist() {
 
   function submitDialog({ kind, gift }, form) {
     const field = name => form.get(name)?.trim() || null
+    if (kind === 'create-company' || kind === 'join-company') {
+      return run(async client => {
+        const result = kind === 'create-company'
+          ? await client.createCompany(field('name'))
+          : await client.joinCompany(invitationToken(field('token')))
+        setCompanyId(result.companyId)
+        setView('board')
+        return result
+      }, true)
+    }
+    if (kind === 'invite-company') {
+      return run(client => client.issueInvite(activeCompanyId))
+    }
     if (kind === 'profile') {
       return run(client => client.saveProfile({ name: field('name'), contact: field('contact') }), true)
     }

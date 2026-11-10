@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { BoardDialog } from './wishlist/BoardDialog.jsx'
 import { BoardFilters, BoardHeading, BoardNavigation } from './wishlist/BoardHeader.jsx'
 import { GiftShelf } from './wishlist/GiftShelf.jsx'
+import { clearInvite, inviteLink, pendingInvite, retainInvite } from './wishlist/companyInvite.js'
 import { groupGifts } from './wishlist/giftPresentation.js'
 import { useWishlist } from './wishlist/useWishlist.js'
 import './wishlist/board.css'
@@ -9,7 +10,7 @@ import './wishlist/board.css'
 const demoNames = ['Юлия', 'Макс', 'Аня', 'Саша']
 const emptyGifts = []
 
-function BoardAccess({ session, pending, error, retry, login }) {
+function BoardAccess({ session, pending, error, retry, login, inviteToken }) {
   if (!session) return <p className="board-message page-inset" role="status">Загружаем доску…</p>
   if (session.error) return <div className="board-message page-inset">
     <p role="alert">{session.error}</p>
@@ -17,7 +18,8 @@ function BoardAccess({ session, pending, error, retry, login }) {
   </div>
   return <div className="board-message page-inset">
     <p>Войдите, чтобы увидеть желания друзей.</p>
-    {session.info.telegramConfigured && <a className="pill" href="/auth/login">Войти через Telegram</a>}
+    {session.info.telegramConfigured && <a className="pill" href="/auth/login"
+      onClick={() => retainInvite(inviteToken)}>Войти через Telegram</a>}
     {session.info.demoEnabled && <div className="demo-logins" aria-label="Демонстрационные аккаунты">
       {demoNames.map((name, index) => <button className="pill" type="button" key={name}
         disabled={pending} onClick={() => login(index)}>{name}</button>)}
@@ -35,6 +37,7 @@ export default function App() {
   const [archived, setArchived] = useState(false)
   const [dialog, setDialog] = useState(null)
   const [dialogError, setDialogError] = useState('')
+  const [inviteToken, setInviteToken] = useState(pendingInvite)
   const gifts = data?.gifts ?? emptyGifts
   const occasions = useMemo(() => [...new Set(gifts.filter(gift => gift.archived === archived)
     .map(gift => gift.details.occasion).filter(Boolean))], [gifts, archived])
@@ -59,17 +62,26 @@ export default function App() {
 
   function openDialog(kind, gift) {
     setDialogError('')
-    setDialog({ kind, gift })
+    setDialog({ kind, gift, token: kind === 'join-company' ? inviteToken : undefined })
   }
 
   async function submit(form) {
     setDialogError('')
-    if (await board.submitDialog(dialog, form)) {
+    const result = await board.submitDialog(dialog, form)
+    if (result) {
       if (dialog.kind === 'create') navigate('mine')
-      setDialog(null)
+      if (dialog.kind === 'create-company' || dialog.kind === 'join-company') navigate('board')
+      if (dialog.kind === 'join-company' && inviteToken) dismissInvite()
+      const token = result.response?.token
+      setDialog(token ? { kind: 'invite-result', link: inviteLink(token) } : null)
     } else {
       setDialogError('action')
     }
+  }
+
+  function dismissInvite() {
+    clearInvite()
+    setInviteToken('')
   }
 
   async function logout() {
@@ -88,7 +100,20 @@ export default function App() {
         <BoardHeading view={me ? view : 'board'} company={company} companies={companies}
           onCompany={id => { board.setCompanyId(id); navigate('board') }} />
         {!me ? <BoardAccess session={session} pending={pending} error={actionError} retry={board.retrySession}
-          login={board.demoLogin} /> : <>
+          login={board.demoLogin} inviteToken={inviteToken} /> : <>
+          {inviteToken ? <div className="board-message page-inset">
+            <p>У вас есть приглашение в компанию.</p>
+            <div className="demo-logins">
+              <button type="button" className="pill" onClick={() => openDialog('join-company')}>Принять приглашение</button>
+              <button type="button" className="pill" onClick={dismissInvite}>Скрыть</button>
+            </div>
+          </div> : !company && <div className="board-message page-inset">
+            <p>Создайте компанию или вступите по приглашению, чтобы увидеть общую доску.</p>
+            <div className="demo-logins">
+              <button type="button" className="pill" onClick={() => openDialog('create-company')}>Создать компанию</button>
+              <button type="button" className="pill" onClick={() => openDialog('join-company')}>Вступить по приглашению</button>
+            </div>
+          </div>}
           <BoardFilters people={view === 'board' ? company.members : []} owner={owner} onOwner={setOwner}
             occasions={occasions} occasion={occasion} onOccasion={setOccasion} price={price} onPrice={setPrice} />
           {archived && <p className="board-message page-inset">Архив желаний</p>}
