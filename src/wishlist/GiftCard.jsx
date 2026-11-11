@@ -58,7 +58,8 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
               onClick={activate} />
             <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
-                data-tone={background.tone} data-split={Boolean(split)} aria-hidden={flipped}
+                data-tone={background.tone} data-has-overlay={Boolean(background.overlay)}
+                data-split={Boolean(split)} aria-hidden={flipped}
                 style={{
                   '--gift-background': background.image ? `url("${background.image}")` : 'none',
                   '--gift-overlay': background.overlay ? `url("${background.overlay}")` : 'none',
