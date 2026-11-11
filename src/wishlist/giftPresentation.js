@@ -66,3 +66,9 @@ export function groupGifts(gifts) {
   }
   return [...groups.values()]
 }
+
+export function matchesWishlistCompany(visibility, company) {
+  if (!company) return true
+  if (company === 'private') return !visibility?.allCompanies && !visibility?.companyIds?.length
+  return Boolean(visibility?.allCompanies || visibility?.companyIds?.includes(company))
+}

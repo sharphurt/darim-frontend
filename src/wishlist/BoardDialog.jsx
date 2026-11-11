@@ -17,7 +17,7 @@ const actionLabels = {
 function GiftFields({ gift, company }) {
   const details = gift?.details
   return <>
-    <label>Название<input name="title" required maxLength="120" defaultValue={details?.title} /></label>
+    <label>Название<input name="title" required maxLength="160" defaultValue={details?.title} /></label>
     <label>Ссылка<input name="url" type="url" defaultValue={details?.url} /></label>
     <label>Цена, ₽<input name="price" type="number" min="0" step="0.01" defaultValue={details?.price} /></label>
     <label>Повод<input name="occasion" defaultValue={details?.occasion} placeholder="Без повода" /></label>
@@ -30,7 +30,7 @@ function GiftFields({ gift, company }) {
   </>
 }
 
-export function BoardDialog({ dialog, me, company, pending, error, onClose, onSubmit }) {
+export function BoardDialog({ dialog, me, company, pending, error, onClose, onSubmit, onArchive }) {
   const ref = useRef(null)
   useEffect(() => {
     const element = ref.current
@@ -69,6 +69,8 @@ export function BoardDialog({ dialog, me, company, pending, error, onClose, onSu
         {error && <p className="board-error" role="alert">{error}</p>}
         <footer>
           {link ? <button type="button" className="gift-action gift-action--primary" onClick={onClose}>Готово</button> : <>
+            {kind === 'edit' && !gift.fromOhmywishes && <button type="button" className="gift-action" disabled={pending}
+              onClick={() => onArchive(gift)}>В архив</button>}
             <button type="button" className="gift-action" disabled={pending} onClick={onClose}>Отмена</button>
             <button type="submit" className="gift-action gift-action--primary" disabled={pending}>
               {pending ? 'Сохраняем…' : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'}

@@ -114,7 +114,8 @@
   gap: 16px;
   padding-block: clamp(12px, 1.67vw, 32px) clamp(48px, 8.33vw, 160px);
 }
-.board-filters__people {
+.board-filters--wishlist { padding-bottom: clamp(20px, 2.7vw, 52px); }
+.board-filters__tabs {
   display: flex;
   gap: 10px;
   max-width: 100%;
@@ -125,8 +126,8 @@
   background: var(--surface);
   scrollbar-width: thin;
 }
-.board-filters__people .pill { flex: none; padding: clamp(10px, .94vw, 18px) clamp(14px, 1.67vw, 32px); }
-.board-filters__people .pill:focus-visible { outline-offset: -3px; }
+.board-filters__tabs .pill { flex: none; padding: clamp(10px, .94vw, 18px) clamp(14px, 1.67vw, 32px); }
+.board-filters__tabs .pill:focus-visible { outline-offset: -3px; }
 .board-filters__selects { display: flex; flex-wrap: wrap; gap: 16px; margin-left: auto; }
 .filter-select {
   --filter-inset: clamp(14px, 1.67vw, 32px);

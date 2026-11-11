@@ -24,12 +24,12 @@ export function GiftShelf({ title, gifts, viewerId, canSplit, onAction, pending 
     (_, index) => gifts.slice(index * columns, (index + 1) * columns)), [gifts, columns])
   const shelf = useCardMotion(rows)
   return (
-    <section className="gift-shelf" aria-label={title}>
-      <h2 className="gift-shelf__heading">
+    <section className="gift-shelf" aria-label={title ?? 'Мои желания'}>
+      {title && <h2 className="gift-shelf__heading">
         <img src={separator} alt="" width="694" height="62" />
         <span>{title}</span>
         <img src={separator} alt="" width="694" height="62" />
-      </h2>
+      </h2>}
       <div className="gift-shelf__cards" ref={shelf}>
         {rows.map(row => <ul className="gift-row" key={row[0].id}>
           {row.map(gift => <GiftCard key={gift.id} gift={gift} own={gift.owner.id === viewerId}

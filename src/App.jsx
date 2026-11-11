@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { BoardDialog } from './wishlist/BoardDialog.jsx'
-import { BoardFilters, BoardHeading, BoardNavigation } from './wishlist/BoardHeader.jsx'
+import { BoardFilters, BoardHeading, BoardNavigation, WishlistCompanyFilter } from './wishlist/BoardHeader.jsx'
 import { GiftShelf } from './wishlist/GiftShelf.jsx'
 import { clearInvite, inviteLink, pendingInvite, retainInvite } from './wishlist/companyInvite.js'
-import { groupGifts } from './wishlist/giftPresentation.js'
+import { groupGifts, matchesWishlistCompany } from './wishlist/giftPresentation.js'
 import { useWishlist } from './wishlist/useWishlist.js'
 import './wishlist/board.css'
 
@@ -34,6 +34,7 @@ export default function App() {
   const [owner, setOwner] = useState('')
   const [occasion, setOccasion] = useState('')
   const [price, setPrice] = useState('')
+  const [wishlistCompany, setWishlistCompany] = useState('')
   const [archived, setArchived] = useState(false)
   const [dialog, setDialog] = useState(null)
   const [dialogError, setDialogError] = useState('')
@@ -48,15 +49,18 @@ export default function App() {
     .map(gift => gift.details.occasion).filter(Boolean))], [gifts, archived])
   const groups = useMemo(() => groupGifts(gifts.filter(gift => (
     gift.archived === archived &&
-    (!owner || gift.owner.id === owner) &&
-    (!occasion || gift.details.occasion === occasion) &&
-    (!price || (gift.details.price != null && gift.details.price <= Number(price)))
-  ))), [gifts, owner, occasion, price, archived])
+    (view === 'mine'
+      ? matchesWishlistCompany(gift.visibility, wishlistCompany)
+      : (!owner || gift.owner.id === owner) &&
+        (!occasion || gift.details.occasion === occasion) &&
+        (!price || (gift.details.price != null && gift.details.price <= Number(price))))
+  ))), [gifts, view, wishlistCompany, owner, occasion, price, archived])
 
   function resetFilters() {
     setOwner('')
     setOccasion('')
     setPrice('')
+    setWishlistCompany('')
   }
 
   function navigate(next) {
@@ -119,8 +123,10 @@ export default function App() {
               <button type="button" className="pill" onClick={() => openDialog('join-company')}>Вступить по приглашению</button>
             </div>
           </div>}
-          <BoardFilters people={view === 'board' ? company.members.filter(person => person.id !== viewerId) : []} owner={owner} onOwner={setOwner}
-            occasions={occasions} occasion={occasion} onOccasion={setOccasion} price={price} onPrice={setPrice} />
+          {view === 'mine'
+            ? <WishlistCompanyFilter companies={companies} value={wishlistCompany} onChange={setWishlistCompany} />
+            : <BoardFilters people={view === 'board' ? company.members.filter(person => person.id !== viewerId) : []} owner={owner} onOwner={setOwner}
+              occasions={occasions} occasion={occasion} onOccasion={setOccasion} price={price} onPrice={setPrice} />}
           {archived && <p className="board-message page-inset">Архив желаний</p>}
           {actionError && !dialog && <p className="board-error page-inset" role="alert">{actionError}</p>}
           {!data && <p className="board-message page-inset" role="status">Загружаем желания…</p>}
@@ -129,13 +135,14 @@ export default function App() {
             <button className="pill" type="button" onClick={board.refresh}>Повторить</button>
           </div>}
           {data?.gifts && !groups.length && <p className="board-message page-inset">Здесь пока нет желаний.</p>}
-          {groups.map(group => <GiftShelf key={group.owner.id} title={`${group.owner.name} желает`}
+          {groups.map(group => <GiftShelf key={group.owner.id} title={view === 'mine' ? undefined : `${group.owner.name} желает`}
             gifts={group.gifts} viewerId={me.user.id} canSplit={(company?.members.length ?? 0) >= 3}
             onAction={(gift, kind) => openDialog(kind, gift)} pending={pending} />)}
         </>}
       </main>
       {dialog && me && <BoardDialog dialog={dialog} me={me} company={company} pending={pending}
-        error={dialogError ? actionError : ''} onClose={() => setDialog(null)} onSubmit={submit} />}
+        error={dialogError ? actionError : ''} onClose={() => setDialog(null)} onSubmit={submit}
+        onArchive={gift => openDialog('archive', gift)} />}
     </>
   )
 }

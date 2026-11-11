@@ -93,14 +93,25 @@ function FilterSelect({ label, value, options, onChange, kind }) {
   )
 }
 
+function FilterTabs({ label, options, value, onChange }) {
+  return <div className="board-filters__tabs" role="group" aria-label={label}>
+    {options.map(option => <button className="pill" type="button" key={option.id}
+      aria-pressed={value === option.id} onClick={() => onChange(option.id)}>{option.name}</button>)}
+  </div>
+}
+
+export function WishlistCompanyFilter({ companies, value, onChange }) {
+  const options = [{ id: '', name: 'Все команды' }, ...companies, { id: 'private', name: 'Только мне' }]
+  return <div className="board-filters board-filters--wishlist">
+    <FilterTabs label="Команды" options={options} value={value} onChange={onChange} />
+  </div>
+}
+
 export function BoardFilters({ people, owner, onOwner, occasions, occasion, onOccasion, price, onPrice }) {
   return (
     <div className="board-filters">
-      {people.length > 0 && <div className="board-filters__people" aria-label="Участники">
-        <button className="pill" type="button" aria-pressed={!owner} onClick={() => onOwner('')}>ПОЛНЫЙ СОСТАВ</button>
-        {people.map(person => <button className="pill" type="button" key={person.id}
-          aria-pressed={owner === person.id} onClick={() => onOwner(person.id)}>{person.name}</button>)}
-      </div>}
+      {people.length > 0 && <FilterTabs label="Участники" value={owner} onChange={onOwner}
+        options={[{ id: '', name: 'ПОЛНЫЙ СОСТАВ' }, ...people]} />}
       <div className="board-filters__selects">
         <FilterSelect kind="occasion" label="Поводы" value={occasion} options={occasions.map(value => [value, value])} onChange={onOccasion} />
         <FilterSelect kind="price" label="Цена" value={price} onChange={onPrice} options={[

@@ -3,7 +3,7 @@ import arrow from '../assets/shop-arrow.svg'
 import clip from '../assets/clip.svg'
 import { backgroundFor, cardPhoto, formatPrice, giftBadge, safeLink } from './giftPresentation.js'
 
-function GiftActions({ gift, own, canSplit, onAction, pending }) {
+function GiftActions({ gift, canSplit, onAction, pending }) {
   const state = gift.participation
   if (gift.archived) return null
 
@@ -14,7 +14,6 @@ function GiftActions({ gift, own, canSplit, onAction, pending }) {
     </button>
   )
 
-  if (own) return <>{!gift.fromOhmywishes && action('edit', 'Редактировать', true)}{action('archive', 'В архив')}</>
   if (!state || state.bought) return null
   if (state.mode === 'free') return <>{action('reserve', 'Хочу подарить!', true)}{canSplit && !gift.unlimited && action('split', 'Распилить')}</>
   if (state.isMine) {
@@ -41,7 +40,11 @@ export function GiftCard({ gift, own, canSplit, onAction, pending }) {
   const badge = giftBadge(gift)
   const link = safeLink(gift.details.url)
   const title = gift.details.title
-  const toggle = () => setFlipped(value => !value)
+  const editable = own && !gift.archived
+  const activate = () => {
+    if (editable) onAction(gift, 'edit')
+    else setFlipped(value => !value)
+  }
 
   return (
     <li className="gift-slot">
@@ -49,10 +52,11 @@ export function GiftCard({ gift, own, canSplit, onAction, pending }) {
         <div className="gift-handle" aria-hidden="true"><img src={clip} width="26" height="19" alt="" /></div>
         <div className="gift-perspective">
           <article className="gift-card" data-tilt data-flipped={flipped}
-            onClick={event => { if (!event.target.closest('button, a')) toggle() }}>
-            <button type="button" className="gift-card__turn" aria-pressed={flipped}
-              aria-label={flipped ? `Показать лицевую сторону: ${title}` : `Подробнее: ${title}`}
-              onClick={toggle} />
+            onClick={event => { if (!event.target.closest('button, a')) activate() }}>
+            <button type="button" className="gift-card__turn" aria-pressed={editable ? undefined : flipped}
+              aria-haspopup={editable ? 'dialog' : undefined}
+              aria-label={editable ? `Редактировать: ${title}` : flipped ? `Показать лицевую сторону: ${title}` : `Подробнее: ${title}`}
+              onClick={activate} />
             <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`} aria-hidden={flipped}>
                 <img className="gift-card__pattern" src={backgroundFor(gift.id)} alt="" width="320" height="450" />
@@ -74,7 +78,7 @@ export function GiftCard({ gift, own, canSplit, onAction, pending }) {
                 </header>
                 {gift.details.comment && <p className="gift-card__comment">{gift.details.comment}</p>}
                 <div className="gift-card__actions">
-                  <GiftActions gift={gift} own={own} canSplit={canSplit} pending={pending} onAction={onAction} />
+                  {!own && <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />}
                 </div>
               </div>
             </div>
