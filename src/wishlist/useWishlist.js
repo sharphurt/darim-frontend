@@ -82,7 +82,7 @@ export function useWishlist() {
         const file = form.get('artwork')
         if (!file?.size) throw new Error('Выберите PNG-файл.')
         if (file.size > 5 * 1024 * 1024) throw new Error('Размер PNG должен быть не больше 5 МБ.')
-        await client.replaceCardArtwork(field('slot'), file)
+        await client.uploadCardArtwork(field('category'), file)
         reloadArtwork()
       })
     }
@@ -142,6 +142,10 @@ export function useWishlist() {
     setCompanyId,
     data,
     artwork,
+    removeArtwork: id => run(async client => {
+      await client.removeCardArtwork(id)
+      reloadArtwork()
+    }),
     pending,
     actionError,
     submitDialog,

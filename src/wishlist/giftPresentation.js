@@ -1,68 +1,6 @@
-import dark from '../assets/cards/background-dark.png'
-import dark1 from '../assets/cards/background-dark-1.png'
-import dark2 from '../assets/cards/background-dark-2.png'
-import dark3 from '../assets/cards/background-dark-3.png'
-import light from '../assets/cards/background-light.png'
-import light1 from '../assets/cards/background-light-1.png'
-import light2 from '../assets/cards/background-light-2.png'
-import light3 from '../assets/cards/background-light-3.png'
-import overlay1 from '../assets/cards/overlay-1.png'
-import overlay2 from '../assets/cards/overlay-2.png'
-import overlay3 from '../assets/cards/overlay-3.png'
-import overlay4 from '../assets/cards/overlay-4.png'
-
-const backgrounds = [
-  ...[dark, dark1, dark2, dark3].map(image => ({ image, tone: 'dark' })),
-  ...[light, light1, light2, light3].map(image => ({ image, tone: 'light' })),
-].map(({ image, tone }, index) => {
-  const number = index % 4
-  return {
-    id: `background-${tone}${number ? `-${number}` : ''}`,
-    label: `${tone === 'light' ? 'Светлый фон' : 'Тёмный фон'} ${number + 1}`,
-    image,
-    tone,
-  }
-})
-const overlays = [overlay1, overlay2, overlay3, overlay4].map((image, index) => ({
-  id: `overlay-${index + 1}`, label: `Узор ${index + 1}`, image,
-}))
-export const cardArtworkSlots = [...backgrounds, ...overlays]
-
-export function cardArtworkImage(slot, versions) {
-  const version = versions?.[slot.id]
-  return version ? `/api/card-artwork/${slot.id}/${encodeURIComponent(version)}.png` : slot.image
-}
 const priceFormat = new Intl.NumberFormat('ru-RU', {
   style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 2,
 })
-
-function loadBackgroundSeed() {
-  const key = 'darim.card-background-seed'
-  const seed = crypto.getRandomValues(new Uint32Array(1))[0]
-  try {
-    const saved = localStorage.getItem(key)
-    if (saved !== null) return Number(saved)
-    localStorage.setItem(key, String(seed))
-  } catch {
-    // The current session still has a stable selection when storage is unavailable.
-  }
-  return seed
-}
-
-const backgroundSeed = loadBackgroundSeed()
-
-export function backgroundFor(id, versions) {
-  let hash = backgroundSeed ^ 2166136261
-  for (const character of id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619)
-  const index = hash >>> 0
-  const background = backgrounds[index % backgrounds.length]
-  const overlay = overlays[Math.floor(index / backgrounds.length) % overlays.length]
-  return {
-    tone: background.tone,
-    image: cardArtworkImage(background, versions),
-    overlay: cardArtworkImage(overlay, versions),
-  }
-}
 
 export function safeLink(value) {
   if (!value) return undefined

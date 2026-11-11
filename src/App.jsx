@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { BoardDialog } from './wishlist/BoardDialog.jsx'
 import { BoardFilters, BoardHeading, BoardNavigation, WishlistCompanyFilter } from './wishlist/BoardHeader.jsx'
+import { cardArtworkCollection } from './wishlist/cardArtwork.js'
 import { GiftShelf } from './wishlist/GiftShelf.jsx'
 import { clearInvite, inviteLink, pendingInvite, retainInvite } from './wishlist/companyInvite.js'
 import { groupGifts, matchesWishlistCompany } from './wishlist/giftPresentation.js'
@@ -31,6 +32,8 @@ function BoardAccess({ session, pending, error, retry, login, inviteToken }) {
 export default function App() {
   const board = useWishlist()
   const { session, me, company, companies, view, data, pending, actionError, artwork } = board
+  const artworkImages = artwork?.images
+  const collection = useMemo(() => cardArtworkCollection(artworkImages), [artworkImages])
   const [owner, setOwner] = useState('')
   const [occasion, setOccasion] = useState('')
   const [price, setPrice] = useState('')
@@ -83,6 +86,10 @@ export default function App() {
     setDialogError('')
     const result = await board.submitDialog(dialog, form)
     if (result) {
+      if (dialog.kind === 'card-artwork') {
+        setDialog({ ...dialog, uploaded: (dialog.uploaded ?? 0) + 1, artworkStatus: 'Изображение добавлено.' })
+        return
+      }
       if (dialog.kind === 'create') navigate('mine')
       if (dialog.kind === 'create-company' || dialog.kind === 'join-company') navigate('board')
       if (dialog.kind === 'join-company' && inviteToken) dismissInvite()
@@ -92,6 +99,15 @@ export default function App() {
       }
       const token = result.response?.token
       setDialog(token ? { kind: 'invite-result', link: inviteLink(token) } : null)
+    } else {
+      setDialogError('action')
+    }
+  }
+
+  async function removeArtwork(id) {
+    setDialogError('')
+    if (await board.removeArtwork(id)) {
+      setDialog({ ...dialog, artworkStatus: 'Изображение удалено.' })
     } else {
       setDialogError('action')
     }
@@ -119,7 +135,7 @@ export default function App() {
   return (
     <>
       <BoardNavigation view={me ? view : 'board'} onView={navigate} company={company} me={me} pending={pending}
-        canManageArtwork={artwork?.canManage}
+        canManageArtwork={Array.isArray(artworkImages) && artwork.canManage}
         archived={archived} onArchive={() => { setArchived(value => !value); resetFilters() }}
         onMenu={openDialog} onLogout={logout} />
       <main>
@@ -154,11 +170,11 @@ export default function App() {
           {data?.gifts && !groups.length && <p className="board-message page-inset">Здесь пока нет желаний.</p>}
           {groups.map(group => <GiftShelf key={group.owner.id} title={view === 'mine' ? undefined : `${group.owner.name} желает`}
             gifts={group.gifts} viewerId={me.user.id} canSplit={(company?.members.length ?? 0) >= 3}
-            onAction={(gift, kind) => openDialog(kind, gift)} pending={pending} artworkVersions={artwork?.versions} />)}
+            onAction={(gift, kind) => openDialog(kind, gift)} pending={pending} artwork={collection} />)}
         </>}
       </main>
       {displayedDialog && me && <BoardDialog dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
-        artworkVersions={artwork?.versions}
+        artworkCatalog={collection.catalog} onRemoveArtwork={removeArtwork}
         error={dialogError ? actionError : ''} onClose={() => setDialog(null)} onSubmit={submit}
         onGiftAction={openDialog} />}
     </>

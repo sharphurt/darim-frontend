@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import clip from '../assets/clip.svg'
-import { backgroundFor, cardPhoto, formatPrice, giftBadge, safeLink } from './giftPresentation.js'
+import { cardPhoto, formatPrice, giftBadge, safeLink } from './giftPresentation.js'
+import { backgroundFor } from './cardArtwork.js'
 import { SplitProgress } from './GiftSplit.jsx'
 
 function GiftActions({ gift, canSplit, onAction, pending }) {
@@ -26,10 +27,10 @@ function GiftActions({ gift, canSplit, onAction, pending }) {
   return null
 }
 
-export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artworkVersions }) {
+export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork }) {
   const [flipped, setFlipped] = useState(false)
   const [failedPhoto, setFailedPhoto] = useState(null)
-  const background = backgroundFor(gift.id, artworkVersions)
+  const background = backgroundFor(gift.id, artwork)
   const photo = cardPhoto(gift)
   const showPhoto = photo && photo !== failedPhoto
   const price = formatPrice(gift.details.price)
@@ -58,7 +59,10 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artworkV
             <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
                 data-tone={background.tone} data-split={Boolean(split)} aria-hidden={flipped}
-                style={{ '--gift-background': `url("${background.image}")`, '--gift-overlay': `url("${background.overlay}")` }}>
+                style={{
+                  '--gift-background': background.image ? `url("${background.image}")` : 'none',
+                  '--gift-overlay': background.overlay ? `url("${background.overlay}")` : 'none',
+                }}>
                 {showPhoto && <img className="gift-card__photo" src={photo} alt="" loading="lazy" referrerPolicy="no-referrer"
                   onError={() => setFailedPhoto(photo)} />}
                 <div className="gift-card__summary">
