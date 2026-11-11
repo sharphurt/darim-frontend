@@ -45,6 +45,20 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
   )
 }
 
+function BoardSelect({ label, value, onChange, children }) {
+  const [pointerFocus, setPointerFocus] = useState(false)
+
+  return (
+    <select aria-label={label} value={value} onChange={event => onChange(event.target.value)}
+      data-pointer-focus={pointerFocus ? '' : undefined}
+      onPointerDown={() => setPointerFocus(true)}
+      onKeyDown={() => setPointerFocus(false)}
+      onBlur={() => setPointerFocus(false)}>
+      {children}
+    </select>
+  )
+}
+
 export function BoardHeading({ view, company, companies, onCompany }) {
   return (
     <div className="board-heading">
@@ -52,9 +66,9 @@ export function BoardHeading({ view, company, companies, onCompany }) {
       {view === 'board' && company && <label className="company-picker">
         <span className="company-picker__name" aria-hidden="true">{company.name}</span>
         <img src={chevron} alt="" width="64" height="64" />
-        <select aria-label="Компания" value={company.id} onChange={event => onCompany(event.target.value)}>
+        <BoardSelect label="Компания" value={company.id} onChange={onCompany}>
           {companies.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-        </select>
+        </BoardSelect>
       </label>}
     </div>
   )
@@ -63,11 +77,10 @@ export function BoardHeading({ view, company, companies, onCompany }) {
 function FilterSelect({ label, value, options, onChange, kind }) {
   return (
     <label className={`pill filter-select filter-select--${kind}`} data-active={Boolean(value)}>
-      <span className="sr-only">{label}</span>
-      <select value={value} onChange={event => onChange(event.target.value)}>
+      <BoardSelect label={label} value={value} onChange={onChange}>
         <option value="">{label}</option>
         {options.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
-      </select>
+      </BoardSelect>
       <img src={chevron} width="16" height="16" alt="" />
     </label>
   )

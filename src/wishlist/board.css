@@ -58,7 +58,12 @@
 .company-picker__name { min-width: 0; overflow-wrap: anywhere; }
 .company-picker img { flex: none; width: .67em; height: auto; }
 .company-picker select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
-.company-picker:has(select:focus-visible) { outline: 2px solid var(--accent-text); outline-offset: 4px; }
+.company-picker select:focus, .filter-select select:focus { outline: none; }
+.company-picker:has(select:focus-visible:not([data-pointer-focus])),
+.filter-select:has(select:focus-visible:not([data-pointer-focus])) {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 4px;
+}
 
 .board-filters {
   --ui-button-size: clamp(14px, 1.15vw, 18px);
