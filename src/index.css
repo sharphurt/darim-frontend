@@ -2,7 +2,8 @@
   font-family: 'Onest Variable', Onest, system-ui, sans-serif;
   font-style: normal;
   color: #111;
-  background: #f3f3f3;
+  background: var(--page-background);
+  --page-background: #f3f3f3;
   --ui-primary-size: 24px;
   --ui-secondary-size: 18px;
   --ui-tertiary-size: 14px;

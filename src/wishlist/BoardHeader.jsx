@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import chevron from '../assets/chevron.svg'
 import menuIcon from '../assets/menu.svg'
+import wishPlusLeft from '../assets/wish-plus-left.svg'
+import wishPlusRight from '../assets/wish-plus-right.svg'
 
 const viewNames = { board: 'Доска желаний', mine: 'Мой вишлист', giving: 'Я дарю' }
 
@@ -12,13 +14,19 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
   }
 
   return (
-    <header className="board-nav">
+    <header className="board-nav page-inset">
       <nav aria-label="Разделы">
         {Object.entries(viewNames).map(([value, label]) => (
-          <button key={value} type="button" className="pill" aria-current={view === value ? 'page' : undefined}
+          <button key={value} type="button" className="board-nav__tab" aria-current={view === value ? 'page' : undefined}
             disabled={!me || (value === 'board' && !company)} onClick={() => onView(value)}>{label}</button>
         ))}
       </nav>
+      {me && <button type="button" className="gift-action gift-action--primary board-nav__create"
+        disabled={pending} onClick={() => onMenu('create')}>
+        <img src={wishPlusLeft} width="24" height="24" alt="" />
+        <span>Загадать желание</span>
+        <img src={wishPlusRight} width="24" height="24" alt="" />
+      </button>}
       {me && <div className="board-menu" onBlur={event => {
         if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false)
       }} onKeyDown={event => {
@@ -27,10 +35,9 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
           setMenuOpen(false)
         }
       }}>
-        <button type="button" className="pill board-menu__toggle" aria-label="Меню" aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(open => !open)}><img src={menuIcon} width="42" height="42" alt="" /></button>
+        <button type="button" className="board-menu__toggle" aria-label="Меню" aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(open => !open)}><img src={menuIcon} width="32" height="32" alt="" /></button>
         {menuOpen && <div className="board-menu__panel">
-          <button type="button" onClick={() => choose(() => onMenu('create'))}>Добавить желание</button>
           <button type="button" onClick={() => choose(() => onMenu('create-company'))}>Создать компанию</button>
           <button type="button" onClick={() => choose(() => onMenu('join-company'))}>Вступить по приглашению</button>
           {company?.isOrganizer && <button type="button" onClick={() => choose(() => onMenu('invite-company'))}>

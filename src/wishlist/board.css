@@ -1,4 +1,4 @@
-.board-nav, .board-heading, .board-filters {
+.board-heading, .board-filters {
   --board-gutter: clamp(20px, 2.8vw, 40px);
   width: min(calc(100% - 2 * var(--board-gutter)), var(--page-width));
   margin-inline: auto;
@@ -6,19 +6,60 @@
 
 .board-nav {
   --ui-button-size: clamp(14px, 1.125vw, 18px);
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: "tabs create menu";
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
-  min-height: clamp(92px, 7.8125vw, 150px);
+  min-height: clamp(92px, 9.479vw, 182px);
 }
 
-.board-nav nav { display: flex; gap: 8px; min-width: 0; }
-.board-nav nav .pill { min-height: clamp(46px, 4vw, 71px); padding-inline: clamp(14px, 2vw, 32px); }
-.board-nav nav .pill:disabled:not([aria-current]) { color: #626262; }
-.board-menu { position: relative; flex: none; }
-.board-menu__toggle { width: clamp(46px, 4vw, 72px); aspect-ratio: 1; padding: 0; }
-.board-menu__toggle img { width: 58%; height: auto; }
+.board-nav nav {
+  grid-area: tabs;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: clamp(10px, 1.667vw, 32px);
+}
+.board-nav__tab, .board-menu__toggle { border: 0; border-radius: 32px; background: transparent; }
+.board-nav__tab {
+  min-height: 44px;
+  padding: clamp(8px, .834vw, 16px) 0;
+  color: #000;
+  font-size: clamp(14px, 1.042vw, 20px);
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.board-nav__tab[aria-current] { color: var(--accent); }
+.board-nav__tab:disabled:not([aria-current]) { color: #626262; }
+.board-nav .board-nav__create {
+  grid-area: create;
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: clamp(250px, 18.75vw, 360px);
+  min-height: clamp(52px, 4.115vw, 79px);
+  padding: 0 12px;
+  border-radius: 32px;
+  font-size: clamp(16px, 1.25vw, 24px);
+  font-weight: 700;
+  line-height: calc(31 / 24);
+  white-space: nowrap;
+  box-shadow: 0 20px 53.6px -15px var(--cta);
+  translate: 0 clamp(-9.5px, -.495vw, -5px);
+}
+.board-nav__create img { flex: none; }
+.board-menu { grid-area: menu; justify-self: end; position: relative; }
+.board-menu__toggle {
+  display: grid;
+  place-items: center;
+  width: clamp(44px, 3.333vw, 64px);
+  aspect-ratio: 1;
+  padding: 0;
+}
 .board-menu__panel {
   position: absolute;
   z-index: 10;
@@ -120,11 +161,15 @@
   overflow: clip;
 }
 .gift-shelf__heading {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 3;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: clamp(12px, 3.9vw, 75px);
   margin: 0;
+  background: var(--page-background);
   font-size: clamp(23px, 2.5vw, 48px);
   line-height: 1.2;
   letter-spacing: -.03em;
@@ -276,6 +321,8 @@
 .gift-action:disabled { opacity: .55; }
 
 @media (hover: hover) {
+  .board-nav__tab:not(:disabled):hover { color: var(--accent-text); }
+  .board-menu__toggle:hover { background: var(--accent-tint); }
   .board-menu__panel button:not(:disabled):hover { background: color-mix(in srgb, var(--surface), var(--accent) 10%); }
   .gift-action:not(:disabled):hover { color: color-mix(in srgb, var(--cta), black 14%); }
   .gift-action--primary:not(:disabled):hover { background: color-mix(in srgb, var(--cta), black 10%); color: #fff; }
@@ -318,10 +365,12 @@
   .gift-row { grid-template-columns: repeat(2, var(--card-width)); column-gap: clamp(18px, 4vw, 30px); }
   .gift-slot:nth-child(n) { --hang-at: .94; }
 }
+@media (max-width: 960px) {
+  .board-nav { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "tabs menu"; gap: 12px; padding-block: 12px 16px; }
+  .board-nav:has(.board-nav__create) { grid-template-areas: "tabs menu" "create create"; }
+  .board-nav .board-nav__create { width: min(100%, 280px); translate: none; }
+}
 @media (max-width: 480px) {
-  .board-nav { align-items: center; gap: 6px; }
-  .board-nav nav { flex-wrap: wrap; gap: 4px; }
-  .board-nav nav .pill { min-height: 38px; padding: 8px 11px; }
   .board-heading { font-size: clamp(32px, 9.8vw, 46px); }
   .gift-shelf { --card-width: min(73vw, 285px); }
   .gift-row { grid-template-columns: var(--card-width); }
