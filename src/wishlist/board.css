@@ -228,7 +228,7 @@
 }
 .gift-slot:hover .gift-perspective, .gift-slot:focus-within .gift-perspective { z-index: 2; }
 .gift-card {
-  --ui-primary-size: clamp(var(--ui-min-text-size), 7.5cqw, 24px);
+  --ui-primary-size: clamp(18px, 7.5cqw, 24px);
   --ui-secondary-size: clamp(var(--ui-min-text-size), 5.625cqw, 18px);
   --ui-button-size: var(--ui-secondary-size);
   position: relative;
@@ -276,10 +276,9 @@
 }
 .gift-card__front { display: flex; flex-direction: column; padding: 5cqw; color: white; background: var(--accent); }
 .gift-card__pattern { position: absolute; inset: 0; width: 100%; height: 100%; }
-.gift-card__photo { position: relative; width: 100%; height: 69.06cqw; object-fit: cover; border-radius: 2.5cqw; }
+.gift-card__photo { position: relative; width: 100%; height: 69.06cqw; min-height: 0; object-fit: cover; border-radius: 2.5cqw; }
 .gift-card__summary { position: relative; margin: 3.44cqw 1.25cqw 0; min-width: 0; }
 .gift-card__front--text .gift-card__summary { margin-block: auto; }
-.gift-card__front[data-split="true"] .gift-card__photo { min-height: 0; }
 .gift-card__front[data-split="true"] .gift-card__summary h3 { -webkit-line-clamp: 2; }
 .gift-card h3, .gift-card p { margin: 0; overflow-wrap: anywhere; }
 .gift-card h3, .board-dialog h2 {
@@ -326,7 +325,6 @@
 }
 .split-progress__track span { height: 6px; border-radius: 8px; background: #cbced3; }
 .split-progress__track [data-filled="true"] { background: var(--accent); }
-.split-progress__track [data-own="true"] { background: var(--accent-text); }
 .gift-card__front .split-progress {
   position: relative;
   margin-top: auto;
@@ -374,6 +372,7 @@
 }
 .board-dialog .dialog-check { display: flex; align-items: center; }
 .board-dialog footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.board-dialog--split form { gap: clamp(20px, 2vw, 26px); }
 .split-share:not(:empty) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
 .split-share strong { color: var(--accent-text); font-size: var(--ui-primary-size); }
 .split-hint { color: #626262; font-size: var(--ui-tertiary-size); }
@@ -395,10 +394,12 @@
   width: 36px;
   aspect-ratio: 1;
   border-radius: 50%;
+  overflow: hidden;
   background: var(--accent-tint);
   color: var(--accent-text);
   font-weight: 700;
 }
+.split-participants__avatar img { width: 100%; height: 100%; object-fit: cover; }
 .split-participants__person { display: grid; flex: 1 1 110px; gap: 2px; min-width: 0; }
 .split-participants__roles { display: flex; flex-wrap: wrap; gap: 4px; }
 .split-participants__role {

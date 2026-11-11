@@ -1,21 +1,31 @@
 import { useState } from 'react'
-import { formatPrice } from './giftPresentation.js'
+import { formatPrice, safeLink } from './giftPresentation.js'
 
-export function SplitProgress({ state, viewerId }) {
-  const { taken, slots, participants } = state
+export function SplitProgress({ state }) {
+  const { taken, slots } = state
   return (
     <div className="split-progress">
       <p>Занято {taken} из {slots}</p>
-      <div className="split-progress__track" role="img" aria-label={`Занято ${taken} из ${slots}. Свободных мест: ${slots - taken}`}
+      <div className="split-progress__track" aria-hidden="true"
         style={{ '--split-slots': slots }}>
         {Array.from({ length: slots }, (_, index) => {
-          const person = participants?.[index]
           const filled = index < taken
-          return <span key={index} data-filled={filled} data-own={person?.id === viewerId}
-            title={person?.name ?? (filled ? 'Доля занята' : 'Свободная доля')} />
+          return <span key={index} data-filled={filled} />
         })}
       </div>
     </div>
+  )
+}
+
+function ParticipantAvatar({ person }) {
+  const [failed, setFailed] = useState(null)
+  const url = safeLink(person.avatarUrl)
+  return (
+    <span className="split-participants__avatar" aria-hidden="true">
+      {url?.startsWith('https:') && url !== failed
+        ? <img src={url} alt="" width="36" height="36" referrerPolicy="no-referrer" onError={() => setFailed(url)} />
+        : person.name.trim().charAt(0).toUpperCase()}
+    </span>
   )
 }
 
@@ -51,12 +61,11 @@ export function SplitDetails({ gift, viewerId }) {
         <h3>{gift.details.title}</h3>
         <p className="split-hint">Получатель: {gift.owner.name}</p>
       </div>
-      <SplitProgress state={state} viewerId={viewerId} />
-      <p className="split-hint">Свободных мест: {state.slots - state.taken}</p>
+      <SplitProgress state={state} />
       {price != null && state.slots > 0 && <p>≈ {formatPrice(price / state.slots)} с человека</p>}
       {participants.length > 0 && <ul className="split-participants" aria-label="Участники распила">
         {participants.map(person => <li key={person.id}>
-          <span className="split-participants__avatar" aria-hidden="true">{person.name.trim().charAt(0).toUpperCase()}</span>
+          <ParticipantAvatar person={person} />
           <div className="split-participants__person">
             <strong>{person.name}</strong>
             <span className="split-hint">{person.contact || 'Контакт не указан'}</span>

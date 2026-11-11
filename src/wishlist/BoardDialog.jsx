@@ -35,9 +35,10 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
     : kind === 'join' ? 'Занять долю' : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
   const state = gift?.participation
   const canManageSplit = splitDetails && gift && !gift.archived && !state.bought
+  const dialogStyle = edit ? ' board-dialog--gift' : kind === 'split' ? ' board-dialog--split' : ''
 
   return (
-    <dialog ref={ref} className={edit ? 'board-dialog board-dialog--gift' : 'board-dialog'} aria-labelledby="dialog-title" onCancel={event => {
+    <dialog ref={ref} className={`board-dialog${dialogStyle}`} aria-labelledby="dialog-title" onCancel={event => {
       event.preventDefault()
       if (!pending) onClose()
     }}>

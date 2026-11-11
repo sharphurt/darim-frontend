@@ -65,7 +65,7 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending }) {
                   <h3>{title}</h3>
                   {price && <p>{price}</p>}
                 </div>
-                {split && <SplitProgress state={split} viewerId={viewerId} />}
+                {split && <SplitProgress state={split} />}
                 {badge && <p className="gift-card__badge">{badge}</p>}
               </div>
               <div className="gift-card__face gift-card__back" data-split={Boolean(split)} inert={!flipped}>
