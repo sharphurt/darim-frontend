@@ -32,7 +32,7 @@ export function GiftShelf({ title, gifts, viewerId, canSplit, onAction, pending 
       </h2>}
       <div className="gift-shelf__cards" ref={shelf}>
         {rows.map(row => <ul className="gift-row" key={row[0].id}>
-          {row.map(gift => <GiftCard key={gift.id} gift={gift} own={gift.owner.id === viewerId}
+          {row.map(gift => <GiftCard key={gift.id} gift={gift} viewerId={viewerId}
             canSplit={canSplit} onAction={onAction} pending={pending} />)}
         </ul>)}
       </div>

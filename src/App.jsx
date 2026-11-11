@@ -71,6 +71,11 @@ export default function App() {
 
   function openDialog(kind, gift) {
     setDialogError('')
+    if (kind === 'split-details') {
+      setDialog({ kind, gift, splitSnapshot: data })
+      board.refresh()
+      return
+    }
     setDialog({ kind, gift, token: kind === 'join-company' ? inviteToken : undefined })
   }
 
@@ -81,6 +86,10 @@ export default function App() {
       if (dialog.kind === 'create') navigate('mine')
       if (dialog.kind === 'create-company' || dialog.kind === 'join-company') navigate('board')
       if (dialog.kind === 'join-company' && inviteToken) dismissInvite()
+      if (['split', 'join'].includes(dialog.kind) && result.response?.participation?.isMine) {
+        openDialog('split-details', result.response)
+        return
+      }
       const token = result.response?.token
       setDialog(token ? { kind: 'invite-result', link: inviteLink(token) } : null)
     } else {
@@ -98,6 +107,13 @@ export default function App() {
       board.setCompanyId('')
       navigate('board')
     }
+  }
+
+  let displayedDialog = dialog
+  if (dialog?.kind === 'split-details' && data !== dialog.splitSnapshot && data?.gifts) {
+    const gift = loadedGifts.find(item => item.id === dialog.gift.id &&
+      item.participation?.mode === 'split' && item.participation.isMine)
+    displayedDialog = { ...dialog, gift }
   }
 
   return (
@@ -140,9 +156,9 @@ export default function App() {
             onAction={(gift, kind) => openDialog(kind, gift)} pending={pending} />)}
         </>}
       </main>
-      {dialog && me && <BoardDialog dialog={dialog} me={me} company={company} companies={companies} pending={pending}
+      {displayedDialog && me && <BoardDialog dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
         error={dialogError ? actionError : ''} onClose={() => setDialog(null)} onSubmit={submit}
-        onArchive={gift => openDialog('archive', gift)} />}
+        onGiftAction={openDialog} />}
     </>
   )
 }
