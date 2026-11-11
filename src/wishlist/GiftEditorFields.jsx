@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { cardPhoto } from './giftPresentation.js'
 
 const photoTypes = ['image/jpeg', 'image/png', 'image/webp']
-const maxPhotoBytes = 5 * 1024 * 1024
+const maxPhotoMegabytes = 15
+const maxPhotoBytes = maxPhotoMegabytes * 1024 * 1024
 
 function PhotoField({ gift, pending }) {
   const input = useRef(null)
@@ -22,7 +23,7 @@ function PhotoField({ gift, pending }) {
     if (!file) return
     const supported = file.type ? photoTypes.includes(file.type) : /\.(jpe?g|png|webp)$/i.test(file.name)
     const message = !supported || !file.size ? 'Выберите фото в формате JPEG, PNG или WebP.'
-      : file.size > maxPhotoBytes ? 'Фото должно занимать не больше 5 МБ.' : ''
+      : file.size > maxPhotoBytes ? `Фото должно занимать не больше ${maxPhotoMegabytes} МБ.` : ''
     field.setCustomValidity(message)
     setError(message)
     setPreview(message ? '' : URL.createObjectURL(file))
@@ -51,7 +52,7 @@ function PhotoField({ gift, pending }) {
         {(source || error) && <button type="button" className="gift-action" disabled={pending}
           onClick={clearPhoto}>{error ? 'Сбросить выбор' : 'Удалить фото'}</button>}
       </div>
-      <p id="gift-photo-formats" className="gift-editor__hint">JPEG, PNG или WebP, до 5 МБ</p>
+      <p id="gift-photo-formats" className="gift-editor__hint">JPEG, PNG или WebP, до {maxPhotoMegabytes} МБ</p>
       {error && <p className="board-error" role="alert">{error}</p>}
       {removed && <input type="hidden" name="removePhoto" value="true" />}
     </div>
