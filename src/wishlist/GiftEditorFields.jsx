@@ -63,10 +63,10 @@ function CompanyFields({ companies, company, gift }) {
   const selected = gift ? gift.visibility?.companyIds ?? [] : [company?.id]
   return (
     <fieldset className="gift-editor__companies">
-      <legend>Видно командам</legend>
+      <legend>Видно компаниям</legend>
       <label className="dialog-check">
         <input type="checkbox" name="allCompanies" checked={all} onChange={event => setAll(event.target.checked)} />
-        Все мои команды, включая будущие
+        Все мои компании, включая будущие
       </label>
       {companies.length > 0 &&
         <div className="gift-editor__company-options">
@@ -76,7 +76,7 @@ function CompanyFields({ companies, company, gift }) {
           </label>)}
         </div>
       }
-      {!all && <p className="gift-editor__hint">Без выбранных команд желание видно только вам.</p>}
+      {!all && <p className="gift-editor__hint">Без выбранных компаний желание видно только вам.</p>}
     </fieldset>
   )
 }

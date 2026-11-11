@@ -74,7 +74,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
             </button>}
             <button type="button" className="gift-action" onClick={onClose}>Закрыть</button>
           </> : link ? <button type="button" className="gift-action gift-action--primary" onClick={onClose}>Готово</button> : <>
-            {kind === 'edit' && !gift.fromOhmywishes && <button type="button" className="gift-action" disabled={pending}
+            {kind === 'edit' && !gift.fromOhmywishes && <button type="button" className="gift-action board-dialog__archive" disabled={pending}
               onClick={() => onGiftAction('archive', gift)}>В архив</button>}
             <button type="button" className="gift-action" disabled={pending} onClick={onClose}>Отмена</button>
             <button type="submit" className="gift-action gift-action--primary" disabled={pending}>

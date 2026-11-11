@@ -68,7 +68,7 @@ function BoardSelect({ label, value, onChange, children }) {
 
 export function BoardHeading({ view, company, companies, onCompany }) {
   return (
-    <div className="board-heading">
+    <div className="board-heading" data-view={view}>
       <h1>{viewNames[view]}</h1>
       {view === 'board' && company && <label className="company-picker">
         <span className="company-picker__name" aria-hidden="true">{company.name}</span>
@@ -101,9 +101,9 @@ function FilterTabs({ label, options, value, onChange }) {
 }
 
 export function WishlistCompanyFilter({ companies, value, onChange }) {
-  const options = [{ id: '', name: 'Все команды' }, ...companies, { id: 'private', name: 'Только мне' }]
+  const options = [{ id: '', name: 'Все компании' }, ...companies, { id: 'private', name: 'Только мне' }]
   return <div className="board-filters board-filters--wishlist">
-    <FilterTabs label="Команды" options={options} value={value} onChange={onChange} />
+    <FilterTabs label="Компании" options={options} value={value} onChange={onChange} />
   </div>
 }
 
