@@ -38,7 +38,12 @@ export default function App() {
   const [dialog, setDialog] = useState(null)
   const [dialogError, setDialogError] = useState('')
   const [inviteToken, setInviteToken] = useState(pendingInvite)
-  const gifts = data?.gifts ?? emptyGifts
+  const loadedGifts = data?.gifts ?? emptyGifts
+  const viewerId = me?.user.id
+  // Older Darim deployments ignore includeMine.
+  const gifts = useMemo(() => view === 'board'
+    ? loadedGifts.filter(gift => gift.owner.id !== viewerId)
+    : loadedGifts, [loadedGifts, view, viewerId])
   const occasions = useMemo(() => [...new Set(gifts.filter(gift => gift.archived === archived)
     .map(gift => gift.details.occasion).filter(Boolean))], [gifts, archived])
   const groups = useMemo(() => groupGifts(gifts.filter(gift => (
@@ -114,7 +119,7 @@ export default function App() {
               <button type="button" className="pill" onClick={() => openDialog('join-company')}>Вступить по приглашению</button>
             </div>
           </div>}
-          <BoardFilters people={view === 'board' ? company.members : []} owner={owner} onOwner={setOwner}
+          <BoardFilters people={view === 'board' ? company.members.filter(person => person.id !== viewerId) : []} owner={owner} onOwner={setOwner}
             occasions={occasions} occasion={occasion} onOccasion={setOccasion} price={price} onPrice={setPrice} />
           {archived && <p className="board-message page-inset">Архив желаний</p>}
           {actionError && !dialog && <p className="board-error page-inset" role="alert">{actionError}</p>}

@@ -14,7 +14,7 @@ export function createDarimApi() {
     gifts: (view, companyId, signal) => {
       if (view === 'mine') return http.get('/api/gifts/mine', signal)
       if (view === 'giving') return http.get('/api/gifts/giving', signal)
-      return http.get(`/api/gifts?${new URLSearchParams({ companyId })}`, signal)
+      return http.get(`/api/gifts?${new URLSearchParams({ companyId, includeMine: 'false' })}`, signal)
     },
     act: (id, action) => http.write(`/api/gifts/${id}/actions`, 'POST', action),
     saveGift: (id, gift) => id
