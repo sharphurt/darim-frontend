@@ -372,11 +372,11 @@
 }
 .board-dialog .dialog-check { display: flex; align-items: center; }
 .board-dialog footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
-.board-dialog--split form { gap: clamp(20px, 2vw, 26px); }
+.board-dialog--split form, .split-details { gap: clamp(20px, 2vw, 26px); }
 .split-share:not(:empty) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
 .split-share strong { color: var(--accent-text); font-size: var(--ui-primary-size); }
 .split-hint { color: #626262; font-size: var(--ui-tertiary-size); }
-.split-details { display: grid; gap: 14px; overflow-wrap: anywhere; }
+.split-details { display: grid; overflow-wrap: anywhere; }
 .split-details h3 { margin: 0 0 4px; }
 .split-participants { margin: 0; padding: 0; list-style: none; border-top: 1px solid #e4e4e4; }
 .split-participants li {
@@ -401,7 +401,6 @@
 }
 .split-participants__avatar img { width: 100%; height: 100%; object-fit: cover; }
 .split-participants__person { display: grid; flex: 1 1 110px; gap: 2px; min-width: 0; }
-.split-participants__roles { display: flex; flex-wrap: wrap; gap: 4px; }
 .split-participants__role {
   padding: 2px 8px;
   border-radius: 10px;

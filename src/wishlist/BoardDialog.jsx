@@ -35,7 +35,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
     : kind === 'join' ? 'Занять долю' : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
   const state = gift?.participation
   const canManageSplit = splitDetails && gift && !gift.archived && !state.bought
-  const dialogStyle = edit ? ' board-dialog--gift' : kind === 'split' ? ' board-dialog--split' : ''
+  const dialogStyle = edit ? ' board-dialog--gift' : kind === 'split' || splitDetails ? ' board-dialog--split' : ''
 
   return (
     <dialog ref={ref} className={`board-dialog${dialogStyle}`} aria-labelledby="dialog-title" onCancel={event => {
@@ -60,7 +60,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
         </>}
         {!edit && !splitDetails && kind !== 'split' && gift && <p>{gift.details.title}</p>}
         {kind === 'split' && <SplitFields gift={gift} maxSlots={(company?.members.length ?? 0) - 1} />}
-        {splitDetails && (gift ? <SplitDetails gift={gift} viewerId={me.user.id} /> : <p>Этот распил больше недоступен.</p>)}
+        {splitDetails && (gift ? <SplitDetails gift={gift} /> : <p>Этот распил больше недоступен.</p>)}
         {error && <p className="board-error" role="alert">{error}</p>}
         <footer>
           {splitDetails ? <>

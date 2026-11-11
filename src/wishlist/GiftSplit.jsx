@@ -51,7 +51,7 @@ export function SplitFields({ gift, maxSlots }) {
   )
 }
 
-export function SplitDetails({ gift, viewerId }) {
+export function SplitDetails({ gift }) {
   const state = gift.participation
   const participants = state.participants ?? []
   const price = gift.details.price
@@ -70,10 +70,7 @@ export function SplitDetails({ gift, viewerId }) {
             <strong>{person.name}</strong>
             <span className="split-hint">{person.contact || 'Контакт не указан'}</span>
           </div>
-          <div className="split-participants__roles">
-            {person.id === state.coordinatorId && <span className="split-participants__role">Координатор</span>}
-            {person.id === viewerId && <span className="split-participants__role">Вы</span>}
-          </div>
+          {person.id === state.coordinatorId && <span className="split-participants__role">Координатор</span>}
         </li>)}
       </ul>}
       {gift.archived ? <p className="split-hint">Желание в архиве.</p>
