@@ -24,7 +24,9 @@ export function useCardMotion(cards) {
     }, { rootMargin: '160px' })
 
     for (const [index, mount] of [...stage.querySelectorAll('[data-pendulum]')].entries()) {
-      const initial = restAngles[index % restAngles.length] * Math.PI / 180
+      const isFirstInRow = mount.closest('.gift-slot').matches(':first-child')
+      const angle = isFirstInRow ? -1.5 : restAngles[index % restAngles.length]
+      const initial = angle * Math.PI / 180
       states.set(mount, {
         angle: initial,
         initial,

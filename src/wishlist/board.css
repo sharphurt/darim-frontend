@@ -154,6 +154,7 @@
   position: relative;
   min-width: 0;
 }
+.gift-slot:first-child { --rest-angle: -1.5deg; }
 .gift-slot:nth-child(4n + 2) { --hang-at: .905; --hang-length: calc(var(--handle) * 1.43); --rest-angle: 1.5deg; }
 .gift-slot:nth-child(4n + 3) { --hang-at: .97; --rest-angle: 0deg; }
 .gift-slot:nth-child(4n + 4) { --hang-at: .84; --hang-length: calc(var(--handle) * 1.76); }
