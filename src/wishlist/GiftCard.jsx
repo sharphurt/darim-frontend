@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import arrow from '../assets/shop-arrow.svg'
 import clip from '../assets/clip.svg'
 import { backgroundFor, cardPhoto, formatPrice, giftBadge, safeLink } from './giftPresentation.js'
 import { SplitProgress } from './GiftSplit.jsx'
@@ -73,7 +72,9 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending }) {
                   <h3>{title}</h3>
                   <div className="gift-card__meta">
                     {price && <p>{price}</p>}
-                    {link && <a href={link} target="_blank" rel="noreferrer">Где купить <img src={arrow} width="12" height="12" alt="" /></a>}
+                    {link && <a href={link} target="_blank" rel="noreferrer">
+                      Где купить <span className="gift-card__shop-arrow" aria-hidden="true" />
+                    </a>}
                   </div>
                 </header>
                 {split && (gift.archived || split.bought) && <p>{giftBadge(gift)}</p>}
