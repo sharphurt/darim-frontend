@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createDarimApi } from '../api/darim.js'
 import { invitationToken } from './companyInvite.js'
+import { useCardArtwork } from './useCardArtwork.js'
 
 export function useWishlist() {
   const [api, setApi] = useState(createDarimApi)
@@ -30,6 +31,7 @@ export function useWishlist() {
 
   const current = session?.api === api ? session : null
   const me = current?.me
+  const [artwork, reloadArtwork] = useCardArtwork(api, Boolean(me))
   const companies = me?.companies ?? (me?.company ? [me.company] : [])
   const company = companies.find(item => item.id === companyId) ?? companies[0]
   const activeView = view === 'board' && !company ? 'mine' : view
@@ -75,6 +77,15 @@ export function useWishlist() {
 
   function submitDialog({ kind, gift }, form) {
     const field = name => form.get(name)?.trim() || null
+    if (kind === 'card-artwork') {
+      return run(async client => {
+        const file = form.get('artwork')
+        if (!file?.size) throw new Error('Выберите PNG-файл.')
+        if (file.size > 5 * 1024 * 1024) throw new Error('Размер PNG должен быть не больше 5 МБ.')
+        await client.replaceCardArtwork(field('slot'), file)
+        reloadArtwork()
+      })
+    }
     if (kind === 'create-company' || kind === 'join-company') {
       return run(async client => {
         const result = kind === 'create-company'
@@ -130,6 +141,7 @@ export function useWishlist() {
     setView,
     setCompanyId,
     data,
+    artwork,
     pending,
     actionError,
     submitDialog,

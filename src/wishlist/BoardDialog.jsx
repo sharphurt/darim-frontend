@@ -1,12 +1,14 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { GiftEditorFields } from './GiftEditorFields.jsx'
 import { SplitDetails, SplitFields } from './GiftSplit.jsx'
+import { cardArtworkImage, cardArtworkSlots } from './giftPresentation.js'
 
 const actionLabels = {
   'create-company': 'Создать компанию',
   'join-company': 'Вступить по приглашению',
   'invite-company': 'Пригласить участника',
   'invite-result': 'Ссылка для приглашения',
+  'card-artwork': 'Фоны и узоры',
   reserve: 'Забронировать подарок',
   split: 'Дарить вместе',
   'split-details': 'Участники распила',
@@ -17,7 +19,25 @@ const actionLabels = {
   archive: 'Отправить в архив',
 }
 
-export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onSubmit, onGiftAction }) {
+function CardArtworkFields({ versions, pending }) {
+  const [slotId, setSlotId] = useState(cardArtworkSlots[0].id)
+  const slot = cardArtworkSlots.find(item => item.id === slotId)
+  return <>
+    <label>Что заменить
+      <select name="slot" value={slotId} onChange={event => setSlotId(event.target.value)} disabled={pending}>
+        {cardArtworkSlots.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+      </select>
+    </label>
+    <img className="card-artwork-preview" src={cardArtworkImage(slot, versions)} width="80" height="113" alt="Текущее изображение" />
+    <label>Новый PNG
+      <input key={slotId} name="artwork" type="file" accept="image/png,.png" required disabled={pending}
+        aria-describedby="card-artwork-format" />
+    </label>
+    <p id="card-artwork-format" className="gift-editor__hint">До 5 МБ. Рекомендуемый размер — 640 × 900 пикселей.</p>
+  </>
+}
+
+export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onSubmit, onGiftAction, artworkVersions }) {
   const ref = useRef(null)
   useEffect(() => {
     const element = ref.current
@@ -28,14 +48,17 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   const { kind, gift, link } = dialog
   const edit = kind === 'edit' || kind === 'create'
   const splitDetails = kind === 'split-details'
+  const editArtwork = kind === 'card-artwork'
   const splitCancel = kind === 'cancel' && gift?.participation?.mode === 'split'
   const title = edit ? (gift ? 'Редактировать желание' : 'Новое желание')
     : kind === 'profile' ? 'Мой профиль' : splitCancel ? 'Отменить весь распил' : actionLabels[kind]
   const confirm = kind === 'split' ? 'Распилить и занять долю'
-    : kind === 'join' ? 'Занять долю' : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
+    : kind === 'join' ? 'Занять долю' : editArtwork ? 'Заменить'
+    : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
   const state = gift?.participation
   const canManageSplit = splitDetails && gift && !gift.archived && !state.bought
-  const dialogStyle = edit ? ' board-dialog--gift' : kind === 'split' || splitDetails ? ' board-dialog--split' : ''
+  const dialogStyle = edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
+    : kind === 'split' || splitDetails ? ' board-dialog--split' : ''
 
   return (
     <dialog ref={ref} className={`board-dialog${dialogStyle}`} aria-labelledby="dialog-title" onCancel={event => {
@@ -48,6 +71,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
       }}>
         <h2 id="dialog-title">{title}</h2>
         {edit && <GiftEditorFields gift={gift} company={company} companies={companies} pending={pending} />}
+        {editArtwork && <CardArtworkFields versions={artworkVersions} pending={pending} />}
         {kind === 'create-company' && <label>Название компании<input name="name" required maxLength="100" /></label>}
         {kind === 'join-company' && <label>Ссылка или код приглашения
           <input name="token" defaultValue={dialog.token} autoComplete="off" required />

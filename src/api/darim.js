@@ -15,6 +15,8 @@ export function createDarimApi() {
   return {
     authInfo: signal => http.get('/api/auth-info', signal),
     me: signal => http.get('/api/me', signal),
+    cardArtwork: signal => http.get('/api/card-artwork', signal),
+    replaceCardArtwork: (slot, file) => http.write(`/api/card-artwork/${encodeURIComponent(slot)}`, 'PUT', file, 'image/png'),
     demoLogin: index => http.write(`/auth/demo/${index}`, 'POST'),
     logout: () => http.write('/api/logout', 'POST'),
     createCompany: name => http.write('/api/company', 'POST', { name }),

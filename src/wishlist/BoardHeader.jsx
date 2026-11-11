@@ -6,7 +6,7 @@ import wishPlusRight from '../assets/wish-plus-right.svg'
 
 const viewNames = { board: 'Доска желаний', mine: 'Мой вишлист', giving: 'Я дарю' }
 
-export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, onLogout }) {
+export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, onLogout, canManageArtwork }) {
   const [menuOpen, setMenuOpen] = useState(false)
   function choose(action) {
     setMenuOpen(false)
@@ -44,6 +44,7 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
             Пригласить участника
           </button>}
           <button type="button" onClick={() => choose(() => onMenu('profile'))}>Мой профиль</button>
+          {canManageArtwork && <button type="button" onClick={() => choose(() => onMenu('card-artwork'))}>Фоны и узоры</button>}
           <button type="button" onClick={() => choose(onArchive)}>{archived ? 'Активные желания' : 'Архив желаний'}</button>
           <button type="button" disabled={pending} onClick={() => choose(onLogout)}>Выйти</button>
         </div>}

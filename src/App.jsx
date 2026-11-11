@@ -30,7 +30,7 @@ function BoardAccess({ session, pending, error, retry, login, inviteToken }) {
 
 export default function App() {
   const board = useWishlist()
-  const { session, me, company, companies, view, data, pending, actionError } = board
+  const { session, me, company, companies, view, data, pending, actionError, artwork } = board
   const [owner, setOwner] = useState('')
   const [occasion, setOccasion] = useState('')
   const [price, setPrice] = useState('')
@@ -119,6 +119,7 @@ export default function App() {
   return (
     <>
       <BoardNavigation view={me ? view : 'board'} onView={navigate} company={company} me={me} pending={pending}
+        canManageArtwork={artwork?.canManage}
         archived={archived} onArchive={() => { setArchived(value => !value); resetFilters() }}
         onMenu={openDialog} onLogout={logout} />
       <main>
@@ -153,10 +154,11 @@ export default function App() {
           {data?.gifts && !groups.length && <p className="board-message page-inset">Здесь пока нет желаний.</p>}
           {groups.map(group => <GiftShelf key={group.owner.id} title={view === 'mine' ? undefined : `${group.owner.name} желает`}
             gifts={group.gifts} viewerId={me.user.id} canSplit={(company?.members.length ?? 0) >= 3}
-            onAction={(gift, kind) => openDialog(kind, gift)} pending={pending} />)}
+            onAction={(gift, kind) => openDialog(kind, gift)} pending={pending} artworkVersions={artwork?.versions} />)}
         </>}
       </main>
       {displayedDialog && me && <BoardDialog dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
+        artworkVersions={artwork?.versions}
         error={dialogError ? actionError : ''} onClose={() => setDialog(null)} onSubmit={submit}
         onGiftAction={openDialog} />}
     </>

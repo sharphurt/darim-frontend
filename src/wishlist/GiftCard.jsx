@@ -26,10 +26,10 @@ function GiftActions({ gift, canSplit, onAction, pending }) {
   return null
 }
 
-export function GiftCard({ gift, viewerId, canSplit, onAction, pending }) {
+export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artworkVersions }) {
   const [flipped, setFlipped] = useState(false)
   const [failedPhoto, setFailedPhoto] = useState(null)
-  const background = backgroundFor(gift.id)
+  const background = backgroundFor(gift.id, artworkVersions)
   const photo = cardPhoto(gift)
   const showPhoto = photo && photo !== failedPhoto
   const price = formatPrice(gift.details.price)

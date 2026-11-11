@@ -8,13 +8,13 @@ export class ApiError extends Error {
 export function createHttpClient() {
   let csrf
 
-  async function send(path, { method = 'GET', body, signal, headers } = {}) {
+  async function send(path, { method = 'GET', body, signal, headers, rawType } = {}) {
     const response = await fetch(path, {
       method,
       signal,
       credentials: 'same-origin',
-      headers: body === undefined ? headers : { ...headers, 'Content-Type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: body === undefined ? headers : { ...headers, 'Content-Type': rawType ?? 'application/json' },
+      body: rawType ? body : JSON.stringify(body),
     })
     const isJson = response.headers.get('content-type')?.includes('json')
     const data = isJson ? await response.json() : undefined
@@ -29,7 +29,7 @@ export function createHttpClient() {
 
   return {
     get: (path, signal) => send(path, { signal }),
-    async write(path, method, body) {
+    async write(path, method, body, rawType) {
       const headers = {}
       if (path.startsWith('/api/')) {
         csrf ??= send('/api/csrf').then(data => data.token).catch(error => {
@@ -39,7 +39,7 @@ export function createHttpClient() {
         headers['X-CSRF-TOKEN'] = await csrf
       }
       try {
-        return await send(path, { method, body, headers })
+        return await send(path, { method, body, headers, rawType })
       } catch (error) {
         if (error.status === 400 || error.status === 401) csrf = undefined
         throw error

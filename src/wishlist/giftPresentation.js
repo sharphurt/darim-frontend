@@ -14,8 +14,24 @@ import overlay4 from '../assets/cards/overlay-4.png'
 const backgrounds = [
   ...[dark, dark1, dark2, dark3].map(image => ({ image, tone: 'dark' })),
   ...[light, light1, light2, light3].map(image => ({ image, tone: 'light' })),
-]
-const overlays = [overlay1, overlay2, overlay3, overlay4]
+].map(({ image, tone }, index) => {
+  const number = index % 4
+  return {
+    id: `background-${tone}${number ? `-${number}` : ''}`,
+    label: `${tone === 'light' ? 'Светлый фон' : 'Тёмный фон'} ${number + 1}`,
+    image,
+    tone,
+  }
+})
+const overlays = [overlay1, overlay2, overlay3, overlay4].map((image, index) => ({
+  id: `overlay-${index + 1}`, label: `Узор ${index + 1}`, image,
+}))
+export const cardArtworkSlots = [...backgrounds, ...overlays]
+
+export function cardArtworkImage(slot, versions) {
+  const version = versions?.[slot.id]
+  return version ? `/api/card-artwork/${slot.id}/${encodeURIComponent(version)}.png` : slot.image
+}
 const priceFormat = new Intl.NumberFormat('ru-RU', {
   style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 2,
 })
@@ -35,13 +51,17 @@ function loadBackgroundSeed() {
 
 const backgroundSeed = loadBackgroundSeed()
 
-export function backgroundFor(id) {
+export function backgroundFor(id, versions) {
   let hash = backgroundSeed ^ 2166136261
   for (const character of id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619)
   const index = hash >>> 0
   const background = backgrounds[index % backgrounds.length]
   const overlay = overlays[Math.floor(index / backgrounds.length) % overlays.length]
-  return { ...background, overlay }
+  return {
+    tone: background.tone,
+    image: cardArtworkImage(background, versions),
+    overlay: cardArtworkImage(overlay, versions),
+  }
 }
 
 export function safeLink(value) {
