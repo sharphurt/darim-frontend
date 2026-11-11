@@ -32,7 +32,7 @@
   box-shadow: 0 8px 30px #0002;
 }
 .board-menu__panel button { padding: 10px 14px; border: 0; border-radius: 8px; background: transparent; text-align: left; }
-.board-menu__panel button:focus-visible { background: var(--card-back); }
+.board-menu__panel button:focus-visible { background: var(--accent-tint); }
 
 .board-heading {
   display: flex;
@@ -152,19 +152,29 @@
 .gift-slot:nth-child(4n + 2) { --hang-at: .905; --hang-length: calc(var(--handle) * 1.43); --rest-angle: 1.5deg; }
 .gift-slot:nth-child(4n + 3) { --hang-at: .97; --rest-angle: 0deg; }
 .gift-slot:nth-child(4n + 4) { --hang-at: .84; --hang-length: calc(var(--handle) * 1.76); }
-.gift-slot:hover, .gift-slot:focus-within { z-index: 2; }
 .gift-pendulum {
   position: absolute;
   inset: calc(var(--rope-height) * var(--hang-at)) 0 auto;
-  transform-origin: center top;
+}
+.gift-handle, .gift-perspective {
+  position: relative;
   transform: rotate(var(--swing, var(--rest-angle)));
 }
-.gift-handle { position: relative; height: var(--hang-length); }
+.gift-handle {
+  z-index: 0;
+  height: var(--hang-length);
+  transform-origin: center top;
+}
 .gift-handle::before, .gift-handle::after { content: ''; position: absolute; left: 50%; translate: -50%; background: #dfe0e0; }
 .gift-handle::before { top: 0; width: 9px; height: 9px; border-radius: 50%; }
 .gift-handle::after { inset-block: 8px 12px; width: 2px; }
 .gift-handle img { position: absolute; z-index: 1; bottom: -1px; left: 50%; translate: -50%; }
-.gift-perspective { perspective: 920px; }
+.gift-perspective {
+  z-index: 1;
+  perspective: 920px;
+  transform-origin: center calc(-1 * var(--hang-length));
+}
+.gift-slot:hover .gift-perspective, .gift-slot:focus-within .gift-perspective { z-index: 2; }
 .gift-card {
   --ui-primary-size: min(24px, 7.5cqw);
   --ui-secondary-size: clamp(12px, 5.625cqw, 18px);
@@ -241,7 +251,7 @@
   gap: 3.5cqw;
   padding: 5cqw;
   transform: rotateY(180deg);
-  background: var(--card-back);
+  background: var(--surface);
 }
 .gift-card__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 5cqw; margin-top: 4cqw; }
 .gift-card__meta a { display: inline-flex; align-items: center; gap: 4px; }
@@ -312,6 +322,6 @@
   .gift-slot:nth-child(n) { --hang-at: .98; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .gift-pendulum, .gift-card { transform: none; }
+  .gift-handle, .gift-perspective, .gift-card { transform: none; }
   .gift-card__inner { transition-duration: 1ms; }
 }

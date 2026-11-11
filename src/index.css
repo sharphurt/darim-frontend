@@ -11,7 +11,7 @@
   --surface: #fff;
   --accent: #5693ee;
   --accent-text: #356bb7;
-  --card-back: #e7f1ff;
+  --accent-tint: #e7f1ff;
   --cta: #fe7159;
   --page-inset: clamp(20px, 6.25vw, 120px);
   --page-width: 1920px;

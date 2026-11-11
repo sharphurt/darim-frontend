@@ -52,16 +52,17 @@ export function useCardMotion(cards) {
         const dx = pointer.x - rect.left - rect.width / 2
         const dy = pointer.y - rect.top - rect.height / 2
         const proximity = pointer.active ? Math.exp(-Math.pow(Math.hypot(dx * 0.85, dy * 1.12) / 240, 2)) : 0
+        const pointerForce = proximity * 0.8
         const localX = clamp(dx / (rect.width * 0.6), -1, 1)
         const localY = clamp(dy / (rect.height * 0.6), -1, 1)
         const rest = state.initial + Math.sin(time * 0.00064 + state.index * 1.3) * 0.0028
-        const target = rest + localX * proximity * 0.126
+        const target = rest + localX * pointerForce * 0.126
         state.velocity += ((target - state.angle) * 21 - state.velocity * 5.9) * dt
-        state.velocity += clamp(pointer.dx * proximity * 0.00022, -0.02, 0.02)
+        state.velocity += clamp(pointer.dx * pointerForce * 0.00022, -0.02, 0.02)
         state.angle = clamp(state.angle + state.velocity * dt, -0.20, 0.20)
         const ease = 1 - Math.exp(-dt * 9)
-        state.rx += (localY * proximity * 10 - state.rx) * ease
-        state.ry += (-localX * proximity * 18 - state.ry) * ease
+        state.rx += (localY * pointerForce * 10 - state.rx) * ease
+        state.ry += (-localX * pointerForce * 18 - state.ry) * ease
         mount.style.setProperty('--swing', `${state.angle}rad`)
         state.tilt.style.setProperty('--rx', `${state.rx}deg`)
         state.tilt.style.setProperty('--ry', `${state.ry}deg`)
