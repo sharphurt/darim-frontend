@@ -18,7 +18,7 @@ function countColumns() {
   return firstMatch < 0 ? 1 : 4 - firstMatch
 }
 
-export function GiftShelf({ title, gifts, viewerId, canSplit, onAction, pending }) {
+export function GiftShelf({ title, gifts, viewerId, canSplit, onAction, pending, artworkVersions }) {
   const columns = useSyncExternalStore(subscribeColumns, countColumns)
   const rows = useMemo(() => Array.from({ length: Math.ceil(gifts.length / columns) },
     (_, index) => gifts.slice(index * columns, (index + 1) * columns)), [gifts, columns])
@@ -33,7 +33,7 @@ export function GiftShelf({ title, gifts, viewerId, canSplit, onAction, pending 
       <div className="gift-shelf__cards" ref={shelf}>
         {rows.map(row => <ul className="gift-row" key={row[0].id}>
           {row.map(gift => <GiftCard key={gift.id} gift={gift} viewerId={viewerId}
-            canSplit={canSplit} onAction={onAction} pending={pending} />)}
+            canSplit={canSplit} onAction={onAction} pending={pending} artworkVersions={artworkVersions} />)}
         </ul>)}
       </div>
     </section>
