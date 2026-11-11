@@ -1,11 +1,21 @@
-import stars from '../assets/card-stars.svg'
-import dots from '../assets/card-dots.svg'
-import waves from '../assets/card-waves.svg'
-import stripes from '../assets/card-stripes.svg'
-import pink from '../assets/card-pink.svg'
-import ice from '../assets/card-ice.svg'
+import dark from '../assets/cards/background-dark.png'
+import dark1 from '../assets/cards/background-dark-1.png'
+import dark2 from '../assets/cards/background-dark-2.png'
+import dark3 from '../assets/cards/background-dark-3.png'
+import light from '../assets/cards/background-light.png'
+import light1 from '../assets/cards/background-light-1.png'
+import light2 from '../assets/cards/background-light-2.png'
+import light3 from '../assets/cards/background-light-3.png'
+import overlay1 from '../assets/cards/overlay-1.png'
+import overlay2 from '../assets/cards/overlay-2.png'
+import overlay3 from '../assets/cards/overlay-3.png'
+import overlay4 from '../assets/cards/overlay-4.png'
 
-const backgrounds = [stars, dots, waves, stripes, pink, ice]
+const backgrounds = [
+  ...[dark, dark1, dark2, dark3].map(image => ({ image, tone: 'dark' })),
+  ...[light, light1, light2, light3].map(image => ({ image, tone: 'light' })),
+]
+const overlays = [overlay1, overlay2, overlay3, overlay4]
 const priceFormat = new Intl.NumberFormat('ru-RU', {
   style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 2,
 })
@@ -28,7 +38,10 @@ const backgroundSeed = loadBackgroundSeed()
 export function backgroundFor(id) {
   let hash = backgroundSeed ^ 2166136261
   for (const character of id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619)
-  return backgrounds[(hash >>> 0) % backgrounds.length]
+  const index = hash >>> 0
+  const background = backgrounds[index % backgrounds.length]
+  const overlay = overlays[Math.floor(index / backgrounds.length) % overlays.length]
+  return { ...background, overlay }
 }
 
 export function safeLink(value) {

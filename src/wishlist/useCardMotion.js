@@ -68,9 +68,6 @@ export function useCardMotion(cards) {
         mount.style.setProperty('--swing', `${state.angle}rad`)
         state.tilt.style.setProperty('--rx', `${state.rx}deg`)
         state.tilt.style.setProperty('--ry', `${state.ry}deg`)
-        state.tilt.style.setProperty('--shine', proximity * 0.25)
-        state.tilt.style.setProperty('--light-x', `${50 + localX * 37}%`)
-        state.tilt.style.setProperty('--light-y', `${50 + localY * 34}%`)
       }
       pointer.dx *= 0.3
       schedule()
@@ -101,7 +98,7 @@ export function useCardMotion(cards) {
       previous = 0
       for (const [mount, state] of states) {
         mount.style.removeProperty('--swing')
-        for (const property of ['--rx', '--ry', '--shine', '--light-x', '--light-y']) {
+        for (const property of ['--rx', '--ry']) {
           state.tilt.style.removeProperty(property)
         }
       }

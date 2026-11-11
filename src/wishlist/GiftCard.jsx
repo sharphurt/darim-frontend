@@ -29,6 +29,7 @@ function GiftActions({ gift, canSplit, onAction, pending }) {
 export function GiftCard({ gift, viewerId, canSplit, onAction, pending }) {
   const [flipped, setFlipped] = useState(false)
   const [failedPhoto, setFailedPhoto] = useState(null)
+  const background = backgroundFor(gift.id)
   const photo = cardPhoto(gift)
   const showPhoto = photo && photo !== failedPhoto
   const price = formatPrice(gift.details.price)
@@ -56,8 +57,8 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending }) {
               onClick={activate} />
             <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
-                data-split={Boolean(split)} aria-hidden={flipped}>
-                <img className="gift-card__pattern" src={backgroundFor(gift.id)} alt="" width="320" height="450" />
+                data-tone={background.tone} data-split={Boolean(split)} aria-hidden={flipped}
+                style={{ '--gift-background': `url("${background.image}")`, '--gift-overlay': `url("${background.overlay}")` }}>
                 {showPhoto && <img className="gift-card__photo" src={photo} alt="" loading="lazy" referrerPolicy="no-referrer"
                   onError={() => setFailedPhoto(photo)} />}
                 <div className="gift-card__summary">
