@@ -14,7 +14,7 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
   }
 
   return (
-    <header className="board-nav page-inset">
+    <header className="board-nav">
       <nav aria-label="Разделы">
         {Object.entries(viewNames).map(([value, label]) => (
           <button key={value} type="button" className="board-nav__tab" aria-current={view === value ? 'page' : undefined}

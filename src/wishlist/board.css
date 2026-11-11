@@ -1,4 +1,4 @@
-.board-heading, .board-filters {
+.board-nav, .board-heading, .board-filters {
   --board-gutter: clamp(20px, 2.8vw, 40px);
   width: min(calc(100% - 2 * var(--board-gutter)), var(--page-width));
   margin-inline: auto;
