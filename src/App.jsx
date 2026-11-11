@@ -140,7 +140,7 @@ export default function App() {
             onAction={(gift, kind) => openDialog(kind, gift)} pending={pending} />)}
         </>}
       </main>
-      {dialog && me && <BoardDialog dialog={dialog} me={me} company={company} pending={pending}
+      {dialog && me && <BoardDialog dialog={dialog} me={me} company={company} companies={companies} pending={pending}
         error={dialogError ? actionError : ''} onClose={() => setDialog(null)} onSubmit={submit}
         onArchive={gift => openDialog('archive', gift)} />}
     </>

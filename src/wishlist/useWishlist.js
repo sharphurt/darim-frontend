@@ -102,13 +102,16 @@ export function useWishlist() {
         comment: field('comment'),
         unlimited: gift?.unlimited ?? form.has('unlimited'),
       }
-      if (!gift) {
-        details.visibility = {
-          allCompanies: false,
-          companyIds: form.has('publish') && activeCompanyId ? [activeCompanyId] : [],
-        }
+      const allCompanies = form.has('allCompanies')
+      const companyIds = allCompanies ? [] : form.getAll('companyIds')
+      const previousIds = companies.filter(item => gift?.visibility?.companyIds?.includes(item.id)).map(item => item.id)
+      if (!gift || allCompanies !== Boolean(gift.visibility?.allCompanies) ||
+        companyIds.length !== previousIds.length || companyIds.some(id => !previousIds.includes(id))) {
+        details.visibility = { allCompanies, companyIds }
       }
-      return run(client => client.saveGift(gift?.id, details))
+      if (form.has('removePhoto')) details.removePhoto = true
+      const photo = form.get('photo')
+      return run(client => client.saveGift(gift?.id, details, photo?.size ? photo : undefined))
     }
     if (kind === 'archive') return run(client => client.archiveGift(gift.id))
     return run(client => client.act(gift.id, {

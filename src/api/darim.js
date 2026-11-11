@@ -1,5 +1,14 @@
 import { createHttpClient } from './http.js'
 
+function encodePhoto(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result.slice(reader.result.indexOf(',') + 1))
+    reader.onerror = () => reject(new Error('Не удалось прочитать фото.'))
+    reader.readAsDataURL(file)
+  })
+}
+
 export function createDarimApi() {
   const http = createHttpClient()
 
@@ -17,9 +26,10 @@ export function createDarimApi() {
       return http.get(`/api/gifts?${new URLSearchParams({ companyId, includeMine: 'false' })}`, signal)
     },
     act: (id, action) => http.write(`/api/gifts/${id}/actions`, 'POST', action),
-    saveGift: (id, gift) => id
-      ? http.write(`/api/gifts/${id}`, 'PUT', gift)
-      : http.write('/api/gifts', 'POST', gift),
+    async saveGift(id, gift, photo) {
+      const body = photo ? { ...gift, photo: await encodePhoto(photo) } : gift
+      return id ? http.write(`/api/gifts/${id}`, 'PUT', body) : http.write('/api/gifts', 'POST', body)
+    },
     archiveGift: id => http.write(`/api/gifts/${id}/archive`, 'POST'),
     saveProfile: profile => http.write('/api/profile', 'PUT', profile),
   }
