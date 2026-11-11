@@ -5,7 +5,7 @@
 }
 
 .board-nav {
-  --ui-button-size: clamp(14px, 1.125vw, 18px);
+  --ui-button-size: clamp(var(--ui-min-text-size), 1.125vw, 18px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   grid-template-areas: "tabs create menu";
@@ -26,7 +26,7 @@
   min-height: 44px;
   padding: clamp(8px, .834vw, 16px) 0;
   color: #000;
-  font-size: clamp(14px, 1.042vw, 20px);
+  font-size: clamp(var(--ui-min-text-size), 1.042vw, 20px);
   font-weight: 700;
   line-height: 1.3;
   white-space: nowrap;
@@ -44,7 +44,7 @@
   min-height: clamp(52px, 4.115vw, 79px);
   padding: 0 12px;
   border-radius: 32px;
-  font-size: clamp(16px, 1.25vw, 24px);
+  font-size: clamp(var(--ui-min-text-size), 1.25vw, 24px);
   font-weight: 700;
   line-height: calc(31 / 24);
   white-space: nowrap;
@@ -107,7 +107,7 @@
 }
 
 .board-filters {
-  --ui-button-size: clamp(14px, 1.15vw, 18px);
+  --ui-button-size: clamp(var(--ui-min-text-size), 1.15vw, 18px);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -228,10 +228,9 @@
 }
 .gift-slot:hover .gift-perspective, .gift-slot:focus-within .gift-perspective { z-index: 2; }
 .gift-card {
-  --ui-primary-size: min(24px, 7.5cqw);
-  --ui-secondary-size: clamp(12px, 5.625cqw, 18px);
-  --ui-tertiary-size: clamp(10px, 4.375cqw, 14px);
-  --ui-button-size: clamp(12px, 5.625cqw, 18px);
+  --ui-primary-size: clamp(var(--ui-min-text-size), 7.5cqw, 24px);
+  --ui-secondary-size: clamp(var(--ui-min-text-size), 5.625cqw, 18px);
+  --ui-button-size: var(--ui-secondary-size);
   position: relative;
   width: 100%;
   aspect-ratio: 320 / 450;

@@ -4,9 +4,10 @@
   color: #111;
   background: var(--page-background);
   --page-background: #f3f3f3;
+  --ui-min-text-size: 16px;
   --ui-primary-size: 24px;
   --ui-secondary-size: 18px;
-  --ui-tertiary-size: 14px;
+  --ui-tertiary-size: var(--ui-min-text-size);
   --ui-button-size: 18px;
   --ui-tracking: -.03em;
   --surface: #fff;
