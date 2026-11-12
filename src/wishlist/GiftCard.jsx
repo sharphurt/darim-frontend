@@ -128,7 +128,7 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
             <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
                 data-tone={background.tone} data-has-overlay={Boolean(background.overlay)}
-                data-split={Boolean(split)} aria-hidden={flipped}
+                aria-hidden={flipped}
                 style={{
                   '--gift-background': background.image ? `url("${background.image}")` : 'none',
                   '--gift-overlay': background.overlay ? `url("${background.overlay}")` : 'none',
@@ -142,8 +142,8 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
                 {split && <SplitProgress state={split} />}
                 {badge && <p className="gift-card__badge">{badge}</p>}
               </div>
-              <div className="gift-card__face gift-card__back" data-split={Boolean(split)}
-                inert={!backActive} onPointerDown={captureControlPress} ref={back}>
+              <div className="gift-card__face gift-card__back" inert={!backActive}
+                onPointerDown={captureControlPress} ref={back}>
                 <header>
                   <h3>{title}</h3>
                   <div className="gift-card__meta">
@@ -154,9 +154,11 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
                   </div>
                 </header>
                 {split && (gift.archived || split.bought) && <p>{giftBadge(gift)}</p>}
-                {gift.details.comment && <p className="gift-card__comment">{gift.details.comment}</p>}
-                <button type="button" className="gift-card__return" tabIndex={-1}
-                  aria-label={returnLabel} onClick={activate} />
+                <div className="gift-card__body">
+                  {gift.details.comment && <p className="gift-card__comment" tabIndex={0}>{gift.details.comment}</p>}
+                  <button type="button" className="gift-card__return" tabIndex={-1}
+                    aria-label={returnLabel} onClick={activate} />
+                </div>
                 <div className="gift-card__actions">
                   {!own && <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />}
                 </div>

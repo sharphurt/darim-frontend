@@ -199,17 +199,20 @@
 .gift-slot {
   --hang-at: .775;
   --hang-length: var(--handle);
+  --hang-start: calc(var(--rope-height) * var(--hang-at));
   --rest-angle: -3deg;
   position: relative;
   min-width: 0;
+  padding-block-start: var(--hang-start);
 }
 .gift-slot:first-child { --rest-angle: -1.5deg; }
 .gift-slot:nth-child(4n + 2) { --hang-at: .905; --hang-length: calc(var(--handle) * 1.43); --rest-angle: 1.5deg; }
 .gift-slot:nth-child(4n + 3) { --hang-at: .97; --rest-angle: 0deg; }
 .gift-slot:nth-child(4n + 4) { --hang-at: .84; --hang-length: calc(var(--handle) * 1.76); }
 .gift-pendulum {
-  position: absolute;
-  inset: calc(var(--rope-height) * var(--hang-at)) 0 auto;
+  position: relative;
+  /* Keep the usual spacing between ropes and let taller cards add height to their row. */
+  margin-block-end: calc(var(--row-step) - var(--hang-start) - var(--hang-length) - var(--card-height));
 }
 .gift-handle, .gift-perspective {
   position: relative;
@@ -237,8 +240,9 @@
   --ui-button-size: var(--ui-secondary-size);
   --gift-card-price-gap: clamp(8px, 5cqw, 14px);
   position: relative;
+  display: grid;
   width: 100%;
-  aspect-ratio: 320 / 450;
+  min-block-size: var(--card-height);
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   container-type: inline-size;
 }
@@ -253,14 +257,13 @@
 .gift-card__turn[aria-pressed], .gift-card__return { cursor: url('../assets/card-turn.svg') 12 12, default; }
 .gift-card[data-back-active="true"] .gift-card__turn { pointer-events: none; }
 .gift-card__inner {
-  position: absolute;
-  inset: 0;
+  display: grid;
   pointer-events: none;
 }
 /* Project each flat face separately so its contents share one hit-testing plane. */
 .gift-card__face {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  grid-area: 1 / 1;
   border-radius: 7.5cqw;
   overflow: hidden;
   pointer-events: none;
@@ -301,10 +304,10 @@
   background-image: var(--gift-overlay), var(--gift-background);
   background-blend-mode: screen, normal;
 }
-.gift-card__photo { position: relative; width: 100%; height: 69.06cqw; min-height: 0; object-fit: cover; border-radius: 2.5cqw; }
+.gift-card__photo { position: relative; flex: none; width: 100%; height: 69.06cqw; object-fit: cover; border-radius: 2.5cqw; }
 .gift-card__summary { position: relative; margin: 3.44cqw 1.25cqw 0; min-width: 0; }
 .gift-card__front--text .gift-card__summary { margin-block: auto; }
-.gift-card__front[data-split="true"] .gift-card__summary h3 { -webkit-line-clamp: 2; }
+.gift-card__summary:has(+ .gift-card__badge) { padding-block-end: 2cqw; }
 .gift-card h3, .gift-card p { margin: 0; overflow-wrap: anywhere; }
 .gift-card h3, .board-dialog h2 {
   font-size: var(--ui-primary-size);
@@ -313,11 +316,9 @@
   letter-spacing: var(--ui-tracking);
 }
 .gift-card h3 { line-height: 1.12; }
-.gift-card__summary h3, .gift-card__back h3 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .gift-card__summary p { margin-block-start: var(--gift-card-price-gap); }
 .gift-card .gift-card__badge {
-  position: absolute;
-  inset: auto 5cqw 5cqw;
+  margin-block-start: auto;
   padding: 1.75cqw 2cqw;
   border-radius: 30px;
   background: color-mix(in srgb, var(--gift-status-surface) 55%, transparent);
@@ -325,6 +326,7 @@
 }
 .gift-card__back {
   --gift-face-angle: 180deg;
+  --gift-return-height: 14px;
   display: flex;
   flex-direction: column;
   gap: 3.5cqw;
@@ -333,8 +335,17 @@
 }
 .gift-card[data-flipped="true"] .gift-card__back { --gift-face-angle: 360deg; }
 .gift-card__back :is(a, .gift-action, .gift-card__comment) { pointer-events: auto; }
+.gift-card__body {
+  /* Size the scroll area from the space left by the header and actions. */
+  contain: size;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: var(--gift-return-height);
+}
+.gift-card__body:has(.gift-card__comment) { min-block-size: calc(2lh + var(--gift-return-height)); }
 .gift-card__return {
-  flex: 1 0 14px;
+  flex: 1 0 var(--gift-return-height);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -365,8 +376,13 @@
   background: currentColor;
   mask: url("../assets/shop-arrow.svg") center / contain no-repeat;
 }
-.gift-card .gift-card__comment { min-height: 0; margin-top: 12cqw; overflow: auto; white-space: pre-wrap; }
-.gift-card__back[data-split="true"] .gift-card__comment { margin-top: 2cqw; }
+.gift-card__comment {
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  white-space: pre-wrap;
+}
 .gift-card__actions { position: relative; z-index: 1; display: grid; gap: 2.5cqw; margin-top: auto; }
 .gift-card__badge {
   font-size: var(--ui-tertiary-size);

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { cardPhoto } from './giftPresentation.js'
 
+const maxTitleLength = 80
 const photoTypes = ['image/jpeg', 'image/png', 'image/webp']
 const maxPhotoMegabytes = 15
 const maxPhotoBytes = maxPhotoMegabytes * 1024 * 1024
@@ -88,7 +89,9 @@ export function GiftEditorFields({ gift, company, companies, pending }) {
     <div className="gift-editor">
       <PhotoField gift={gift} pending={pending} />
       <div className="gift-editor__fields">
-        <label>Название<input name="title" required maxLength="160" defaultValue={details?.title} /></label>
+        <label>Название (до {maxTitleLength} символов)
+          <input name="title" required maxLength={maxTitleLength} defaultValue={details?.title} />
+        </label>
         <label>Ссылка<input name="url" type="url" maxLength="2048" defaultValue={details?.url} /></label>
         <div className="gift-editor__field-row">
           <label>Цена, ₽<input name="price" type="number" min="0" max="100000000" step="0.01" defaultValue={details?.price} /></label>
