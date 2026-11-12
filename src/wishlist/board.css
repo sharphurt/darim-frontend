@@ -622,6 +622,37 @@
 @media (max-width: 360px) {
   .gift-editor__field-row { grid-template-columns: minmax(0, 1fr); }
 }
+@media (max-width: 760px) {
+  .board-dialog--create {
+    width: calc(100% - 8px);
+    max-width: 100%;
+    max-height: calc(100dvh - 8px);
+    padding: 16px clamp(12px, 3vw, 20px);
+  }
+  .board-dialog--create :is(form, .gift-editor) { gap: 24px; }
+  .board-dialog--create .gift-editor { grid-template-columns: minmax(0, 1fr); }
+  .board-dialog--create .gift-editor__fields { gap: 20px; }
+  .board-dialog--create .gift-editor__field-row { gap: 16px; }
+  .board-dialog--create .gift-editor__preview {
+    aspect-ratio: auto;
+    height: clamp(144px, 40vw, 216px);
+  }
+  .board-dialog--create :is(input:not([type="checkbox"], [type="file"], [type="hidden"]), textarea) {
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+  .board-dialog--create .gift-editor__companies { padding: 12px 14px 16px; }
+  .board-dialog--create footer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .board-dialog--create footer .gift-action { padding-inline: 8px; }
+}
+@media (max-width: 480px) {
+  .board-dialog--create .gift-editor__field-row { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+}
 
 @media (max-width: 1199px) {
   .gift-shelf { --card-width: min(23vw, 268px); --row-step: calc(var(--rope-height) + var(--handle) + var(--card-height) + 36px); }
