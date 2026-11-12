@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import chevron from '../assets/chevron.svg'
 import menuIcon from '../assets/menu.svg'
 import wishPlusLeft from '../assets/wish-plus-left.svg'
@@ -8,8 +8,13 @@ const viewNames = { board: 'Доска желаний', mine: 'Мой вишли
 
 export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, onLogout, canManageArtwork }) {
   const [menuOpen, setMenuOpen] = useState(false)
-  function choose(action) {
+  const menuToggle = useRef(null)
+  function closeMenu() {
+    menuToggle.current.focus()
     setMenuOpen(false)
+  }
+  function choose(action) {
+    closeMenu()
     action()
   }
 
@@ -30,14 +35,12 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
       {me && <div className="board-menu" onBlur={event => {
         if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false)
       }} onKeyDown={event => {
-        if (event.key === 'Escape') {
-          event.currentTarget.querySelector('.board-menu__toggle').focus()
-          setMenuOpen(false)
-        }
+        if (menuOpen && event.key === 'Escape') closeMenu()
       }}>
-        <button type="button" className="board-menu__toggle" aria-label="Меню" aria-expanded={menuOpen}
+        <button ref={menuToggle} type="button" className="board-menu__toggle" aria-label="Меню"
+          aria-expanded={menuOpen} aria-controls="board-menu-panel"
           onClick={() => setMenuOpen(open => !open)}><img src={menuIcon} width="32" height="32" alt="" /></button>
-        {menuOpen && <div className="board-menu__panel">
+        <div id="board-menu-panel" className="board-menu__panel" inert={!menuOpen}>
           <button type="button" onClick={() => choose(() => onMenu('create-company'))}>Создать компанию</button>
           <button type="button" onClick={() => choose(() => onMenu('join-company'))}>Вступить по приглашению</button>
           {company?.isOrganizer && <button type="button" onClick={() => choose(() => onMenu('invite-company'))}>
@@ -47,7 +50,7 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
           {canManageArtwork && <button type="button" onClick={() => choose(() => onMenu('card-artwork'))}>Фоны и узоры</button>}
           <button type="button" onClick={() => choose(onArchive)}>{archived ? 'Активные желания' : 'Архив желаний'}</button>
           <button type="button" disabled={pending} onClick={() => choose(onLogout)}>Выйти</button>
-        </div>}
+        </div>
       </div>}
     </header>
   )
@@ -73,7 +76,7 @@ export function BoardHeading({ view, company, companies, onCompany }) {
       <h1>{viewNames[view]}</h1>
       {view === 'board' && company && <label className="company-picker">
         <span className="company-picker__name" aria-hidden="true">{company.name}</span>
-        <img src={chevron} alt="" width="64" height="64" />
+        <span className="company-picker__chevron" aria-hidden="true" />
         <BoardSelect label="Компания" value={company.id} onChange={onCompany}>
           {companies.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
         </BoardSelect>

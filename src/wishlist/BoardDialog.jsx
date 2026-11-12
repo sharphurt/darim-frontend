@@ -43,15 +43,30 @@ function CardArtworkFields({ catalog, pending, uploaded, onRemove }) {
   </>
 }
 
-export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onSubmit, onGiftAction, artworkCatalog, onRemoveArtwork }) {
+export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onClosed, onSubmit, onGiftAction, artworkCatalog, onRemoveArtwork }) {
   const ref = useRef(null)
+  const { kind, gift, link, closing } = dialog
   useEffect(() => {
     const element = ref.current
     element.showModal()
     return () => element.close()
   }, [])
 
-  const { kind, gift, link } = dialog
+  useEffect(() => {
+    if (!closing) return
+    const element = ref.current
+    const transition = element.getAnimations().find(animation => animation.transitionProperty === 'opacity')
+    let active = true
+    function finish() {
+      if (!active) return
+      element.close()
+      onClosed()
+    }
+    if (transition) transition.finished.then(finish, finish)
+    else finish()
+    return () => { active = false }
+  }, [closing, onClosed])
+
   const edit = kind === 'edit' || kind === 'create'
   const splitDetails = kind === 'split-details'
   const editArtwork = kind === 'card-artwork'
@@ -63,17 +78,19 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
     : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
   const state = gift?.participation
   const canManageSplit = splitDetails && gift && !gift.archived && !state.bought
-  const dialogStyle = edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
+  const dialogStyle = kind === 'create' ? ' board-dialog--gift board-dialog--create'
+    : edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
     : kind === 'split' || splitDetails ? ' board-dialog--split' : ''
 
   return (
-    <dialog ref={ref} className={`board-dialog${dialogStyle}`} aria-labelledby="dialog-title" onCancel={event => {
+    <dialog ref={ref} className={`board-dialog${dialogStyle}`} data-closing={closing}
+      aria-labelledby="dialog-title" onCancel={event => {
       event.preventDefault()
-      if (!pending) onClose()
+      if (!pending && !closing) onClose()
     }}>
-      <form onSubmit={event => {
+      <form inert={closing} onSubmit={event => {
         event.preventDefault()
-        if (!link && !splitDetails) onSubmit(new FormData(event.currentTarget))
+        if (!closing && !link && !splitDetails) onSubmit(new FormData(event.currentTarget))
       }}>
         <h2 id="dialog-title">{title}</h2>
         {edit && <GiftEditorFields gift={gift} company={company} companies={companies} pending={pending} />}

@@ -60,6 +60,7 @@
   aspect-ratio: 1;
   padding: 0;
 }
+.board-menu__toggle[aria-expanded="true"] { background: var(--accent-tint); }
 .board-menu__panel {
   position: absolute;
   z-index: 10;
@@ -71,6 +72,16 @@
   border-radius: 16px;
   background: var(--surface);
   box-shadow: 0 8px 30px #0002;
+  opacity: 0;
+  translate: 0 -6px;
+  visibility: hidden;
+  transition: opacity var(--control-duration), translate var(--control-duration), visibility 0s var(--control-duration);
+}
+.board-menu__toggle[aria-expanded="true"] + .board-menu__panel {
+  opacity: 1;
+  translate: none;
+  visibility: visible;
+  transition-delay: 0s;
 }
 .board-menu__panel button { padding: 10px 14px; border: 0; border-radius: 8px; background: transparent; text-align: left; }
 .board-menu__panel button:focus-visible { background: var(--accent-tint); }
@@ -100,7 +111,13 @@
   color: var(--accent);
 }
 .company-picker__name { min-width: 0; overflow-wrap: anywhere; }
-.company-picker img { flex: none; width: .67em; height: auto; }
+.company-picker__chevron {
+  flex: none;
+  width: .67em;
+  aspect-ratio: 1;
+  background: currentColor;
+  mask: url('../assets/chevron.svg') center / contain no-repeat;
+}
 .company-picker select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
 .company-picker select:focus, .filter-select select:focus { outline: none; }
 .company-picker:has(select:focus-visible:not([data-pointer-focus])),
@@ -419,12 +436,29 @@
 .gift-action--primary { background: var(--cta); color: #fff; }
 .gift-action:disabled { opacity: .55; }
 
+:where(.board-nav__tab, .board-menu__toggle, .board-menu__panel button, .company-picker, .gift-action, .gift-editor__photo-picker) {
+  transition-property: background-color, color, scale;
+  transition-duration: var(--control-duration);
+}
+.board-nav .board-nav__create { transition-property: background-color, color, scale, box-shadow; }
+
 @media (hover: hover) {
   .board-nav__tab:not(:disabled):hover { color: var(--accent-text); }
   .board-menu__toggle:hover { background: var(--accent-tint); }
   .board-menu__panel button:not(:disabled):hover { background: color-mix(in srgb, var(--surface), var(--accent) 10%); }
+  .company-picker:has(select:enabled):hover { color: var(--accent-text); }
   .gift-action:not(:disabled):hover { color: color-mix(in srgb, var(--cta), black 14%); }
   .gift-action--primary:not(:disabled):hover { background: color-mix(in srgb, var(--cta), black 10%); color: #fff; }
+  .board-nav .board-nav__create:enabled:hover { box-shadow: 0 24px 64px -5px #ff5136; }
+}
+
+.board-nav .board-nav__create:enabled:active { box-shadow: 0 12px 34px -14px var(--cta); }
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(.board-menu__toggle, .board-menu__panel button, .gift-action):enabled:active,
+  .gift-editor__photo-picker:has(input:enabled):active {
+    scale: .97;
+  }
 }
 
 .board-message, .board-error { margin-block: 12px 24px; }
@@ -439,6 +473,17 @@
   background: var(--surface);
 }
 .board-dialog::backdrop { background: #1116; }
+.board-dialog--create {
+  transition-property: opacity, translate;
+  transition-duration: var(--control-duration);
+}
+.board-dialog--create::backdrop { transition: opacity var(--control-duration); }
+.board-dialog--create[data-closing="true"] { opacity: 0; translate: 0 6px; }
+.board-dialog--create[data-closing="true"]::backdrop { opacity: 0; }
+@starting-style {
+  .board-dialog--create[open] { opacity: 0; translate: 0 6px; }
+  .board-dialog--create[open]::backdrop { opacity: 0; }
+}
 .board-dialog form, .board-dialog label { display: grid; gap: 8px; }
 .board-dialog form { gap: 14px; }
 .board-dialog h2, .board-dialog p { margin: 0; }
@@ -449,6 +494,10 @@
   padding: 8px 10px;
 }
 .board-dialog .dialog-check { display: flex; align-items: center; }
+.dialog-check input { transition: scale var(--control-duration); }
+@media (prefers-reduced-motion: no-preference) {
+  .dialog-check:active input:enabled { scale: .88; }
+}
 .board-dialog--artwork :is(form, label) { grid-template-columns: minmax(0, 1fr); }
 .board-dialog--artwork input[type="file"] { min-width: 0; max-width: 100%; }
 .card-artwork-list {

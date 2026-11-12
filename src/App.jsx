@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { BoardDialog } from './wishlist/BoardDialog.jsx'
 import { BoardFilters, BoardHeading, BoardNavigation, WishlistCompanyFilter } from './wishlist/BoardHeader.jsx'
 import { cardArtworkCollection } from './wishlist/cardArtwork.js'
@@ -40,6 +40,9 @@ export default function App() {
   const [wishlistCompany, setWishlistCompany] = useState('')
   const [archived, setArchived] = useState(false)
   const [dialog, setDialog] = useState(null)
+  const finishClosingDialog = useCallback(() => {
+    setDialog(current => current?.closing ? null : current)
+  }, [])
   const [dialogError, setDialogError] = useState('')
   const [inviteToken, setInviteToken] = useState(pendingInvite)
   const loadedGifts = data?.gifts ?? emptyGifts
@@ -82,6 +85,10 @@ export default function App() {
     setDialog({ kind, gift, token: kind === 'join-company' ? inviteToken : undefined })
   }
 
+  function closeDialog() {
+    setDialog(current => current?.kind === 'create' ? { ...current, closing: true } : null)
+  }
+
   async function submit(form) {
     setDialogError('')
     const result = await board.submitDialog(dialog, form)
@@ -90,7 +97,11 @@ export default function App() {
         setDialog({ ...dialog, uploaded: (dialog.uploaded ?? 0) + 1, artworkStatus: 'Изображение добавлено.' })
         return
       }
-      if (dialog.kind === 'create') navigate('mine')
+      if (dialog.kind === 'create') {
+        navigate('mine')
+        closeDialog()
+        return
+      }
       if (dialog.kind === 'create-company' || dialog.kind === 'join-company') navigate('board')
       if (dialog.kind === 'join-company' && inviteToken) dismissInvite()
       if (['split', 'join'].includes(dialog.kind) && result.response?.participation?.isMine) {
@@ -175,7 +186,7 @@ export default function App() {
       </main>
       {displayedDialog && me && <BoardDialog dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
         artworkCatalog={collection.catalog} onRemoveArtwork={removeArtwork}
-        error={dialogError ? actionError : ''} onClose={() => setDialog(null)} onSubmit={submit}
+        error={dialogError ? actionError : ''} onClose={closeDialog} onClosed={finishClosingDialog} onSubmit={submit}
         onGiftAction={openDialog} />}
     </>
   )

@@ -15,6 +15,7 @@
   --accent-text: #356bb7;
   --accent-tint: #e7f1ff;
   --cta: #fe7159;
+  --control-duration: 180ms;
   --page-inset: clamp(20px, 6.25vw, 120px);
   --page-width: 1920px;
 }
@@ -70,6 +71,8 @@ img { display: block; }
   background: var(--surface);
   text-decoration: none;
   white-space: nowrap;
+  transition-property: background-color, color, scale;
+  transition-duration: var(--control-duration);
 }
 
 .pill[aria-current] { color: var(--accent); }
@@ -78,5 +81,13 @@ img { display: block; }
 @media (hover: hover) {
   a:not(.pill):hover { color: color-mix(in srgb, var(--accent-text), black 14%); }
   .pill:not(:disabled):hover { background: color-mix(in srgb, var(--surface), var(--accent) 10%); }
-  .pill[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--accent), black 10%); }
+  .pill[aria-pressed="true"]:not(:disabled):hover { background: color-mix(in srgb, var(--accent), black 10%); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(button.pill:enabled, a.pill[href]):active { scale: .97; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --control-duration: 0ms; }
 }
