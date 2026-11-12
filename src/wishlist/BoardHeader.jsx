@@ -19,7 +19,7 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
   }
 
   return (
-    <header className="board-nav">
+    <header className={me ? 'board-nav board-nav--dock' : 'board-nav'}>
       <nav aria-label="Разделы">
         {Object.entries(viewNames).map(([value, label]) => (
           <button key={value} type="button" className="board-nav__tab" aria-current={view === value ? 'page' : undefined}
@@ -27,10 +27,10 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
         ))}
       </nav>
       {me && <button type="button" className="gift-action gift-action--primary board-nav__create"
-        disabled={pending} onClick={() => onMenu('create')}>
+        aria-label="Загадать желание" disabled={pending} onClick={() => onMenu('create')}>
         <img src={wishPlusLeft} width="24" height="24" alt="" />
-        <span>Загадать желание</span>
-        <img src={wishPlusRight} width="24" height="24" alt="" />
+        <span className="board-nav__create-label">Загадать желание</span>
+        <img className="board-nav__create-plus-right" src={wishPlusRight} width="24" height="24" alt="" />
       </button>}
       {me && <div className="board-menu" onBlur={event => {
         if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false)
