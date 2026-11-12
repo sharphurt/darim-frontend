@@ -128,7 +128,7 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
             <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
                 data-tone={background.tone} data-has-overlay={Boolean(background.overlay)}
-                aria-hidden={flipped}
+                inert={flipped}
                 style={{
                   '--gift-background': background.image ? `url("${background.image}")` : 'none',
                   '--gift-overlay': background.overlay ? `url("${background.overlay}")` : 'none',
@@ -141,6 +141,10 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
                 </div>
                 {split && <SplitProgress state={split} />}
                 {badge && <p className="gift-card__badge">{badge}</p>}
+                {own && gift.archived && <div className="gift-card__actions">
+                  <button type="button" className="gift-action gift-action--primary" disabled={pending}
+                    onClick={() => onAction(gift, 'restore')}>Вернуть</button>
+                </div>}
               </div>
               <div className="gift-card__face gift-card__back" inert={!backActive}
                 onPointerDown={captureControlPress} ref={back}>

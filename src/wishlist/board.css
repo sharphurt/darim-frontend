@@ -306,6 +306,8 @@
   background-repeat: no-repeat;
 }
 .gift-card[data-flipped="true"] .gift-card__front { --gift-face-angle: 180deg; }
+.gift-card__front:has(.gift-card__actions) { z-index: 2; }
+.gift-card__front .gift-card__actions { margin-block-start: 2.5cqw; }
 .gift-card__front[data-tone="light"][data-has-overlay="true"]::before {
   content: '';
   position: absolute;
@@ -351,7 +353,7 @@
   background: var(--surface);
 }
 .gift-card[data-flipped="true"] .gift-card__back { --gift-face-angle: 360deg; }
-.gift-card__back :is(a, .gift-action, .gift-card__comment) { pointer-events: auto; }
+.gift-card__back :is(a, .gift-card__comment), .gift-card__actions .gift-action { pointer-events: auto; }
 .gift-card__body {
   /* Size the scroll area from the space left by the header and actions. */
   contain: size;

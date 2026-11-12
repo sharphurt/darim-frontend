@@ -5,6 +5,7 @@ import wishPlusLeft from '../assets/wish-plus-left.svg'
 import wishPlusRight from '../assets/wish-plus-right.svg'
 
 const viewNames = { board: 'Доска желаний', mine: 'Мой вишлист', giving: 'Я дарю' }
+const archiveName = 'Архив желаний'
 
 export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, onLogout, canManageArtwork }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -22,7 +23,7 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
     <header className={me ? 'board-nav board-nav--dock' : 'board-nav'}>
       <nav aria-label="Разделы">
         {Object.entries(viewNames).map(([value, label]) => (
-          <button key={value} type="button" className="board-nav__tab" aria-current={view === value ? 'page' : undefined}
+          <button key={value} type="button" className="board-nav__tab" aria-current={!archived && view === value ? 'page' : undefined}
             disabled={!me || (value === 'board' && !company)} onClick={() => onView(value)}>{label}</button>
         ))}
       </nav>
@@ -48,7 +49,7 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
           </button>}
           <button type="button" onClick={() => choose(() => onMenu('profile'))}>Мой профиль</button>
           {canManageArtwork && <button type="button" onClick={() => choose(() => onMenu('card-artwork'))}>Фоны и узоры</button>}
-          <button type="button" onClick={() => choose(onArchive)}>{archived ? 'Активные желания' : 'Архив желаний'}</button>
+          <button type="button" onClick={() => choose(onArchive)}>{archived ? 'Активные желания' : archiveName}</button>
           <button type="button" disabled={pending} onClick={() => choose(onLogout)}>Выйти</button>
         </div>
       </div>}
@@ -70,10 +71,10 @@ function BoardSelect({ label, value, onChange, children }) {
   )
 }
 
-export function BoardHeading({ view, company, companies, onCompany }) {
+export function BoardHeading({ view, archived, company, companies, onCompany }) {
   return (
     <div className="board-heading" data-view={view}>
-      <h1>{viewNames[view]}</h1>
+      <h1>{archived ? archiveName : viewNames[view]}</h1>
       {view === 'board' && company && <label className="company-picker">
         <span className="company-picker__name" aria-hidden="true">{company.name}</span>
         <span className="company-picker__chevron" aria-hidden="true" />

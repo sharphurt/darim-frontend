@@ -150,7 +150,7 @@ export default function App() {
         archived={archived} onArchive={() => { setArchived(value => !value); resetFilters() }}
         onMenu={openDialog} onLogout={logout} />
       <main>
-        <BoardHeading view={me ? view : 'board'} company={company} companies={companies}
+        <BoardHeading view={me ? view : 'board'} archived={archived} company={company} companies={companies}
           onCompany={id => { board.setCompanyId(id); navigate('board') }} />
         {!me ? <BoardAccess session={session} pending={pending} error={actionError} retry={board.retrySession}
           login={board.demoLogin} inviteToken={inviteToken} /> : <>
@@ -171,7 +171,6 @@ export default function App() {
             ? <WishlistCompanyFilter companies={companies} value={wishlistCompany} onChange={setWishlistCompany} />
             : <BoardFilters people={view === 'board' ? company.members.filter(person => person.id !== viewerId) : []} owner={owner} onOwner={setOwner}
               occasions={occasions} occasion={occasion} onOccasion={setOccasion} price={price} onPrice={setPrice} />}
-          {archived && <p className="board-message page-inset">Архив желаний</p>}
           {actionError && !dialog && <p className="board-error page-inset" role="alert">{actionError}</p>}
           {!data && <p className="board-message page-inset" role="status">Загружаем желания…</p>}
           {data?.error && <div className="board-message page-inset">
@@ -181,7 +180,8 @@ export default function App() {
           {data?.gifts && !groups.length && <p className="board-message page-inset">Здесь пока нет желаний.</p>}
           {groups.map(group => <GiftShelf key={group.owner.id} title={view === 'mine' ? undefined : `${group.owner.name} желает`}
             gifts={group.gifts} viewerId={me.user.id} canSplit={(company?.members.length ?? 0) >= 3}
-            onAction={(gift, kind) => openDialog(kind, gift)} pending={pending} artwork={collection} />)}
+            onAction={(gift, kind) => kind === 'restore' ? board.restoreGift(gift.id) : openDialog(kind, gift)}
+            pending={pending} artwork={collection} />)}
         </>}
       </main>
       {displayedDialog && me && <BoardDialog dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}

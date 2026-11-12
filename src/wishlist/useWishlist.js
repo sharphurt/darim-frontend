@@ -149,6 +149,7 @@ export function useWishlist() {
     pending,
     actionError,
     submitDialog,
+    restoreGift: id => run(client => client.restoreGift(id)),
     demoLogin: index => run(client => client.demoLogin(index), true),
     logout: () => run(client => client.logout(), true),
     refresh: () => setRevision(value => value + 1),

@@ -34,6 +34,7 @@ export function createDarimApi() {
       return id ? http.write(`/api/gifts/${id}`, 'PUT', body) : http.write('/api/gifts', 'POST', body)
     },
     archiveGift: id => http.write(`/api/gifts/${id}/archive`, 'POST'),
+    restoreGift: id => http.write(`/api/gifts/${id}/restore`, 'POST'),
     saveProfile: profile => http.write('/api/profile', 'PUT', profile),
   }
 }
