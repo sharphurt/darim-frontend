@@ -71,16 +71,19 @@ function BoardSelect({ label, value, onChange, children }) {
 }
 
 export function BoardHeading({ view, archived, company, companies, onCompany }) {
+  const showCompany = !archived && view === 'board' && company
   return (
     <div className="board-heading" data-view={archived ? 'archive' : view}>
       <h1>{archived ? archiveName : viewNames[view]}</h1>
-      {!archived && view === 'board' && company && <label className="company-picker">
-        <span className="company-picker__name" aria-hidden="true">{company.name}</span>
-        <span className="company-picker__chevron" aria-hidden="true" />
-        <BoardSelect label="Компания" value={company.id} onChange={onCompany}>
-          {companies.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-        </BoardSelect>
-      </label>}
+      {showCompany && (companies.length === 1
+        ? <span className="company-picker company-picker__name">{company.name}</span>
+        : <label className="company-picker">
+          <span className="company-picker__name" aria-hidden="true">{company.name}</span>
+          <span className="company-picker__chevron" aria-hidden="true" />
+          <BoardSelect label="Компания" value={company.id} onChange={onCompany}>
+            {companies.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </BoardSelect>
+        </label>)}
     </div>
   )
 }
