@@ -39,7 +39,7 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
   const showPhoto = photo && photo !== failedPhoto
   const price = formatPrice(gift.details.price)
   const split = gift.participation?.mode === 'split' ? gift.participation : null
-  const badge = !split && giftBadge(gift)
+  const badge = giftBadge(gift)
   const link = safeLink(gift.details.url)
   const title = gift.details.title
   const own = gift.owner.id === viewerId
@@ -140,7 +140,7 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
                   {price && <p>{price}</p>}
                 </div>
                 {split && <SplitProgress state={split} />}
-                {badge && <p className="gift-card__badge">{badge}</p>}
+                {!split && badge && <p className="gift-card__badge">{badge}</p>}
                 {own && gift.archived && <div className="gift-card__actions">
                   <button type="button" className="gift-action gift-action--primary" disabled={pending}
                     onClick={() => onAction(gift, 'restore')}>Вернуть</button>
@@ -157,7 +157,7 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
                     </a>}
                   </div>
                 </header>
-                {split && (gift.archived || split.bought) && <p>{giftBadge(gift)}</p>}
+                {split?.bought && badge && <p>{badge}</p>}
                 <div className="gift-card__body">
                   {gift.details.comment && <p className="gift-card__comment" tabIndex={0}>{gift.details.comment}</p>}
                   <button type="button" className="gift-card__return" tabIndex={-1}

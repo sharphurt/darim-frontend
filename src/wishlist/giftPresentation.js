@@ -21,7 +21,7 @@ export const formatPrice = value => value == null ? '' : priceFormat.format(valu
 
 export function giftBadge(gift) {
   const state = gift.participation
-  if (gift.archived) return 'В архиве'
+  if (gift.archived) return ''
   if (state?.bought) return 'Подарок уже куплен'
   if (state?.isMine) return state.mode === 'split' ? 'Вы участвуете в распиле' : 'Вы забронировали подарок'
   if (state?.mode === 'split' && state.taken < state.slots) return 'Подарок пилится. Присоединяйтесь!'

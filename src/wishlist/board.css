@@ -307,7 +307,7 @@
 }
 .gift-card[data-flipped="true"] .gift-card__front { --gift-face-angle: 180deg; }
 .gift-card__front:has(.gift-card__actions) { z-index: 2; }
-.gift-card__front .gift-card__actions { margin-block-start: 2.5cqw; }
+.gift-card__front .gift-card__actions { padding-block-start: 2.5cqw; }
 .gift-card__front[data-tone="light"][data-has-overlay="true"]::before {
   content: '';
   position: absolute;
