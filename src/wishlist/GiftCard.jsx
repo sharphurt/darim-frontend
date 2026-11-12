@@ -32,7 +32,7 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
   const [closing, setClosing] = useState(false)
   const [controlPressed, setControlPressed] = useState(false)
   const [failedPhoto, setFailedPhoto] = useState(null)
-  const inner = useRef(null)
+  const back = useRef(null)
   const cleanUpPress = useRef(null)
   const background = backgroundFor(gift.id, artwork)
   const photo = cardPhoto(gift)
@@ -45,6 +45,7 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
   const own = gift.owner.id === viewerId
   const editable = own && !gift.archived
   const backActive = flipped || closing || controlPressed
+  const returnLabel = `Показать лицевую сторону: ${title}`
   const activate = () => {
     if (editable) onAction(gift, 'edit')
     else {
@@ -55,7 +56,7 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
 
   useEffect(() => {
     if (!closing) return
-    const [animation] = inner.current.getAnimations()
+    const [animation] = back.current.getAnimations()
     let current = true
     const finish = () => { if (current) setClosing(false) }
     if (animation) animation.finished.then(finish, finish)
@@ -67,7 +68,9 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
 
   function captureControlPress(event) {
     const control = event.target.closest('button:enabled, a[href]')
-    if (!control || !event.isPrimary || event.button > 1 || !inner.current.getAnimations().length) return
+    if (!control || !event.isPrimary || event.button > 1 || !back.current.getAnimations().some(
+      animation => animation.transitionProperty === 'transform',
+    )) return
 
     cleanUpPress.current?.()
     const { pointerId, clientX: startX, clientY: startY } = event
@@ -120,9 +123,9 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
           <article className="gift-card" data-tilt data-flipped={flipped} data-back-active={backActive}>
             <button type="button" className="gift-card__turn" aria-pressed={editable ? undefined : flipped}
               aria-haspopup={editable ? 'dialog' : undefined}
-              aria-label={editable ? `Редактировать: ${title}` : flipped ? `Показать лицевую сторону: ${title}` : `Подробнее: ${title}`}
+              aria-label={editable ? `Редактировать: ${title}` : flipped ? returnLabel : `Подробнее: ${title}`}
               onClick={activate} />
-            <div className="gift-card__inner" ref={inner}>
+            <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
                 data-tone={background.tone} data-has-overlay={Boolean(background.overlay)}
                 data-split={Boolean(split)} aria-hidden={flipped}
@@ -140,7 +143,7 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
                 {badge && <p className="gift-card__badge">{badge}</p>}
               </div>
               <div className="gift-card__face gift-card__back" data-split={Boolean(split)}
-                inert={!backActive} onPointerDown={captureControlPress}>
+                inert={!backActive} onPointerDown={captureControlPress} ref={back}>
                 <header>
                   <h3>{title}</h3>
                   <div className="gift-card__meta">
@@ -152,6 +155,8 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
                 </header>
                 {split && (gift.archived || split.bought) && <p>{giftBadge(gift)}</p>}
                 {gift.details.comment && <p className="gift-card__comment">{gift.details.comment}</p>}
+                <button type="button" className="gift-card__return" tabIndex={-1}
+                  aria-label={returnLabel} onClick={activate} />
                 <div className="gift-card__actions">
                   {!own && <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />}
                 </div>

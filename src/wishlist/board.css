@@ -231,6 +231,7 @@
 }
 .gift-perspective:has(.gift-card[data-back-active="true"], .gift-card:hover, .gift-card:focus-within) { z-index: 2; }
 .gift-card {
+  --gift-flip-duration: 900ms;
   --ui-primary-size: clamp(20px, 7.5cqw, 24px);
   --ui-secondary-size: clamp(var(--ui-min-text-size), 5.625cqw, 18px);
   --ui-button-size: var(--ui-secondary-size);
@@ -249,17 +250,14 @@
   border-radius: 7.5cqw;
   background: transparent;
 }
-.gift-card__turn[aria-pressed] { cursor: url('../assets/card-turn.svg') 12 12, default; }
+.gift-card__turn[aria-pressed], .gift-card__return { cursor: url('../assets/card-turn.svg') 12 12, default; }
+.gift-card[data-back-active="true"] .gift-card__turn { pointer-events: none; }
 .gift-card__inner {
   position: absolute;
-  z-index: 2;
   inset: 0;
   pointer-events: none;
-  transform-style: preserve-3d;
-  transform: perspective(920px) rotateY(0deg);
-  transition: transform 900ms cubic-bezier(.2,.7,.14,1);
 }
-.gift-card[data-flipped="true"] .gift-card__inner { transform: perspective(920px) rotateY(180deg); }
+/* Project each flat face separately so its contents share one hit-testing plane. */
 .gift-card__face {
   position: absolute;
   inset: 0;
@@ -267,12 +265,15 @@
   overflow: hidden;
   pointer-events: none;
   backface-visibility: hidden;
+  transform: perspective(920px) rotateY(var(--gift-face-angle));
+  transition: transform var(--gift-flip-duration) cubic-bezier(.2,.7,.14,1);
   box-shadow: 0 10px 30px #1b1b2809;
   font-size: var(--ui-secondary-size);
   line-height: calc(23 / 18);
   letter-spacing: var(--ui-tracking);
 }
 .gift-card__front {
+  --gift-face-angle: 0deg;
   --gift-status-surface: #fff;
   display: flex;
   flex-direction: column;
@@ -284,6 +285,7 @@
   background-size: cover;
   background-repeat: no-repeat;
 }
+.gift-card[data-flipped="true"] .gift-card__front { --gift-face-angle: 180deg; }
 .gift-card__front[data-tone="light"][data-has-overlay="true"]::before {
   content: '';
   position: absolute;
@@ -322,15 +324,30 @@
   backdrop-filter: blur(24px);
 }
 .gift-card__back {
+  --gift-face-angle: 180deg;
   display: flex;
   flex-direction: column;
   gap: 3.5cqw;
   padding: 5cqw;
-  transform: rotateY(180deg);
   background: var(--surface);
 }
-/* Let background clicks reach the turn button behind the back. */
-.gift-card__back :is(a, button, .gift-card__comment) { pointer-events: auto; }
+.gift-card[data-flipped="true"] .gift-card__back { --gift-face-angle: 360deg; }
+.gift-card__back :is(a, .gift-action, .gift-card__comment) { pointer-events: auto; }
+.gift-card__return {
+  flex: 1 0 14px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 7.5cqw;
+  background: transparent;
+  visibility: hidden;
+}
+/* Leave the return area inactive until the opening turn has settled. */
+.gift-card[data-flipped="true"] .gift-card__return {
+  pointer-events: auto;
+  visibility: visible;
+  transition: visibility 0s var(--gift-flip-duration);
+}
 .gift-card__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 5cqw; margin-block-start: var(--gift-card-price-gap); }
 .gift-card__meta a {
   display: inline-flex;
@@ -566,5 +583,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .gift-handle, .gift-perspective, .gift-card { transform: none; }
-  .gift-card__inner { transition: none; }
+  .gift-card { --gift-flip-duration: 0ms; }
 }
