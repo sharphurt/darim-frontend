@@ -358,6 +358,9 @@
   text-align: center;
 }
 .split-progress { display: grid; gap: 6px; }
+.split-details .split-progress__labels { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.split-details .split-progress__labels > :first-child { flex-shrink: 0; }
+.split-progress__share { min-width: 0; text-align: end; }
 .split-progress__track {
   display: grid;
   grid-auto-flow: column;
@@ -366,6 +369,9 @@
 }
 .split-progress__track span { height: 6px; border-radius: 8px; background: #cbced3; }
 .split-progress__track [data-filled="true"] { background: var(--accent); }
+@media (max-width: 480px) {
+  .split-details .split-progress__labels { font-size: var(--ui-tertiary-size); }
+}
 .gift-card__front .split-progress {
   position: relative;
   margin-top: auto;
@@ -443,7 +449,7 @@
 .split-share strong { color: var(--accent-text); font-size: var(--ui-primary-size); }
 .split-hint { color: #626262; font-size: var(--ui-tertiary-size); }
 .split-details { display: grid; overflow-wrap: anywhere; }
-.split-details h3 { margin: 0 0 4px; }
+.split-details h3 { margin: 0; }
 .split-participants { margin: 0; padding: 0; list-style: none; border-top: 1px solid #e4e4e4; }
 .split-participants li {
   display: flex;

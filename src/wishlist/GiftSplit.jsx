@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { formatPrice, safeLink } from './giftPresentation.js'
 
-export function SplitProgress({ state }) {
+export function SplitProgress({ state, share }) {
   const { taken, slots } = state
   return (
     <div className="split-progress">
-      <p>Занято {taken} из {slots}</p>
+      <div className="split-progress__labels">
+        <p>Занято {taken} из {slots}</p>
+        {share && <p className="split-progress__share">≈ {share} с человека</p>}
+      </div>
       <div className="split-progress__track" aria-hidden="true"
         style={{ '--split-slots': slots }}>
         {Array.from({ length: slots }, (_, index) => {
@@ -55,14 +58,12 @@ export function SplitDetails({ gift }) {
   const state = gift.participation
   const participants = state.participants ?? []
   const price = gift.details.price
+  const share = price != null && state.slots > 0 ? formatPrice(price / state.slots) : ''
+  const status = gift.archived ? 'Желание в архиве.' : state.bought ? 'Подарок уже куплен.' : null
   return (
     <div className="split-details">
-      <div>
-        <h3>{gift.details.title}</h3>
-        <p className="split-hint">Получатель: {gift.owner.name}</p>
-      </div>
-      <SplitProgress state={state} />
-      {price != null && state.slots > 0 && <p>≈ {formatPrice(price / state.slots)} с человека</p>}
+      <h3>{gift.details.title}</h3>
+      <SplitProgress state={state} share={share} />
       {participants.length > 0 && <ul className="split-participants" aria-label="Участники распила">
         {participants.map(person => <li key={person.id}>
           <ParticipantAvatar person={person} />
@@ -73,9 +74,7 @@ export function SplitDetails({ gift }) {
           {person.id === state.coordinatorId && <span className="split-participants__role">Координатор</span>}
         </li>)}
       </ul>}
-      {gift.archived ? <p className="split-hint">Желание в архиве.</p>
-        : state.bought ? <p className="split-hint">Подарок уже куплен.</p>
-          : <p className="split-hint">Координатор связывается с участниками и организует покупку.</p>}
+      {status && <p className="split-hint">{status}</p>}
     </div>
   )
 }
