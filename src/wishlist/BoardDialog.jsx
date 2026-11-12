@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { GiftEditorFields } from './GiftEditorFields.jsx'
+import { GiftActions, GiftBackContent } from './GiftCard.jsx'
 import { SplitDetails, SplitFields } from './GiftSplit.jsx'
 import { artworkCategoryNames } from './cardArtwork.js'
 
@@ -43,7 +44,7 @@ function CardArtworkFields({ catalog, pending, uploaded, onRemove }) {
   </>
 }
 
-export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onClosed, onSubmit, onGiftAction, artworkCatalog, onRemoveArtwork }) {
+export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onClosed, onSubmit, onGiftAction, onCardAction, canSplit, artworkCatalog, onRemoveArtwork }) {
   const ref = useRef(null)
   const { kind, gift, link, closing } = dialog
   useEffect(() => {
@@ -68,6 +69,8 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   }, [closing, onClosed])
 
   const edit = kind === 'edit' || kind === 'create'
+  const giftDetails = kind === 'gift-details'
+  const own = gift?.owner.id === me.user.id
   const splitDetails = kind === 'split-details'
   const editArtwork = kind === 'card-artwork'
   const splitCancel = kind === 'cancel' && gift?.participation?.mode === 'split'
@@ -80,15 +83,35 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   const canManageSplit = splitDetails && gift && !gift.archived && !state.bought
   const dialogStyle = kind === 'create' ? ' board-dialog--gift board-dialog--create'
     : edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
-    : kind === 'split' || splitDetails ? ' board-dialog--split' : ''
+    : kind === 'split' || splitDetails ? ' board-dialog--split' : giftDetails ? ' board-dialog--gift-details' : ''
 
   return (
     <dialog ref={ref} className={`board-dialog${dialogStyle}`} data-closing={closing}
-      aria-labelledby="dialog-title" onCancel={event => {
+      aria-labelledby="dialog-title" onClick={event => {
+      if (giftDetails && !pending && event.target === event.currentTarget) onClose()
+    }} onCancel={event => {
       event.preventDefault()
       if (!pending && !closing) onClose()
     }}>
-      <form inert={closing} onSubmit={event => {
+      {giftDetails ? <>
+        <section className="gift-details__panel">
+          <div className="gift-details__content" tabIndex={0}>
+            <GiftBackContent gift={gift} modal />
+            {error && <p className="board-error" role="alert">{error}</p>}
+          </div>
+          <footer>
+            {own ? <button type="button" className="gift-action gift-action--primary" disabled={pending}
+              onClick={() => onCardAction(gift, gift.archived ? 'restore' : 'edit')}>
+              {gift.archived ? 'Вернуть' : 'Редактировать'}
+            </button> : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
+          </footer>
+        </section>
+        <button type="button" className="gift-details__close" aria-label="Закрыть" disabled={pending} onClick={onClose}>
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      </> : <form inert={closing} onSubmit={event => {
         event.preventDefault()
         if (!closing && !link && !splitDetails) onSubmit(new FormData(event.currentTarget))
       }}>
@@ -131,7 +154,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
             </button>
           </>}
         </footer>
-      </form>
+      </form>}
     </dialog>
   )
 }

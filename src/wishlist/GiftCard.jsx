@@ -4,7 +4,7 @@ import { cardPhoto, formatPrice, giftBadge, safeLink } from './giftPresentation.
 import { backgroundFor } from './cardArtwork.js'
 import { SplitProgress } from './GiftSplit.jsx'
 
-function GiftActions({ gift, canSplit, onAction, pending }) {
+export function GiftActions({ gift, canSplit, onAction, pending }) {
   const state = gift.participation
 
   const action = (id, label, primary = false) => (
@@ -27,7 +27,34 @@ function GiftActions({ gift, canSplit, onAction, pending }) {
   return null
 }
 
-export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork }) {
+export function GiftBackContent({ gift, own, canSplit, pending, onAction, onCommentClick, modal = false }) {
+  const { title, comment, url, price } = gift.details
+  const formattedPrice = formatPrice(price)
+  const link = safeLink(url)
+  const photo = modal && cardPhoto(gift)
+  const Heading = modal ? 'h2' : 'h3'
+  return <>
+    <header>
+      <Heading id={modal ? 'dialog-title' : undefined}>{title}</Heading>
+      <div className="gift-card__meta">
+        {formattedPrice && <p>{formattedPrice}</p>}
+        {link && <a href={link} target="_blank" rel="noreferrer">
+          Где купить <span className="gift-card__shop-arrow" aria-hidden="true" />
+        </a>}
+      </div>
+    </header>
+    {photo && <img className="gift-details__photo" src={photo} alt="" referrerPolicy="no-referrer" />}
+    {gift.participation?.mode === 'split' && gift.participation.bought && <p>{giftBadge(gift)}</p>}
+    <div className={modal ? undefined : 'gift-card__body'}>
+      {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}
+    </div>
+    {!own && !modal && <div className="gift-card__actions">
+      <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />
+    </div>}
+  </>
+}
+
+export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pending, artwork }) {
   const [flipped, setFlipped] = useState(false)
   const [closing, setClosing] = useState(false)
   const [controlPressed, setControlPressed] = useState(false)
@@ -40,18 +67,24 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
   const price = formatPrice(gift.details.price)
   const split = gift.participation?.mode === 'split' ? gift.participation : null
   const badge = giftBadge(gift)
-  const link = safeLink(gift.details.url)
   const title = gift.details.title
   const own = gift.owner.id === viewerId
   const editable = own && !gift.archived
   const backActive = flipped || closing || controlPressed
   const returnLabel = `Показать лицевую сторону: ${title}`
   const activate = () => {
-    if (editable) onAction(gift, 'edit')
+    if (openDetails) onAction(gift, 'gift-details')
+    else if (editable) onAction(gift, 'edit')
     else {
       setClosing(flipped)
       setFlipped(!flipped)
     }
+  }
+
+  function activateFromComment(event) {
+    const selection = window.getSelection()
+    if (selection && !selection.isCollapsed && selection.containsNode(event.currentTarget, true)) return
+    activate()
   }
 
   useEffect(() => {
@@ -121,9 +154,9 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
         <div className="gift-handle" aria-hidden="true"><img src={clip} width="26" height="19" alt="" /></div>
         <div className="gift-perspective">
           <article className="gift-card" data-tilt data-flipped={flipped} data-back-active={backActive}>
-            <button type="button" className="gift-card__turn" aria-pressed={editable ? undefined : flipped}
-              aria-haspopup={editable ? 'dialog' : undefined}
-              aria-label={editable ? `Редактировать: ${title}` : flipped ? returnLabel : `Подробнее: ${title}`}
+            <button type="button" className="gift-card__turn" aria-pressed={editable || openDetails ? undefined : flipped}
+              aria-haspopup={editable || openDetails ? 'dialog' : undefined}
+              aria-label={editable && !openDetails ? `Редактировать: ${title}` : flipped && !openDetails ? returnLabel : `Подробнее: ${title}`}
               onClick={activate} />
             <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
@@ -148,24 +181,8 @@ export function GiftCard({ gift, viewerId, canSplit, onAction, pending, artwork 
               </div>
               <div className="gift-card__face gift-card__back" inert={!backActive}
                 onPointerDown={captureControlPress} ref={back}>
-                <header>
-                  <h3>{title}</h3>
-                  <div className="gift-card__meta">
-                    {price && <p>{price}</p>}
-                    {link && <a href={link} target="_blank" rel="noreferrer">
-                      Где купить <span className="gift-card__shop-arrow" aria-hidden="true" />
-                    </a>}
-                  </div>
-                </header>
-                {split?.bought && badge && <p>{badge}</p>}
-                <div className="gift-card__body">
-                  {gift.details.comment && <p className="gift-card__comment" tabIndex={0}>{gift.details.comment}</p>}
-                  <button type="button" className="gift-card__return" tabIndex={-1}
-                    aria-label={returnLabel} onClick={activate} />
-                </div>
-                <div className="gift-card__actions">
-                  {!own && <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />}
-                </div>
+                <GiftBackContent gift={gift} own={own} canSplit={canSplit} pending={pending}
+                  onAction={onAction} onCommentClick={activateFromComment} />
               </div>
             </div>
           </article>

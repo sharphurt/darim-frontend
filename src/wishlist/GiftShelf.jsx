@@ -18,13 +18,13 @@ function countColumns() {
   return firstMatch < 0 ? 1 : 4 - firstMatch
 }
 
-export function GiftShelf({ title, gifts, viewerId, canSplit, onAction, pending, artwork }) {
+export function GiftShelf({ title, label = title ?? 'Мои желания', gifts, viewerId, canSplit, onAction, pending, artwork }) {
   const columns = useSyncExternalStore(subscribeColumns, countColumns)
   const rows = useMemo(() => Array.from({ length: Math.ceil(gifts.length / columns) },
     (_, index) => gifts.slice(index * columns, (index + 1) * columns)), [gifts, columns])
   const shelf = useCardMotion(rows)
   return (
-    <section className="gift-shelf" aria-label={title ?? 'Мои желания'}>
+    <section className="gift-shelf" aria-label={label}>
       {title && <h2 className="gift-shelf__heading">
         <img src={separator} alt="" width="694" height="62" />
         <span>{title}</span>
@@ -33,7 +33,7 @@ export function GiftShelf({ title, gifts, viewerId, canSplit, onAction, pending,
       <div className="gift-shelf__cards" ref={shelf}>
         {rows.map(row => <ul className="gift-row" key={row[0].id}>
           {row.map(gift => <GiftCard key={gift.id} gift={gift} viewerId={viewerId}
-            canSplit={canSplit} onAction={onAction} pending={pending} artwork={artwork} />)}
+            openDetails={columns <= 2} canSplit={canSplit} onAction={onAction} pending={pending} artwork={artwork} />)}
         </ul>)}
       </div>
     </section>

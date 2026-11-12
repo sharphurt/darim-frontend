@@ -3,7 +3,7 @@ import { createDarimApi } from '../api/darim.js'
 import { invitationToken } from './companyInvite.js'
 import { useCardArtwork } from './useCardArtwork.js'
 
-export function useWishlist() {
+export function useWishlist(archived) {
   const [api, setApi] = useState(createDarimApi)
   const [revision, setRevision] = useState(0)
   const [view, setView] = useState('board')
@@ -36,13 +36,15 @@ export function useWishlist() {
   const company = companies.find(item => item.id === companyId) ?? companies[0]
   const activeView = view === 'board' && !company ? 'mine' : view
   const activeCompanyId = company?.id
-  const queryKey = `${me?.user.id}/${activeView}/${activeCompanyId ?? ''}`
+  const queryView = archived ? 'archive' : activeView
+  const queryCompanyId = archived ? undefined : activeCompanyId
+  const queryKey = `${me?.user.id}/${queryView}/${queryCompanyId ?? ''}`
 
   useEffect(() => {
     if (!me) return
     const controller = new AbortController()
     const { signal } = controller
-    api.gifts(activeView, activeCompanyId, signal).then(gifts => {
+    api.gifts(queryView, queryCompanyId, signal).then(gifts => {
       if (!signal.aborted) setResult({ queryKey, gifts })
     }).catch(error => {
       if (signal.aborted) return
@@ -50,7 +52,7 @@ export function useWishlist() {
       else setResult({ queryKey, error: error.message })
     })
     return () => controller.abort()
-  }, [api, me, activeView, activeCompanyId, queryKey, revision])
+  }, [api, me, queryView, queryCompanyId, queryKey, revision])
 
   const data = result?.queryKey === queryKey ? result : null
 
@@ -104,21 +106,21 @@ export function useWishlist() {
     }
     if (kind === 'create' || kind === 'edit') {
       const price = field('price')
+      const url = field('url')
       const details = {
         title: field('title'),
-        url: field('url'),
+        url: url && !/^[a-z][a-z\d+.-]*:\/\//i.test(url) ? `https://${url.replace(/^\/\//, '')}` : url,
         price: price === null ? null : Number(price),
         occasion: field('occasion') ?? 'Без повода',
-        occasionDate: field('occasionDate'),
+        occasionDate: gift?.details.occasionDate ?? null,
         comment: field('comment'),
         unlimited: gift?.unlimited ?? form.has('unlimited'),
       }
-      const allCompanies = form.has('allCompanies')
-      const companyIds = allCompanies ? [] : form.getAll('companyIds')
-      const previousIds = companies.filter(item => gift?.visibility?.companyIds?.includes(item.id)).map(item => item.id)
-      if (!gift || allCompanies !== Boolean(gift.visibility?.allCompanies) ||
+      const companyIds = form.getAll('companyIds')
+      const previousIds = gift?.visibility?.companyIds ?? []
+      if (!gift || gift.visibility?.allCompanies ||
         companyIds.length !== previousIds.length || companyIds.some(id => !previousIds.includes(id))) {
-        details.visibility = { allCompanies, companyIds }
+        details.visibility = { allCompanies: false, companyIds }
       }
       if (form.has('removePhoto')) details.removePhoto = true
       const photo = form.get('photo')

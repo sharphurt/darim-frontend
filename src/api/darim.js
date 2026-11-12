@@ -24,6 +24,10 @@ export function createDarimApi() {
     joinCompany: token => http.write('/api/company/join?returnCompany=true', 'POST', { token }),
     issueInvite: companyId => http.write('/api/company/invite', 'POST', { companyId, maxUses: 1 }),
     gifts: (view, companyId, signal) => {
+      if (view === 'archive') return Promise.all([
+        http.get('/api/gifts/mine', signal),
+        http.get('/api/gifts/giving', signal),
+      ]).then(([mine, giving]) => [...mine, ...giving].filter(gift => gift.archived))
       if (view === 'mine') return http.get('/api/gifts/mine', signal)
       if (view === 'giving') return http.get('/api/gifts/giving', signal)
       return http.get(`/api/gifts?${new URLSearchParams({ companyId, includeMine: 'false' })}`, signal)

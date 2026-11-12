@@ -61,24 +61,41 @@ function PhotoField({ gift, pending }) {
 }
 
 function CompanyFields({ companies, company, gift }) {
-  const [all, setAll] = useState(gift?.visibility?.allCompanies ?? false)
-  const selected = gift ? gift.visibility?.companyIds ?? [] : [company?.id]
+  const [selected, setSelected] = useState(() => companies.filter(item => gift
+    ? gift.visibility?.allCompanies || gift.visibility?.companyIds?.includes(item.id)
+    : item.id === company?.id).map(item => item.id))
+  const [shared, setShared] = useState(selected.length > 0)
+  const all = selected.length === companies.length
   return (
     <fieldset className="gift-editor__companies">
-      <legend>Видно компаниям</legend>
-      <label className="dialog-check">
-        <input type="checkbox" name="allCompanies" checked={all} onChange={event => setAll(event.target.checked)} />
-        Все мои компании, включая будущие
-      </label>
-      {companies.length > 0 &&
+      <legend>Видимость</legend>
+      <div className="gift-editor__visibility">
+        <label className="dialog-check">
+          <input type="radio" name="visibility" checked={!shared} onChange={() => setShared(false)} />
+          Видно только мне
+        </label>
+        <label className="dialog-check">
+          <input type="radio" name="visibility" checked={shared} onChange={() => setShared(true)} />
+          Видно другим
+        </label>
+      </div>
+      {shared && (companies.length ? <>
+        <label className="dialog-check">
+          <input type="checkbox" checked={all} onChange={event => setSelected(
+            event.target.checked ? companies.map(item => item.id) : [],
+          )} />
+          Все
+        </label>
         <div className="gift-editor__company-options">
           {companies.map(item => <label className="dialog-check" key={item.id}>
-            <input type="checkbox" name="companyIds" value={item.id} defaultChecked={selected.includes(item.id)} disabled={all} />
+            <input type="checkbox" name="companyIds" value={item.id} checked={selected.includes(item.id)}
+              onChange={event => setSelected(event.target.checked
+                ? [...selected, item.id] : selected.filter(id => id !== item.id))} />
             {item.name}
           </label>)}
         </div>
-      }
-      {!all && <p className="gift-editor__hint">Без выбранных компаний желание видно только вам.</p>}
+        {!selected.length && <p className="gift-editor__hint">Без выбранных компаний желание видно только вам.</p>}
+      </> : <p className="gift-editor__hint">У вас пока нет компаний.</p>)}
     </fieldset>
   )
 }
@@ -92,11 +109,9 @@ export function GiftEditorFields({ gift, company, companies, pending }) {
         <label>Название (до {maxTitleLength} символов)
           <input name="title" required maxLength={maxTitleLength} defaultValue={details?.title} />
         </label>
-        <label>Ссылка<input name="url" type="url" maxLength="2048" defaultValue={details?.url} /></label>
-        <div className="gift-editor__field-row">
-          <label>Цена, ₽<input name="price" type="number" min="0" max="100000000" step="0.01" defaultValue={details?.price} /></label>
-          <label>Дата<input name="occasionDate" type="date" defaultValue={details?.occasionDate} /></label>
-        </div>
+        <label>Ссылка<input name="url" inputMode="url" maxLength="2048" defaultValue={details?.url} /></label>
+        <label>Цена, ₽<input name="price" type="number" inputMode="decimal"
+          min="0" max="100000000" step="0.01" defaultValue={details?.price} /></label>
         <label>Повод<input name="occasion" maxLength="80" defaultValue={details?.occasion} placeholder="Без повода" /></label>
         <label>Комментарий<textarea name="comment" rows="3" maxLength="2000" defaultValue={details?.comment} /></label>
         {!gift && <label className="dialog-check"><input type="checkbox" name="unlimited" /> Бесконечное желание</label>}

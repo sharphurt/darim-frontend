@@ -30,15 +30,13 @@ function BoardAccess({ session, pending, error, retry, login, inviteToken }) {
 }
 
 export default function App() {
-  const board = useWishlist()
+  const [archived, setArchived] = useState(false)
+  const board = useWishlist(archived)
   const { session, me, company, companies, view, data, pending, actionError, artwork } = board
   const artworkImages = artwork?.images
   const collection = useMemo(() => cardArtworkCollection(artworkImages), [artworkImages])
   const [owner, setOwner] = useState('')
-  const [occasion, setOccasion] = useState('')
-  const [price, setPrice] = useState('')
   const [wishlistCompany, setWishlistCompany] = useState('')
-  const [archived, setArchived] = useState(false)
   const [dialog, setDialog] = useState(null)
   const finishClosingDialog = useCallback(() => {
     setDialog(current => current?.closing ? null : current)
@@ -51,21 +49,15 @@ export default function App() {
   const gifts = useMemo(() => view === 'board'
     ? loadedGifts.filter(gift => gift.owner.id !== viewerId)
     : loadedGifts, [loadedGifts, view, viewerId])
-  const occasions = useMemo(() => [...new Set(gifts.filter(gift => gift.archived === archived)
-    .map(gift => gift.details.occasion).filter(Boolean))], [gifts, archived])
-  const groups = useMemo(() => groupGifts(gifts.filter(gift => (
-    gift.archived === archived &&
-    (view === 'mine'
+  const groups = useMemo(() => {
+    if (archived) return loadedGifts.length ? [{ gifts: loadedGifts }] : []
+    return groupGifts(gifts.filter(gift => !gift.archived && (view === 'mine'
       ? matchesWishlistCompany(gift.visibility, wishlistCompany)
-      : (!owner || gift.owner.id === owner) &&
-        (!occasion || gift.details.occasion === occasion) &&
-        (!price || (gift.details.price != null && gift.details.price <= Number(price))))
-  ))), [gifts, view, wishlistCompany, owner, occasion, price, archived])
+      : !owner || gift.owner.id === owner)))
+  }, [gifts, loadedGifts, view, wishlistCompany, owner, archived])
 
   function resetFilters() {
     setOwner('')
-    setOccasion('')
-    setPrice('')
     setWishlistCompany('')
   }
 
@@ -83,6 +75,12 @@ export default function App() {
       return
     }
     setDialog({ kind, gift, token: kind === 'join-company' ? inviteToken : undefined })
+  }
+
+  async function handleGiftAction(gift, kind) {
+    if (kind !== 'restore') return openDialog(kind, gift)
+    if (await board.restoreGift(gift.id)) setDialog(current => current?.gift === gift ? null : current)
+    else setDialogError('action')
   }
 
   function closeDialog() {
@@ -167,10 +165,10 @@ export default function App() {
               <button type="button" className="pill" onClick={() => openDialog('join-company')}>Вступить по приглашению</button>
             </div>
           </div>}
-          {view === 'mine'
+          {!archived && (view === 'mine'
             ? <WishlistCompanyFilter companies={companies} value={wishlistCompany} onChange={setWishlistCompany} />
-            : <BoardFilters people={view === 'board' ? company.members.filter(person => person.id !== viewerId) : []} owner={owner} onOwner={setOwner}
-              occasions={occasions} occasion={occasion} onOccasion={setOccasion} price={price} onPrice={setPrice} />}
+            : view === 'board' && <BoardFilters people={company.members.filter(person => person.id !== viewerId)}
+              owner={owner} onOwner={setOwner} />)}
           {actionError && !dialog && <p className="board-error page-inset" role="alert">{actionError}</p>}
           {!data && <p className="board-message page-inset" role="status">Загружаем желания…</p>}
           {data?.error && <div className="board-message page-inset">
@@ -178,16 +176,18 @@ export default function App() {
             <button className="pill" type="button" onClick={board.refresh}>Повторить</button>
           </div>}
           {data?.gifts && !groups.length && <p className="board-message page-inset">Здесь пока нет желаний.</p>}
-          {groups.map(group => <GiftShelf key={group.owner.id} title={view === 'mine' ? undefined : `${group.owner.name} желает`}
+          {groups.map(group => <GiftShelf key={archived ? 'archive' : group.owner.id}
+            title={archived || view === 'mine' ? undefined : `${group.owner.name} желает`}
+            label={archived ? 'Архив желаний' : undefined}
             gifts={group.gifts} viewerId={me.user.id} canSplit={(company?.members.length ?? 0) >= 3}
-            onAction={(gift, kind) => kind === 'restore' ? board.restoreGift(gift.id) : openDialog(kind, gift)}
+            onAction={handleGiftAction}
             pending={pending} artwork={collection} />)}
         </>}
       </main>
       {displayedDialog && me && <BoardDialog dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
         artworkCatalog={collection.catalog} onRemoveArtwork={removeArtwork}
         error={dialogError ? actionError : ''} onClose={closeDialog} onClosed={finishClosingDialog} onSubmit={submit}
-        onGiftAction={openDialog} />}
+        onGiftAction={openDialog} onCardAction={handleGiftAction} canSplit={(company?.members.length ?? 0) >= 3} />}
     </>
   )
 }

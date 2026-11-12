@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import chevron from '../assets/chevron.svg'
 import menuIcon from '../assets/menu.svg'
 import wishPlusLeft from '../assets/wish-plus-left.svg'
 import wishPlusRight from '../assets/wish-plus-right.svg'
@@ -73,9 +72,9 @@ function BoardSelect({ label, value, onChange, children }) {
 
 export function BoardHeading({ view, archived, company, companies, onCompany }) {
   return (
-    <div className="board-heading" data-view={view}>
+    <div className="board-heading" data-view={archived ? 'archive' : view}>
       <h1>{archived ? archiveName : viewNames[view]}</h1>
-      {view === 'board' && company && <label className="company-picker">
+      {!archived && view === 'board' && company && <label className="company-picker">
         <span className="company-picker__name" aria-hidden="true">{company.name}</span>
         <span className="company-picker__chevron" aria-hidden="true" />
         <BoardSelect label="Компания" value={company.id} onChange={onCompany}>
@@ -83,18 +82,6 @@ export function BoardHeading({ view, archived, company, companies, onCompany }) 
         </BoardSelect>
       </label>}
     </div>
-  )
-}
-
-function FilterSelect({ label, value, options, onChange, kind }) {
-  return (
-    <label className={`pill filter-select filter-select--${kind}`} data-active={Boolean(value)}>
-      <BoardSelect label={label} value={value} onChange={onChange}>
-        <option value="">{label}</option>
-        {options.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
-      </BoardSelect>
-      <img src={chevron} width="16" height="16" alt="" />
-    </label>
   )
 }
 
@@ -112,17 +99,11 @@ export function WishlistCompanyFilter({ companies, value, onChange }) {
   </div>
 }
 
-export function BoardFilters({ people, owner, onOwner, occasions, occasion, onOccasion, price, onPrice }) {
+export function BoardFilters({ people, owner, onOwner }) {
   return (
     <div className="board-filters">
       {people.length > 0 && <FilterTabs label="Участники" value={owner} onChange={onOwner}
         options={[{ id: '', name: 'ПОЛНЫЙ СОСТАВ' }, ...people]} />}
-      <div className="board-filters__selects">
-        <FilterSelect kind="occasion" label="Поводы" value={occasion} options={occasions.map(value => [value, value])} onChange={onOccasion} />
-        <FilterSelect kind="price" label="Цена" value={price} onChange={onPrice} options={[
-          ['5000', 'До 5 000 ₽'], ['10000', 'До 10 000 ₽'], ['20000', 'До 20 000 ₽'],
-        ]} />
-      </div>
     </div>
   )
 }
