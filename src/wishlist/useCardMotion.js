@@ -27,14 +27,15 @@ export function useCardMotion(cards) {
       const isFirstInRow = mount.closest('.gift-slot').matches(':first-child')
       const angle = isFirstInRow ? -1.5 : restAngles[index % restAngles.length]
       const initial = angle * Math.PI / 180
+      const tilt = mount.querySelector('[data-tilt]')
       states.set(mount, {
-        angle: initial,
+        angle: parseFloat(mount.style.getPropertyValue('--swing') || initial),
         initial,
         index,
         velocity: 0,
-        rx: 0,
-        ry: 0,
-        tilt: mount.querySelector('[data-tilt]'),
+        rx: parseFloat(tilt.style.getPropertyValue('--rx') || 0),
+        ry: parseFloat(tilt.style.getPropertyValue('--ry') || 0),
+        tilt,
       })
       observer.observe(mount)
     }
@@ -47,10 +48,18 @@ export function useCardMotion(cards) {
       frame = 0
       const dt = previous ? Math.min((time - previous) / 1000, 0.035) : 0.016
       previous = time
-      const bounds = [...visible].map(mount => [mount, states.get(mount).tilt.getBoundingClientRect()])
-
-      for (const [mount, rect] of bounds) {
+      const bounds = []
+      for (const mount of visible) {
         const state = states.get(mount)
+        // Hold the card still under the pointer and while its actions are available.
+        if (state.tilt.matches(':hover, :focus-within, :active, [data-back-active="true"]')) {
+          state.velocity = 0
+        } else {
+          bounds.push([mount, state, state.tilt.getBoundingClientRect()])
+        }
+      }
+
+      for (const [mount, state, rect] of bounds) {
         const dx = pointer.x - rect.left - rect.width / 2
         const dy = pointer.y - rect.top - rect.height / 2
         const proximity = pointer.active ? Math.exp(-Math.pow(Math.hypot(dx * 0.85, dy * 1.12) / 240, 2)) : 0
@@ -87,11 +96,6 @@ export function useCardMotion(cards) {
       pointer.dx = 0
     }
 
-    function nudge(event) {
-      const state = states.get(event.target.closest('[data-pendulum]'))
-      if (state && !motion.matches) state.velocity += state.index % 2 ? 0.23 : -0.23
-    }
-
     function syncPreference() {
       cancelAnimationFrame(frame)
       frame = 0
@@ -101,6 +105,8 @@ export function useCardMotion(cards) {
         for (const property of ['--rx', '--ry']) {
           state.tilt.style.removeProperty(property)
         }
+        state.angle = state.initial
+        state.velocity = state.rx = state.ry = 0
       }
       schedule()
     }
@@ -108,16 +114,14 @@ export function useCardMotion(cards) {
     window.addEventListener('pointermove', move, { passive: true })
     document.documentElement.addEventListener('pointerleave', leave)
     window.addEventListener('blur', leave)
-    stage.addEventListener('click', nudge)
     motion.addEventListener('change', syncPreference)
     return () => {
       observer.disconnect()
       visible.clear()
-      syncPreference()
+      cancelAnimationFrame(frame)
       window.removeEventListener('pointermove', move)
       document.documentElement.removeEventListener('pointerleave', leave)
       window.removeEventListener('blur', leave)
-      stage.removeEventListener('click', nudge)
       motion.removeEventListener('change', syncPreference)
     }
   }, [cards])

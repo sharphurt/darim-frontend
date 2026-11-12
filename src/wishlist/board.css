@@ -229,7 +229,7 @@
   perspective: 920px;
   transform-origin: center calc(-1 * var(--hang-length));
 }
-.gift-slot:hover .gift-perspective, .gift-slot:focus-within .gift-perspective { z-index: 2; }
+.gift-perspective:has(.gift-card[data-back-active="true"], .gift-card:hover, .gift-card:focus-within) { z-index: 2; }
 .gift-card {
   --ui-primary-size: clamp(20px, 7.5cqw, 24px);
   --ui-secondary-size: clamp(var(--ui-min-text-size), 5.625cqw, 18px);
@@ -238,32 +238,34 @@
   position: relative;
   width: 100%;
   aspect-ratio: 320 / 450;
-  transform-style: preserve-3d;
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  cursor: pointer;
   container-type: inline-size;
 }
 .gift-card__turn {
   position: absolute;
-  z-index: 2;
+  z-index: 1;
   inset: 0;
   border: 0;
-  border-radius: 24px;
+  border-radius: 7.5cqw;
   background: transparent;
-  pointer-events: none;
 }
+.gift-card__turn[aria-pressed] { cursor: url('../assets/card-turn.svg') 12 12, default; }
 .gift-card__inner {
   position: absolute;
+  z-index: 2;
   inset: 0;
+  pointer-events: none;
   transform-style: preserve-3d;
+  transform: perspective(920px) rotateY(0deg);
   transition: transform 900ms cubic-bezier(.2,.7,.14,1);
 }
-.gift-card[data-flipped="true"] .gift-card__inner { transform: rotateY(180deg); }
+.gift-card[data-flipped="true"] .gift-card__inner { transform: perspective(920px) rotateY(180deg); }
 .gift-card__face {
   position: absolute;
   inset: 0;
   border-radius: 7.5cqw;
   overflow: hidden;
+  pointer-events: none;
   backface-visibility: hidden;
   box-shadow: 0 10px 30px #1b1b2809;
   font-size: var(--ui-secondary-size);
@@ -327,6 +329,8 @@
   transform: rotateY(180deg);
   background: var(--surface);
 }
+/* Let background clicks reach the turn button behind the back. */
+.gift-card__back :is(a, button, .gift-card__comment) { pointer-events: auto; }
 .gift-card__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 5cqw; margin-block-start: var(--gift-card-price-gap); }
 .gift-card__meta a {
   display: inline-flex;
@@ -335,6 +339,7 @@
   margin-inline-start: auto;
   white-space: nowrap;
   text-decoration: none;
+  cursor: pointer;
 }
 .gift-card__shop-arrow {
   flex: none;
@@ -555,5 +560,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .gift-handle, .gift-perspective, .gift-card { transform: none; }
-  .gift-card__inner { transition-duration: 1ms; }
+  .gift-card__inner { transition: none; }
 }
