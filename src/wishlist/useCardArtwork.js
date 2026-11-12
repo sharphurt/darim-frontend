@@ -1,36 +1,27 @@
 import { useEffect, useState } from 'react'
+import { createDarimApi } from '../api/darim.js'
 
-export function useCardArtwork(api, enabled) {
+export function useCardArtwork(userId) {
   const [result, setResult] = useState(null)
-  const [revision, setRevision] = useState(0)
 
   useEffect(() => {
-    if (!enabled) return
+    if (!userId) return
     const controller = new AbortController()
-    let loading = false
+    const { signal } = controller
+    createDarimApi().cardArtwork(signal).then(artwork => {
+      if (!signal.aborted) setResult({ userId, artwork })
+    }).catch(() => {
+      // Built-in assets still work with older servers or during a temporary failure.
+    })
+    return () => controller.abort()
+  }, [userId])
 
-    async function refresh() {
-      if (loading || document.hidden) return
-      loading = true
-      try {
-        const artwork = await api.cardArtwork(controller.signal)
-        if (!controller.signal.aborted) setResult({ api, artwork })
-      } catch {
-        // Built-in assets still work with older servers or during a temporary failure.
-      } finally {
-        loading = false
-      }
-    }
+  function updateImages(update) {
+    setResult(previous => {
+      if (previous?.userId !== userId || !Array.isArray(previous?.artwork?.images)) return previous
+      return { userId, artwork: { ...previous.artwork, images: update(previous.artwork.images) } }
+    })
+  }
 
-    refresh()
-    const timer = window.setInterval(refresh, 30_000)
-    document.addEventListener('visibilitychange', refresh)
-    return () => {
-      controller.abort()
-      window.clearInterval(timer)
-      document.removeEventListener('visibilitychange', refresh)
-    }
-  }, [api, enabled, revision])
-
-  return [enabled && result?.api === api ? result.artwork : undefined, () => setRevision(value => value + 1)]
+  return [result?.userId === userId ? result?.artwork : undefined, updateImages]
 }

@@ -31,7 +31,7 @@ export function useWishlist() {
 
   const current = session?.api === api ? session : null
   const me = current?.me
-  const [artwork, reloadArtwork] = useCardArtwork(api, Boolean(me))
+  const [artwork, updateArtworkImages] = useCardArtwork(session?.me?.user.id)
   const companies = me?.companies ?? (me?.company ? [me.company] : [])
   const company = companies.find(item => item.id === companyId) ?? companies[0]
   const activeView = view === 'board' && !company ? 'mine' : view
@@ -82,8 +82,8 @@ export function useWishlist() {
         const file = form.get('artwork')
         if (!file?.size) throw new Error('Выберите PNG-файл.')
         if (file.size > 5 * 1024 * 1024) throw new Error('Размер PNG должен быть не больше 5 МБ.')
-        await client.uploadCardArtwork(field('category'), file)
-        reloadArtwork()
+        const { id, category } = await client.uploadCardArtwork(field('category'), file)
+        updateArtworkImages(images => [...images, { id, category }].sort((a, b) => a.id.localeCompare(b.id)))
       })
     }
     if (kind === 'create-company' || kind === 'join-company') {
@@ -141,10 +141,10 @@ export function useWishlist() {
     setView,
     setCompanyId,
     data,
-    artwork,
+    artwork: me ? artwork : undefined,
     removeArtwork: id => run(async client => {
       await client.removeCardArtwork(id)
-      reloadArtwork()
+      updateArtworkImages(images => images.filter(image => image.id !== id))
     }),
     pending,
     actionError,
