@@ -81,6 +81,9 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
     : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
   const state = gift?.participation
   const canManageSplit = splitDetails && gift && !gift.archived && !state.bought
+  const archiveButton = own && !gift.archived && !gift.fromOhmywishes &&
+    <button type="button" className="gift-action board-dialog__archive" disabled={pending}
+      onClick={() => onGiftAction('archive', gift)}>В архив</button>
   const dialogStyle = kind === 'create' ? ' board-dialog--gift board-dialog--create'
     : edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
     : kind === 'split' || splitDetails ? ' board-dialog--split' : giftDetails ? ' board-dialog--gift-details' : ''
@@ -100,6 +103,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
             {error && <p className="board-error" role="alert">{error}</p>}
           </div>
           <footer>
+            {archiveButton}
             {own ? <button type="button" className="gift-action gift-action--primary" disabled={pending}
               onClick={() => onCardAction(gift, gift.archived ? 'restore' : 'edit')}>
               {gift.archived ? 'Вернуть' : 'Редактировать'}
@@ -146,8 +150,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
             </button>}
             <button type="button" className="gift-action" onClick={onClose}>Закрыть</button>
           </> : link ? <button type="button" className="gift-action gift-action--primary" onClick={onClose}>Готово</button> : <>
-            {kind === 'edit' && !gift.fromOhmywishes && <button type="button" className="gift-action board-dialog__archive" disabled={pending}
-              onClick={() => onGiftAction('archive', gift)}>В архив</button>}
+            {kind === 'edit' && archiveButton}
             <button type="button" className="gift-action" disabled={pending} onClick={onClose}>{editArtwork ? 'Закрыть' : 'Отмена'}</button>
             <button type="submit" className="gift-action gift-action--primary" disabled={pending}>
               {pending ? 'Сохраняем…' : confirm}

@@ -5,6 +5,8 @@ const maxTitleLength = 80
 const photoTypes = ['image/jpeg', 'image/png', 'image/webp']
 const maxPhotoMegabytes = 15
 const maxPhotoBytes = maxPhotoMegabytes * 1024 * 1024
+const priceStep = 0.01
+const priceWheelStep = 100
 
 function PhotoField({ gift, pending }) {
   const input = useRef(null)
@@ -41,19 +43,23 @@ function PhotoField({ gift, pending }) {
 
   return (
     <div className="gift-editor__photo">
-      <div className="gift-editor__preview" data-filled={Boolean(source)}>
-        {source ? <img src={source} alt="Фото желания" referrerPolicy="no-referrer" /> : <p>Фото желания</p>}
+      <div className="gift-editor__photo-upload" data-filled={Boolean(source)}>
+        <div className="gift-editor__preview">
+          {source && <img src={source} alt="Фото желания" referrerPolicy="no-referrer" />}
+        </div>
+        <div className="gift-editor__photo-controls">
+          <div className="gift-editor__photo-actions">
+            <label className="gift-editor__photo-picker">
+              <input ref={input} name="photo" type="file" className="sr-only" accept={photoTypes.join(',')}
+                onChange={selectPhoto} aria-describedby="gift-photo-formats" disabled={pending} />
+              <span>{source ? 'Заменить фото' : 'Добавить фото'}</span>
+            </label>
+            {(source || error) && <button type="button" className="gift-action" disabled={pending}
+              onClick={clearPhoto}>{error ? 'Сбросить выбор' : 'Удалить фото'}</button>}
+          </div>
+          <p id="gift-photo-formats" className="gift-editor__hint">JPEG, PNG или WebP, до {maxPhotoMegabytes} МБ</p>
+        </div>
       </div>
-      <div className="gift-editor__photo-actions">
-        <label className="gift-editor__photo-picker">
-          <input ref={input} name="photo" type="file" className="sr-only" accept={photoTypes.join(',')}
-            onChange={selectPhoto} aria-describedby="gift-photo-formats" disabled={pending} />
-          <span>{source ? 'Заменить фото' : 'Добавить фото'}</span>
-        </label>
-        {(source || error) && <button type="button" className="gift-action" disabled={pending}
-          onClick={clearPhoto}>{error ? 'Сбросить выбор' : 'Удалить фото'}</button>}
-      </div>
-      <p id="gift-photo-formats" className="gift-editor__hint">JPEG, PNG или WebP, до {maxPhotoMegabytes} МБ</p>
       {error && <p className="board-error" role="alert">{error}</p>}
       {removed && <input type="hidden" name="removePhoto" value="true" />}
     </div>
@@ -102,6 +108,21 @@ function CompanyFields({ companies, company, gift }) {
 
 export function GiftEditorFields({ gift, company, companies, pending }) {
   const details = gift?.details
+  const priceInput = useRef(null)
+
+  useEffect(() => {
+    const input = priceInput.current
+    function changePrice(event) {
+      if (input.ownerDocument.activeElement !== input || !event.deltaY || event.ctrlKey || !event.cancelable) return
+      event.preventDefault()
+      const steps = priceWheelStep / priceStep
+      if (event.deltaY < 0) input.stepUp(steps)
+      else input.stepDown(steps)
+    }
+    input.addEventListener('wheel', changePrice, { passive: false })
+    return () => input.removeEventListener('wheel', changePrice)
+  }, [])
+
   return (
     <div className="gift-editor">
       <PhotoField gift={gift} pending={pending} />
@@ -110,8 +131,8 @@ export function GiftEditorFields({ gift, company, companies, pending }) {
           <input name="title" required maxLength={maxTitleLength} defaultValue={details?.title} />
         </label>
         <label>Ссылка<input name="url" inputMode="url" maxLength="2048" defaultValue={details?.url} /></label>
-        <label>Цена, ₽<input name="price" type="number" inputMode="decimal"
-          min="0" max="100000000" step="0.01" defaultValue={details?.price} /></label>
+        <label>Цена, ₽<input ref={priceInput} name="price" type="number" inputMode="decimal"
+          min="0" max="100000000" step={priceStep} defaultValue={details?.price} /></label>
         <label>Повод<input name="occasion" maxLength="80" defaultValue={details?.occasion} placeholder="Без повода" /></label>
         <label>Комментарий<textarea name="comment" rows="3" maxLength="2000" defaultValue={details?.comment} /></label>
         {!gift && <label className="dialog-check"><input type="checkbox" name="unlimited" /> Бесконечное желание</label>}
