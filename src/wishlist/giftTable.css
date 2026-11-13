@@ -1,7 +1,7 @@
 .board-menu__display { padding: 10px 6px 14px; margin-bottom: 6px; border-bottom: 1px solid #e9e9e9; }
 .board-menu__display > span { display: block; margin: 0 8px 10px; font-size: var(--ui-min-text-size); color: #626262; }
 .board-menu__display-options { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--page-background); }
-.board-menu__display-options button { flex: 1; text-align: center; }
+.board-menu__panel .board-menu__display-options button { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; }
 .board-menu__panel .board-menu__display-options button[aria-pressed="true"] { background: var(--accent); color: white; }
 .board-menu__panel .board-menu__display-options button[aria-pressed="true"]:is(:hover, :focus-visible) { background: var(--accent-text); }
 main[data-display-mode="table"] .board-filters { padding-bottom: clamp(24px, 3vw, 48px); }
