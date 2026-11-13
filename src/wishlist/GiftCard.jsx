@@ -16,7 +16,7 @@ export function GiftActions({ gift, canSplit, onAction, pending }) {
 
   if (state?.mode === 'split' && state.isMine) return action('split-details', 'Участники и детали', true)
   if (!state || state.bought || gift.archived) return null
-  if (state.mode === 'free') return <>{action('reserve', 'Хочу подарить!', true)}{canSplit && !gift.unlimited && action('split', 'Распилить')}</>
+  if (state.mode === 'free') return <>{canSplit && !gift.unlimited && action('split', 'Распилить')}{action('reserve', 'Хочу подарить!', true)}</>
   if (state.isMine) {
     return <>
       {state.isCoordinator && action('buy', 'Отметить купленным', true)}

@@ -3,6 +3,7 @@ import { BoardDialog } from './wishlist/BoardDialog.jsx'
 import { BoardFilters, BoardHeading, BoardNavigation, WishlistCompanyFilter } from './wishlist/BoardHeader.jsx'
 import { cardArtworkCollection } from './wishlist/cardArtwork.js'
 import { GiftShelf } from './wishlist/GiftShelf.jsx'
+import { GiftTable } from './wishlist/GiftTable.jsx'
 import { clearInvite, inviteLink, pendingInvite, retainInvite } from './wishlist/companyInvite.js'
 import { groupGifts, matchesWishlistCompany } from './wishlist/giftPresentation.js'
 import { useWishlist } from './wishlist/useWishlist.js'
@@ -11,6 +12,7 @@ import './wishlist/board.css'
 const demoNames = ['Юлия', 'Макс', 'Аня', 'Саша']
 const emptyGifts = []
 const cardHintKey = 'darim.mobile-card-hint-dismissed'
+const displayModeKey = 'darim.wishlist-display-mode'
 
 function BoardAccess({ session, pending, error, retry, login, inviteToken }) {
   if (!session) return <p className="board-message page-inset" role="status">Загружаем доску…</p>
@@ -31,6 +33,21 @@ function BoardAccess({ session, pending, error, retry, login, inviteToken }) {
 }
 
 export default function App() {
+  const [displayMode, setDisplayMode] = useState(() => {
+    try {
+      return localStorage.getItem(displayModeKey) === 'table' ? 'table' : 'cards'
+    } catch {
+      return 'cards'
+    }
+  })
+  function changeDisplayMode(mode) {
+    setDisplayMode(mode)
+    try {
+      localStorage.setItem(displayModeKey, mode)
+    } catch {
+      // Keep the selected mode for this visit when storage is unavailable.
+    }
+  }
   const [archived, setArchived] = useState(false)
   const board = useWishlist(archived)
   const { session, me, company, companies, view, data, pending, actionError, artwork } = board
@@ -172,10 +189,11 @@ export default function App() {
   return (
     <>
       <BoardNavigation view={me ? view : 'board'} onView={navigate} company={company} me={me} pending={pending}
+        displayMode={displayMode} onDisplayMode={changeDisplayMode}
         canManageArtwork={Array.isArray(artworkImages) && artwork.canManage}
         archived={archived} onArchive={() => { setArchived(value => !value); resetFilters() }}
         onMenu={openDialog} onLogout={logout} />
-      <main>
+      <main data-display-mode={displayMode}>
         <BoardHeading view={me ? view : 'board'} archived={archived} company={company} companies={companies}
           onCompany={id => { board.setCompanyId(id); navigate('board') }} />
         {!me ? <BoardAccess session={session} pending={pending} error={actionError} retry={board.retrySession}
@@ -204,13 +222,15 @@ export default function App() {
             <button className="pill" type="button" onClick={board.refresh}>Повторить</button>
           </div>}
           {data?.gifts && !groups.length && <p className="board-message page-inset">Здесь пока нет желаний.</p>}
-          {!cardHintDismissed && groups.length > 0 && <div className="mobile-card-hint page-inset">
+          {displayMode === 'cards' && !cardHintDismissed && groups.length > 0 && <div className="mobile-card-hint page-inset">
             <div className="mobile-card-hint__message">
               <p>Нажмите на карточку, чтобы посмотреть детали желания.</p>
               <button type="button" className="pill" onClick={dismissCardHint}>Понятно</button>
             </div>
           </div>}
-          {groups.map(group => <GiftShelf key={archived ? 'archive' : group.owner.id}
+          {displayMode === 'table' ? groups.length > 0 && <GiftTable
+            gifts={groups.flatMap(group => group.gifts)} archived={archived} onAction={handleGiftAction} />
+            : groups.map(group => <GiftShelf key={archived ? 'archive' : group.owner.id}
             title={archived || view === 'mine' ? undefined : `${group.owner.name} желает`}
             label={archived ? 'Архив желаний' : undefined}
             gifts={group.gifts} viewerId={me.user.id} canSplit={(company?.members.length ?? 0) >= 3}

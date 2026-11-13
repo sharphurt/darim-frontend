@@ -6,7 +6,7 @@ import wishPlusRight from '../assets/wish-plus-right.svg'
 const viewNames = { board: 'Доска желаний', mine: 'Мой вишлист', giving: 'Я дарю' }
 const archiveName = 'Архив желаний'
 
-export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, onLogout, canManageArtwork }) {
+export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, onLogout, canManageArtwork, displayMode, onDisplayMode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuToggle = useRef(null)
   function closeMenu() {
@@ -41,6 +41,15 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
           aria-expanded={menuOpen} aria-controls="board-menu-panel"
           onClick={() => setMenuOpen(open => !open)}><img src={menuIcon} width="32" height="32" alt="" /></button>
         <div id="board-menu-panel" className="board-menu__panel" inert={!menuOpen}>
+          <div className="board-menu__display">
+            <span id="display-mode-label">Отображение желаний</span>
+            <div className="board-menu__display-options" role="group" aria-labelledby="display-mode-label">
+              <button type="button" aria-pressed={displayMode === 'cards'}
+                onClick={() => choose(() => onDisplayMode('cards'))}>Карточки</button>
+              <button type="button" aria-pressed={displayMode === 'table'}
+                onClick={() => choose(() => onDisplayMode('table'))}>Таблица</button>
+            </div>
+          </div>
           <button type="button" onClick={() => choose(() => onMenu('create-company'))}>Создать компанию</button>
           <button type="button" onClick={() => choose(() => onMenu('join-company'))}>Вступить по приглашению</button>
           {company?.isOrganizer && <button type="button" onClick={() => choose(() => onMenu('invite-company'))}>
