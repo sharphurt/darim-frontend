@@ -10,6 +10,7 @@ import './wishlist/board.css'
 
 const demoNames = ['Юлия', 'Макс', 'Аня', 'Саша']
 const emptyGifts = []
+const cardHintKey = 'darim.mobile-card-hint-dismissed'
 
 function BoardAccess({ session, pending, error, retry, login, inviteToken }) {
   if (!session) return <p className="board-message page-inset" role="status">Загружаем доску…</p>
@@ -38,6 +39,13 @@ export default function App() {
   const [owner, setOwner] = useState('')
   const [wishlistCompany, setWishlistCompany] = useState('')
   const [dialog, setDialog] = useState(null)
+  const [cardHintDismissed, setCardHintDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(cardHintKey) === 'true'
+    } catch {
+      return false
+    }
+  })
   const finishClosingDialog = useCallback(() => {
     setDialog(current => current?.closing ? null : current)
   }, [])
@@ -67,8 +75,18 @@ export default function App() {
     resetFilters()
   }
 
+  function dismissCardHint() {
+    setCardHintDismissed(true)
+    try {
+      localStorage.setItem(cardHintKey, 'true')
+    } catch {
+      // The hint can still be dismissed for the current visit.
+    }
+  }
+
   function openDialog(kind, gift) {
     setDialogError('')
+    if (kind === 'gift-details' && !cardHintDismissed) dismissCardHint()
     if (kind === 'split-details') {
       setDialog({ kind, gift, splitSnapshot: data })
       board.refresh()
@@ -176,6 +194,12 @@ export default function App() {
             <button className="pill" type="button" onClick={board.refresh}>Повторить</button>
           </div>}
           {data?.gifts && !groups.length && <p className="board-message page-inset">Здесь пока нет желаний.</p>}
+          {!cardHintDismissed && groups.length > 0 && <div className="mobile-card-hint page-inset">
+            <div className="mobile-card-hint__message">
+              <p>Нажмите на карточку, чтобы посмотреть детали желания.</p>
+              <button type="button" className="pill" onClick={dismissCardHint}>Понятно</button>
+            </div>
+          </div>}
           {groups.map(group => <GiftShelf key={archived ? 'archive' : group.owner.id}
             title={archived || view === 'mine' ? undefined : `${group.owner.name} желает`}
             label={archived ? 'Архив желаний' : undefined}

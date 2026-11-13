@@ -111,8 +111,8 @@ export function useWishlist(archived) {
         title: field('title'),
         url: url && !/^[a-z][a-z\d+.-]*:\/\//i.test(url) ? `https://${url.replace(/^\/\//, '')}` : url,
         price: price === null ? null : Number(price),
-        occasion: field('occasion') ?? 'Без повода',
-        occasionDate: gift?.details.occasionDate ?? null,
+        occasion: gift?.details.occasion,
+        occasionDate: gift?.details.occasionDate,
         comment: field('comment'),
         unlimited: gift?.unlimited ?? form.has('unlimited'),
       }

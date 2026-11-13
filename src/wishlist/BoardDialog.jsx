@@ -86,6 +86,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
       onClick={() => onGiftAction('archive', gift)}>В архив</button>
   const dialogStyle = kind === 'create' ? ' board-dialog--gift board-dialog--create'
     : edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
+    : kind === 'archive' ? ' board-dialog--archive'
     : kind === 'split' || splitDetails ? ' board-dialog--split' : giftDetails ? ' board-dialog--gift-details' : ''
 
   return (
@@ -96,7 +97,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
       event.preventDefault()
       if (!pending && !closing) onClose()
     }}>
-      {giftDetails ? <>
+      {giftDetails ? (
         <section className="gift-details__panel">
           <div className="gift-details__content" tabIndex={0}>
             <GiftBackContent gift={gift} modal />
@@ -110,12 +111,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
             </button> : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
           </footer>
         </section>
-        <button type="button" className="gift-details__close" aria-label="Закрыть" disabled={pending} onClick={onClose}>
-          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </button>
-      </> : <form inert={closing} onSubmit={event => {
+      ) : <form inert={closing} onSubmit={event => {
         event.preventDefault()
         if (!closing && !link && !splitDetails) onSubmit(new FormData(event.currentTarget))
       }}>
@@ -148,16 +144,22 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
               className="gift-action gift-action--primary" disabled={pending} onClick={() => onGiftAction('buy', gift)}>
               Отметить купленным
             </button>}
-            <button type="button" className="gift-action" onClick={onClose}>Закрыть</button>
-          </> : link ? <button type="button" className="gift-action gift-action--primary" onClick={onClose}>Готово</button> : <>
+            <button type="button" className="gift-action board-dialog__dismiss" onClick={onClose}>Закрыть</button>
+          </> : link ? <button type="button" className="gift-action gift-action--primary board-dialog__dismiss" onClick={onClose}>Готово</button> : <>
             {kind === 'edit' && archiveButton}
-            <button type="button" className="gift-action" disabled={pending} onClick={onClose}>{editArtwork ? 'Закрыть' : 'Отмена'}</button>
+            <button type="button" className="gift-action board-dialog__dismiss" disabled={pending}
+              onClick={onClose}>{editArtwork ? 'Закрыть' : 'Отмена'}</button>
             <button type="submit" className="gift-action gift-action--primary" disabled={pending}>
               {pending ? 'Сохраняем…' : confirm}
             </button>
           </>}
         </footer>
       </form>}
+      <button type="button" className="board-dialog__close" aria-label="Закрыть" disabled={pending || closing} onClick={onClose}>
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      </button>
     </dialog>
   )
 }

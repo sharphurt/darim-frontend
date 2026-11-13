@@ -133,7 +133,6 @@ export function GiftEditorFields({ gift, company, companies, pending }) {
         <label>Ссылка<input name="url" inputMode="url" maxLength="2048" defaultValue={details?.url} /></label>
         <label>Цена, ₽<input ref={priceInput} name="price" type="number" inputMode="decimal"
           min="0" max="100000000" step={priceStep} defaultValue={details?.price} /></label>
-        <label>Повод<input name="occasion" maxLength="80" defaultValue={details?.occasion} placeholder="Без повода" /></label>
         <label>Комментарий<textarea name="comment" rows="3" maxLength="2000" defaultValue={details?.comment} /></label>
         {!gift && <label className="dialog-check"><input type="checkbox" name="unlimited" /> Бесконечное желание</label>}
         <CompanyFields companies={companies} company={company} gift={gift} />
