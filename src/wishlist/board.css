@@ -360,12 +360,12 @@
   background: currentColor;
   mask: url("../assets/shop-arrow.svg") center / contain no-repeat;
 }
-.gift-card__comment {
+.gift-card__comment { white-space: pre-wrap; }
+.gift-card__back .gift-card__comment {
   min-block-size: 0;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-width: thin;
-  white-space: pre-wrap;
 }
 .gift-card__actions { position: relative; z-index: 1; display: grid; gap: 2.5cqw; margin-top: auto; }
 .gift-card__badge {
@@ -463,6 +463,7 @@
   display: grid;
   align-content: start;
   flex: 1 1 auto;
+  min-block-size: 0;
   gap: 14px;
   padding: var(--gift-dialog-padding-block) var(--gift-dialog-padding-inline);
   overflow-y: auto;
