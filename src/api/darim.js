@@ -18,6 +18,7 @@ export function createDarimApi() {
     cardArtwork: signal => http.get('/api/card-artwork', signal),
     uploadCardArtwork: (category, file) => http.write(`/api/card-artwork/${encodeURIComponent(category)}`, 'POST', file, 'image/png'),
     removeCardArtwork: id => http.write(`/api/card-artwork/${encodeURIComponent(id)}`, 'DELETE'),
+    codeLogin: code => http.write('/auth/code', 'POST', { code }),
     demoLogin: index => http.write(`/auth/demo/${index}`, 'POST'),
     logout: () => http.write('/api/logout', 'POST'),
     createCompany: name => http.write('/api/company', 'POST', { name }),

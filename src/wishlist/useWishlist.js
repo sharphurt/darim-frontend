@@ -56,7 +56,7 @@ export function useWishlist(archived) {
 
   const data = result?.queryKey === queryKey ? result : null
 
-  async function run(request, refreshSession = false) {
+  async function run(request, refreshSession = false, resetUnauthorized = true) {
     if (busy.current) return false
     busy.current = true
     setPending(true)
@@ -68,7 +68,7 @@ export function useWishlist(archived) {
       return { response }
     } catch (error) {
       setActionError(error.message)
-      if (error.status === 401) setApi(createDarimApi())
+      if (error.status === 401 && resetUnauthorized) setApi(createDarimApi())
       if (error.status === 409) setRevision(value => value + 1)
       return false
     } finally {
@@ -153,6 +153,7 @@ export function useWishlist(archived) {
     actionError,
     submitDialog,
     restoreGift: id => run(client => client.restoreGift(id)),
+    codeLogin: code => run(client => client.codeLogin(code), true, false),
     demoLogin: index => run(client => client.demoLogin(index), true),
     logout: () => run(client => client.logout(), true),
     refresh: () => setRevision(value => value + 1),
