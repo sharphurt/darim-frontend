@@ -3,6 +3,7 @@ import clip from '../assets/clip.svg'
 import { cardPhoto, formatPrice, giftBadge, safeLink } from './giftPresentation.js'
 import { backgroundFor } from './cardArtwork.js'
 import { SplitProgress } from './GiftSplit.jsx'
+import { GiftPhoto } from './GiftPhoto.jsx'
 
 export function GiftActions({ gift, canSplit, onAction, pending }) {
   const state = gift.participation
@@ -31,9 +32,9 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
   const { title, comment, url, price } = gift.details
   const formattedPrice = formatPrice(price)
   const link = safeLink(url)
-  const photo = modal && cardPhoto(gift)
   const Heading = modal ? 'h2' : 'h3'
   return <>
+    {modal && <GiftPhoto gift={gift} className="gift-details__photo" />}
     <header>
       <Heading id={modal ? 'dialog-title' : undefined}>{title}</Heading>
       <div className="gift-card__meta">
@@ -43,7 +44,6 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
         </a>}
       </div>
     </header>
-    {photo && <img className="gift-details__photo" src={photo} alt="" referrerPolicy="no-referrer" />}
     {gift.participation?.mode === 'split' && gift.participation.bought && <p>{giftBadge(gift)}</p>}
     <div className={modal ? undefined : 'gift-card__body'}>
       {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}

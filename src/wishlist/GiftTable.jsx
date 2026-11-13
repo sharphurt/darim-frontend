@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { formatPrice, safeLink } from './giftPresentation.js'
 import { isFreeGift, sortTableGifts, tableGiftStatus } from './giftTableSorting.js'
+import { GiftPhoto } from './GiftPhoto.jsx'
 import './giftTable.css'
 
 const columns = [
@@ -52,9 +53,14 @@ export function GiftTable({ gifts, archived, canFilterFree, onAction }) {
           const status = tableGiftStatus(gift)
           return <tr key={gift.id} onClick={event => openRow(event, gift)}>
             <th scope="row">
-              <button type="button" className="gift-table__title" aria-haspopup="dialog"
-                onClick={() => onAction(gift, 'gift-details')}>{gift.details.title}</button>
-              {gift.details.comment && <p className="gift-table__comment">{gift.details.comment}</p>}
+              <div className="gift-table__wish">
+                <GiftPhoto gift={gift} className="gift-table__photo" thumbnail />
+                <div className="gift-table__description">
+                  <button type="button" className="gift-table__title" aria-haspopup="dialog"
+                    onClick={() => onAction(gift, 'gift-details')}>{gift.details.title}</button>
+                  {gift.details.comment && <p className="gift-table__comment">{gift.details.comment}</p>}
+                </div>
+              </div>
             </th>
             <td>{gift.owner.name}</td>
             <td className="gift-table__price">{formatPrice(gift.details.price) || <span className="gift-table__muted">Не указана</span>}</td>

@@ -23,6 +23,9 @@ main[data-display-mode="table"] .board-filters { padding-bottom: clamp(24px, 3vw
 .gift-table tbody tr + tr { border-top: 1px solid #e9e9e9; }
 .gift-table tbody th { width: 36%; min-width: 260px; font-weight: 500; }
 .gift-table td { overflow-wrap: anywhere; }
+.gift-table__wish { display: flex; align-items: flex-start; gap: 14px; }
+.gift-table__description { min-width: 0; flex: 1; }
+.gift-table__photo { flex: none; width: 64px; height: 64px; border-radius: 12px; background: var(--page-background); object-fit: contain; }
 .gift-table__title { display: block; padding: 0; border: 0; background: transparent; text-align: left; font-size: var(--ui-secondary-size); font-weight: 600; overflow-wrap: anywhere; }
 .gift-table__title:hover { color: var(--accent-text); }
 .gift-table__comment { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin: 8px 0 0; color: #626262; line-height: 1.45; overflow-wrap: anywhere; }

@@ -491,7 +491,7 @@
   overscroll-behavior-y: contain;
 }
 .gift-details__content:focus-visible { outline-offset: -3px; }
-.gift-details__photo { display: block; max-width: 100%; max-height: min(220px, 30dvh); object-fit: contain; }
+.gift-details__photo { display: block; width: 100%; height: min(280px, 30dvh); border-radius: 16px; background: var(--page-background); object-fit: contain; }
 .board-dialog .gift-details__panel footer {
   flex: none;
   padding: 0 var(--gift-dialog-padding-inline) var(--gift-dialog-padding-block);
