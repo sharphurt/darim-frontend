@@ -135,6 +135,7 @@ export function useWishlist(archived) {
   }
 
   return {
+    api,
     session: current,
     me,
     companies,

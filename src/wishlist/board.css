@@ -527,8 +527,17 @@
 }
 .board-dialog form, .board-dialog label { display: grid; gap: 8px; }
 .board-dialog form { gap: 14px; }
+.ohmywishes-settings {
+  display: grid;
+  gap: 12px;
+  margin-block-start: 18px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid currentColor;
+}
+.ohmywishes-settings h3 { margin: 0; }
+.ohmywishes-settings .gift-action { justify-self: start; }
 .board-dialog h2, .board-dialog p { margin: 0; }
-.board-dialog input:not([type="checkbox"], [type="radio"], [type="file"], [type="hidden"]), .board-dialog textarea, .board-dialog--artwork select {
+.board-dialog input:not([type="checkbox"], [type="radio"], [type="file"], [type="hidden"]), .board-dialog textarea, .board-dialog--artwork select, .ohmywishes-settings select {
   width: 100%;
   border: 1px solid #cbced3;
   border-radius: 8px;
@@ -681,7 +690,7 @@
     background: transparent;
     overflow: hidden;
   }
-  .board-dialog > form {
+  .board-dialog__body {
     max-height: calc(100dvh - var(--dialog-viewport-gap) - var(--dialog-close-size) - var(--dialog-close-gap));
     padding: var(--dialog-padding);
     border-radius: inherit;

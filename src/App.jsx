@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BoardDialog } from './wishlist/BoardDialog.jsx'
 import { BoardFilters, BoardHeading, BoardNavigation, WishlistCompanyFilter } from './wishlist/BoardHeader.jsx'
 import { cardArtworkCollection } from './wishlist/cardArtwork.js'
@@ -38,7 +38,17 @@ export default function App() {
   const collection = useMemo(() => cardArtworkCollection(artworkImages), [artworkImages])
   const [owner, setOwner] = useState('')
   const [wishlistCompany, setWishlistCompany] = useState('')
-  const [dialog, setDialog] = useState(null)
+  const [dialog, setDialog] = useState(() => {
+    const outcome = new URLSearchParams(location.search).get('ohmywishes')
+    return ['profile', 'connected', 'failed'].includes(outcome) ? { kind: 'profile', outcome } : null
+  })
+  useEffect(() => {
+    const url = new URL(location.href)
+    if (url.searchParams.has('ohmywishes')) {
+      url.searchParams.delete('ohmywishes')
+      history.replaceState(history.state, '', url)
+    }
+  }, [])
   const [cardHintDismissed, setCardHintDismissed] = useState(() => {
     try {
       return localStorage.getItem(cardHintKey) === 'true'
@@ -209,6 +219,7 @@ export default function App() {
         </>}
       </main>
       {displayedDialog && me && <BoardDialog dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
+        ohmywishesApi={board.api} importCompany={view === 'board' && !archived ? company : undefined} onGiftsChanged={board.refresh}
         artworkCatalog={collection.catalog} onRemoveArtwork={removeArtwork}
         error={dialogError ? actionError : ''} onClose={closeDialog} onClosed={finishClosingDialog} onSubmit={submit}
         onGiftAction={openDialog} onCardAction={handleGiftAction} canSplit={(company?.members.length ?? 0) >= 3} />}

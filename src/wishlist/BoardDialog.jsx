@@ -3,6 +3,7 @@ import { GiftEditorFields } from './GiftEditorFields.jsx'
 import { GiftActions, GiftBackContent } from './GiftCard.jsx'
 import { SplitDetails, SplitFields } from './GiftSplit.jsx'
 import { artworkCategoryNames } from './cardArtwork.js'
+import { OhmywishesSettings } from './OhmywishesSettings.jsx'
 
 const actionLabels = {
   'create-company': 'Создать компанию',
@@ -44,7 +45,7 @@ function CardArtworkFields({ catalog, pending, uploaded, onRemove }) {
   </>
 }
 
-export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onClosed, onSubmit, onGiftAction, onCardAction, canSplit, artworkCatalog, onRemoveArtwork }) {
+export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onClosed, onSubmit, onGiftAction, onCardAction, canSplit, artworkCatalog, onRemoveArtwork, ohmywishesApi, importCompany, onGiftsChanged }) {
   const ref = useRef(null)
   const { kind, gift, link, closing } = dialog
   useEffect(() => {
@@ -111,7 +112,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
             </button> : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
           </footer>
         </section>
-      ) : <form inert={closing} onSubmit={event => {
+      ) : <div className="board-dialog__body"><form inert={closing} onSubmit={event => {
         event.preventDefault()
         if (!closing && !link && !splitDetails) onSubmit(new FormData(event.currentTarget))
       }}>
@@ -154,7 +155,10 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
             </button>
           </>}
         </footer>
-      </form>}
+      </form>
+      {kind === 'profile' && <OhmywishesSettings api={ohmywishesApi} company={importCompany}
+        outcome={dialog.outcome} profilePending={pending} onGiftsChanged={onGiftsChanged} />}
+      </div>}
       <button type="button" className="board-dialog__close" aria-label="Закрыть" disabled={pending || closing} onClick={onClose}>
         <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
           <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
