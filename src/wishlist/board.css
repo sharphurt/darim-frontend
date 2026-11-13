@@ -733,7 +733,13 @@
   .board-filters__tabs { scrollbar-width: none; }
   .board-filters__tabs::-webkit-scrollbar { display: none; }
   .board-filters__selects { margin-left: 0; }
-  .gift-shelf { --card-width: min(41vw, 270px); }
+  .gift-shelf {
+    --card-width: min(41vw, 270px);
+    --row-step: calc(var(--rope-height) + var(--handle) + var(--card-height) + 8px);
+  }
+  .gift-shelf:has(+ .gift-shelf) .gift-shelf__cards { padding-block-end: 32px; }
+  .gift-shelf:has(+ .gift-shelf) .gift-row:last-child { min-height: 0; }
+  .gift-shelf:has(+ .gift-shelf) .gift-row:last-child .gift-pendulum { margin-block-end: 0; }
   .gift-row { grid-template-columns: repeat(2, var(--card-width)); column-gap: clamp(18px, 4vw, 30px); }
   .gift-slot:nth-child(n) { --hang-at: .94; }
 }
