@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { formatPrice, safeLink } from './giftPresentation.js'
-import { sortTableGifts, tableGiftStatus } from './giftTableSorting.js'
+import { isFreeGift, sortTableGifts, tableGiftStatus } from './giftTableSorting.js'
 import './giftTable.css'
 
 const columns = [
@@ -10,9 +10,11 @@ const columns = [
   { key: 'status', label: 'Статус' },
 ]
 
-export function GiftTable({ gifts, archived, onAction }) {
+export function GiftTable({ gifts, archived, canFilterFree, onAction }) {
   const [sort, setSort] = useState(null)
-  const sortedGifts = useMemo(() => sortTableGifts(gifts, sort), [gifts, sort])
+  const [onlyFree, setOnlyFree] = useState(false)
+  const filterFree = canFilterFree && onlyFree
+  const sortedGifts = useMemo(() => sortTableGifts(filterFree ? gifts.filter(isFreeGift) : gifts, sort), [gifts, sort, filterFree])
 
   function changeSort(key) {
     setSort(current => ({ key, direction: current?.key === key && current.direction === 'ascending' ? 'descending' : 'ascending' }))
@@ -26,13 +28,14 @@ export function GiftTable({ gifts, archived, onAction }) {
   }
 
   return <section className="gift-table" aria-label="Сводная таблица желаний">
-    <div className="gift-table__summary">
-      <h2>{archived ? 'Архив желаний' : 'Все выбранные желания'}</h2>
-      <span>Всего: {gifts.length}</span>
-    </div>
-    <div className="gift-table__scroll" tabIndex={0} role="region" aria-label="Таблица желаний, прокрутка по горизонтали">
+    {canFilterFree && <div className="gift-table__toolbar">
+      <button type="button" className="pill" aria-pressed={onlyFree} aria-label="Только свободные желания"
+        onClick={() => setOnlyFree(value => !value)}>{onlyFree ? 'Показать все' : 'Показать свободные'}</button>
+    </div>}
+    {!sortedGifts.length ? <p className="gift-table__empty" role="status">Свободных желаний нет.</p>
+      : <div className="gift-table__scroll" tabIndex={0} role="region" aria-label="Таблица желаний, прокрутка по горизонтали">
       <table>
-        <caption className="sr-only">{archived ? 'Архив желаний' : 'Выбранные желания'}: {gifts.length}</caption>
+        <caption className="sr-only">{archived ? 'Архив желаний' : filterFree ? 'Свободные желания' : 'Выбранные желания'}: {sortedGifts.length}</caption>
         <thead><tr>
           {columns.map(column => <th key={column.key} scope="col"
             className={column.key === 'price' ? 'gift-table__price' : undefined}
@@ -62,6 +65,6 @@ export function GiftTable({ gifts, archived, onAction }) {
           </tr>
         })}</tbody>
       </table>
-    </div>
+    </div>}
   </section>
 }

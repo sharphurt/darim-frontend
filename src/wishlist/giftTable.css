@@ -6,9 +6,9 @@
 .board-menu__panel .board-menu__display-options button[aria-pressed="true"]:is(:hover, :focus-visible) { background: var(--accent-text); }
 main[data-display-mode="table"] .board-filters { padding-bottom: clamp(24px, 3vw, 48px); }
 .gift-table { width: min(calc(100% - 2 * clamp(20px, 2.8vw, 40px)), var(--page-width)); margin: 0 auto 64px; }
-.gift-table__summary { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
-.gift-table__summary h2 { margin: 0; font-size: clamp(22px, 2vw, 32px); font-weight: 600; }
-.gift-table__summary > span, .gift-table__muted { color: #626262; }
+.gift-table__toolbar { margin-bottom: 20px; }
+.gift-table__empty { margin: 0; padding: 24px; border-radius: 24px; background: var(--surface); }
+.gift-table__muted { color: #626262; }
 .gift-table__scroll { overflow-x: auto; border: 1px solid #e4e4e4; border-radius: 24px; background: var(--surface); }
 .gift-table table { width: 100%; min-width: 880px; border-collapse: collapse; text-align: left; font-size: var(--ui-min-text-size); }
 .gift-table th, .gift-table td { padding: 22px 24px; vertical-align: top; }

@@ -2,6 +2,10 @@ import { giftBadge } from './giftPresentation.js'
 
 const collator = new Intl.Collator('ru', { numeric: true, sensitivity: 'base' })
 
+export function isFreeGift(gift) {
+  return !gift.archived && gift.participation?.mode === 'free' && !gift.participation.bought
+}
+
 export function tableGiftStatus(gift) {
   return gift.archived ? 'В архиве' : giftBadge(gift) || (gift.participation?.mode === 'free' ? 'Можно подарить' : '')
 }

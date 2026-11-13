@@ -1,9 +1,22 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { sortTableGifts, tableGiftStatus } from './giftTableSorting.js'
+import { isFreeGift, sortTableGifts, tableGiftStatus } from './giftTableSorting.js'
 
 const gift = (id, title, price, name = 'Анна', participation) => ({ id, details: { title, price }, owner: { name }, participation })
 const ids = gifts => gifts.map(item => item.id)
+
+test('free filter excludes reserved, split, bought, archived and hidden statuses and composes with sorting', () => {
+  const free = gift('free', 'Книга', 100, 'Анна', { mode: 'free' })
+  const gifts = [free, { ...free, id: 'archive', archived: true },
+    gift('reserved', 'Бронь', 10, 'Анна', { mode: 'solo' }),
+    gift('split', 'Распил', 10, 'Анна', { mode: 'split', taken: 1, slots: 3 }),
+    gift('bought', 'Куплено', 10, 'Анна', { mode: 'free', bought: true }),
+    gift('hidden', 'Сюрприз', 10),
+    gift('unlimited', 'Чай', 50, 'Анна', { mode: 'free' })]
+  gifts.at(-1).unlimited = true
+  assert.deepEqual(ids(sortTableGifts(gifts.filter(isFreeGift), { key: 'price', direction: 'ascending' })), ['unlimited', 'free'])
+  assert.equal(gifts.length, 7)
+})
 
 test('prices sort numerically, keep zero and put missing prices last in both directions', () => {
   const gifts = [gift('missing', 'Без цены', null), gift('high', 'Дорого', 1000), gift('zero', 'Бесплатно', 0), gift('low', 'Недорого', 90)]

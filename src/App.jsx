@@ -229,7 +229,8 @@ export default function App() {
             </div>
           </div>}
           {displayMode === 'table' ? groups.length > 0 && <GiftTable
-            gifts={groups.flatMap(group => group.gifts)} archived={archived} onAction={handleGiftAction} />
+            gifts={groups.flatMap(group => group.gifts)} archived={archived}
+            canFilterFree={view === 'board' && !archived} onAction={handleGiftAction} />
             : groups.map(group => <GiftShelf key={archived ? 'archive' : group.owner.id}
             title={archived || view === 'mine' ? undefined : `${group.owner.name} желает`}
             label={archived ? 'Архив желаний' : undefined}
