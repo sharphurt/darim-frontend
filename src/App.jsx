@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { CodeLogin } from './wishlist/CodeLogin.jsx'
 import { BoardDialog } from './wishlist/BoardDialog.jsx'
 import { BoardFilters, BoardHeading, BoardNavigation, WishlistCompanyFilter } from './wishlist/BoardHeader.jsx'
 import { cardArtworkCollection } from './wishlist/cardArtwork.js'
@@ -14,7 +15,7 @@ const emptyGifts = []
 const cardHintKey = 'darim.mobile-card-hint-dismissed'
 const displayModeKey = 'darim.wishlist-display-mode'
 
-function BoardAccess({ session, pending, error, retry, login, inviteToken }) {
+function BoardAccess({ session, pending, error, retry, login, codeLogin, inviteToken }) {
   if (!session) return <p className="board-message page-inset" role="status">Загружаем доску…</p>
   if (session.error) return <div className="board-message page-inset">
     <p role="alert">{session.error}</p>
@@ -24,6 +25,8 @@ function BoardAccess({ session, pending, error, retry, login, inviteToken }) {
     <p>Войдите, чтобы увидеть желания друзей.</p>
     {session.info.telegramConfigured && <a className="pill" href="/auth/login"
       onClick={() => retainInvite(inviteToken)}>Войти через Telegram</a>}
+    {session.info.codeLoginEnabled && <CodeLogin botUsername={session.info.botUsername}
+      pending={pending} onLogin={codeLogin} />}
     {session.info.demoEnabled && <div className="demo-logins" aria-label="Демонстрационные аккаунты">
       {demoNames.map((name, index) => <button className="pill" type="button" key={name}
         disabled={pending} onClick={() => login(index)}>{name}</button>)}
@@ -197,7 +200,7 @@ export default function App() {
         <BoardHeading view={me ? view : 'board'} archived={archived} company={company} companies={companies}
           onCompany={id => { board.setCompanyId(id); navigate('board') }} />
         {!me ? <BoardAccess session={session} pending={pending} error={actionError} retry={board.retrySession}
-          login={board.demoLogin} inviteToken={inviteToken} /> : <>
+          login={board.demoLogin} codeLogin={board.codeLogin} inviteToken={inviteToken} /> : <>
           {inviteToken ? <div className="board-message page-inset">
             <p>У вас есть приглашение в компанию.</p>
             <div className="demo-logins">

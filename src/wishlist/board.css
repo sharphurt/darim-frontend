@@ -830,3 +830,11 @@
   .gift-handle, .gift-perspective, .gift-card { transform: none; }
   .gift-card { --gift-flip-duration: 0ms; }
 }
+
+.code-login { width: min(100%, 440px); margin-top: 20px; }
+.code-login summary { width: fit-content; padding-block: 8px; cursor: pointer; color: var(--accent-text); }
+.code-login p { font-size: var(--ui-tertiary-size); line-height: 1.5; }
+.code-login form, .code-login label { display: grid; gap: 8px; }
+.code-login form { gap: 16px; }
+.code-login input { width: 100%; min-width: 0; border: 1px solid #cbced3; border-radius: 8px; padding: 12px; background: var(--surface); letter-spacing: .06em; }
+.code-login button { justify-self: start; }
