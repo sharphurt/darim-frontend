@@ -4,6 +4,7 @@ import { cardPhoto, formatPrice, giftBadge, safeLink } from './giftPresentation.
 import { backgroundFor } from './cardArtwork.js'
 import { SplitProgress } from './GiftSplit.jsx'
 import { GiftPhoto } from './GiftPhoto.jsx'
+import { usePrivateImage } from '../api/usePrivateImage.js'
 
 export function GiftActions({ gift, canSplit, onAction, pending }) {
   const state = gift.participation
@@ -24,7 +25,7 @@ export function GiftActions({ gift, canSplit, onAction, pending }) {
       {state.isCoordinator && action('cancel', 'Снять бронь')}
     </>
   }
-  if (state.mode === 'split' && state.taken < state.slots) return action('join', 'Присоединиться!', true)
+  if (state.mode === 'split' && (state.open ?? state.taken < state.slots)) return action('join', 'Присоединиться!', true)
   return null
 }
 
@@ -62,7 +63,9 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
   const back = useRef(null)
   const cleanUpPress = useRef(null)
   const background = backgroundFor(gift.id, artwork)
-  const photo = cardPhoto(gift)
+  const photo = usePrivateImage(cardPhoto(gift))
+  const backgroundImage = usePrivateImage(background.image)
+  const overlayImage = usePrivateImage(background.overlay)
   const showPhoto = photo && photo !== failedPhoto
   const price = formatPrice(gift.details.price)
   const split = gift.participation?.mode === 'split' ? gift.participation : null
@@ -163,8 +166,8 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
                 data-tone={background.tone} data-has-overlay={Boolean(background.overlay)}
                 inert={flipped}
                 style={{
-                  '--gift-background': background.image ? `url("${background.image}")` : 'none',
-                  '--gift-overlay': background.overlay ? `url("${background.overlay}")` : 'none',
+                  '--gift-background': backgroundImage ? `url("${backgroundImage}")` : 'none',
+                  '--gift-overlay': overlayImage ? `url("${overlayImage}")` : 'none',
                 }}>
                 {showPhoto && <img className="gift-card__photo" src={photo} alt="" loading="lazy" referrerPolicy="no-referrer"
                   onError={() => setFailedPhoto(photo)} />}

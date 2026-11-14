@@ -1,4 +1,5 @@
 import { createHttpClient } from './http.js'
+import { initializeMiniSession, miniToken, closeMiniSession } from './miniSession.js'
 
 function encodePhoto(file) {
   return new Promise((resolve, reject) => {
@@ -10,9 +11,11 @@ function encodePhoto(file) {
 }
 
 export function createDarimApi() {
-  const http = createHttpClient()
+  const http = createHttpClient({ token: miniToken })
 
   return {
+    ready: initializeMiniSession,
+    publicWishlist: (token, signal) => createHttpClient().get('/api/public/wishlist', signal, { Authorization: `Wishlist ${token}` }),
     authInfo: signal => http.get('/api/auth-info', signal),
     me: signal => http.get('/api/me', signal),
     cardArtwork: signal => http.get('/api/card-artwork', signal),
@@ -20,10 +23,20 @@ export function createDarimApi() {
     removeCardArtwork: id => http.write(`/api/card-artwork/${encodeURIComponent(id)}`, 'DELETE'),
     codeLogin: code => http.write('/auth/code', 'POST', { code }),
     demoLogin: index => http.write(`/auth/demo/${index}`, 'POST'),
-    logout: () => http.write('/api/logout', 'POST'),
+    logout: () => miniToken() ? Promise.resolve(closeMiniSession()) : http.write('/api/logout', 'POST'),
+    notices: signal => http.get('/api/notices', signal),
+    readNotices: () => http.write('/api/notices/read', 'POST'),
+    interests: signal => http.get('/api/wishlist-interest', signal),
+    notifyGuest: id => http.write(`/api/wishlist-interest/${id}/notify`, 'POST'),
+    shareLinks: signal => http.get('/api/wishlist-links', signal),
+    createShare: input => http.write('/api/wishlist-links', 'POST', input),
+    revokeShare: id => http.write(`/api/wishlist-links/${id}`, 'DELETE'),
+    guestRequests: signal => http.get('/api/wishlist-requests', signal),
+    withdrawRequest: id => http.write(`/api/wishlist-requests/${id}`, 'DELETE'),
+    requestGift: (id, token, shareUsername) => http.write(`/api/wishlist-links/gifts/${id}/request`, 'POST', { token, shareUsername }),
     createCompany: name => http.write('/api/company', 'POST', { name }),
     joinCompany: token => http.write('/api/company/join?returnCompany=true', 'POST', { token }),
-    issueInvite: companyId => http.write('/api/company/invite', 'POST', { companyId, maxUses: 1 }),
+    issueInvite: (companyId, maxUses = 1) => http.write('/api/company/invite', 'POST', { companyId, maxUses }),
     gifts: (view, companyId, signal) => {
       if (view === 'archive') return Promise.all([
         http.get('/api/gifts/mine', signal),

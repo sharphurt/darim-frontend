@@ -838,3 +838,15 @@
 .code-login form { gap: 16px; }
 .code-login input { width: 100%; min-width: 0; border: 1px solid #cbced3; border-radius: 8px; padding: 12px; background: var(--surface); letter-spacing: .06em; }
 .code-login button { justify-self: start; }
+/* Account dialogs share the existing board controls and spacing. */
+.account-tools { display: grid; gap: 1rem; }
+.account-tools form, .account-tools label { display: grid; gap: .6rem; }
+.account-tools input, .account-tools select { width: 100%; min-width: 0; box-sizing: border-box; }
+.account-tools__list { list-style: none; padding: 0; display: grid; gap: 1rem; }
+.account-tools__list li { border-bottom: 1px solid currentColor; padding-bottom: 1rem; overflow-wrap: anywhere; }
+.public-wishlist { max-width: 1200px; margin: 2rem auto; }
+.public-wishlist__gifts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 1.5rem; padding: 0; list-style: none; }
+.public-wishlist__gift { padding: 1.25rem; border: 1px solid currentColor; border-radius: 1rem; overflow-wrap: anywhere; }
+.public-wishlist__gift > img { width: 100%; max-height: 280px; object-fit: contain; }
+.public-wishlist__gift form { display: grid; gap: 1rem; }
+body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe-bottom, 0px); padding-left: var(--darim-safe-left, 0px); padding-right: var(--darim-safe-right, 0px); }

@@ -5,15 +5,16 @@ export class ApiError extends Error {
   }
 }
 
-export function createHttpClient() {
+export function createHttpClient({ token = () => null } = {}) {
   let csrf
 
   async function send(path, { method = 'GET', body, signal, headers, rawType } = {}) {
     const response = await fetch(path, {
       method,
       signal,
-      credentials: 'same-origin',
-      headers: body === undefined ? headers : { ...headers, 'Content-Type': rawType ?? 'application/json' },
+      credentials: token() ? 'omit' : 'same-origin',
+      headers: { ...headers, ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
+        ...(body === undefined ? {} : { 'Content-Type': rawType ?? 'application/json' }) },
       body: rawType ? body : JSON.stringify(body),
     })
     const isJson = response.headers.get('content-type')?.includes('json')
@@ -28,10 +29,10 @@ export function createHttpClient() {
   }
 
   return {
-    get: (path, signal) => send(path, { signal }),
+    get: (path, signal, headers) => send(path, { signal, headers }),
     async write(path, method, body, rawType) {
       const headers = {}
-      if (path.startsWith('/api/')) {
+      if (path.startsWith('/api/') && !token()) {
         csrf ??= send('/api/csrf').then(data => data.token).catch(error => {
           csrf = undefined
           throw error

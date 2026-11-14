@@ -17,6 +17,8 @@ const actionLabels = {
   join: 'Присоединиться к распилу',
   cancel: 'Снять бронь',
   leave: 'Выйти из распила',
+  'close-split': 'Завершить сбор участников',
+  transfer: 'Передать координацию',
   buy: 'Отметить купленным',
   archive: 'Отправить в архив',
 }
@@ -76,7 +78,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   const editArtwork = kind === 'card-artwork'
   const splitCancel = kind === 'cancel' && gift?.participation?.mode === 'split'
   const title = edit ? (gift ? 'Редактировать желание' : 'Новое желание')
-    : kind === 'profile' ? 'Мой профиль' : splitCancel ? 'Отменить весь распил' : actionLabels[kind]
+    : kind === 'profile' ? 'Мой профиль' : splitCancel ? 'Выйти из распила' : actionLabels[kind]
   const confirm = kind === 'split' ? 'Распилить и занять долю'
     : kind === 'join' ? 'Занять долю' : editArtwork ? 'Загрузить'
     : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
@@ -125,23 +127,35 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
         {kind === 'join-company' && <label>Ссылка или код приглашения
           <input name="token" defaultValue={dialog.token} autoComplete="off" required />
         </label>}
-        {kind === 'invite-company' && <p>Новая ссылка действует для одного вступления и заменит предыдущее приглашение.</p>}
-        {link && <label>Одноразовая ссылка<input value={link} readOnly onFocus={event => event.currentTarget.select()} /></label>}
+        {kind === 'invite-company' && <label>Сколько человек могут вступить
+          <select name="inviteLimit" defaultValue="1"><option value="1">Один человек</option><option value="5">До пяти человек</option><option value="unlimited">Без ограничения</option></select>
+          Новая ссылка заменит предыдущее приглашение.
+        </label>}
+        {link && <label>Ссылка для приглашения<input value={link} readOnly onFocus={event => event.currentTarget.select()} /></label>}
         {kind === 'profile' && <>
           <label>Имя<input name="name" required defaultValue={me.user.name} /></label>
           <label>Контакт для участников распила<input name="contact" defaultValue={me.user.contact} /></label>
         </>}
         {!edit && !splitDetails && kind !== 'split' && gift && <p>{gift.details.title}</p>}
         {kind === 'split' && <SplitFields gift={gift} maxSlots={(company?.members.length ?? 0) - 1} />}
+        {(kind === 'leave' || splitCancel) && <p>Остальные участники сохранят свои доли. Если вы координатор, роль перейдёт первому вступившему из оставшихся. При выходе последнего участника бронь снимется.</p>}
+        {kind === 'close-split' && <p>Новые участники больше не смогут вступить. Доли будут рассчитаны на {state.taken} человек. Если кто-то выйдет до покупки, сбор откроется снова.</p>}
+        {kind === 'transfer' && <label>Новый координатор<select name="userId" required>
+          {state.participants.filter(person => person.id !== me.user.id).map(person => <option key={person.id} value={person.id}>{person.name}</option>)}
+        </select></label>}
         {splitDetails && (gift ? <SplitDetails gift={gift} /> : <p>Этот распил больше недоступен.</p>)}
         {error && <p className="board-error" role="alert">{error}</p>}
         <footer>
           {splitDetails ? <>
             {canManageSplit && <button type="button" className="gift-action" disabled={pending}
-              onClick={() => onGiftAction(state.isCoordinator ? 'cancel' : 'leave', gift)}>
-              {state.isCoordinator ? 'Отменить распил' : 'Выйти из распила'}
+              onClick={() => onGiftAction('leave', gift)}>
+              Выйти из распила
             </button>}
-            {canManageSplit && state.isCoordinator && state.taken === state.slots && <button type="button"
+            {canManageSplit && state.isCoordinator && state.taken >= 2 && <button type="button" className="gift-action" disabled={pending}
+              onClick={() => onGiftAction('transfer', gift)}>Передать координацию</button>}
+            {canManageSplit && state.isCoordinator && state.open && state.taken >= 2 && <button type="button" className="gift-action gift-action--primary" disabled={pending}
+              onClick={() => onGiftAction('close-split', gift)}>Завершить сбор</button>}
+            {canManageSplit && state.isCoordinator && !state.open && state.taken >= 2 && <button type="button"
               className="gift-action gift-action--primary" disabled={pending} onClick={() => onGiftAction('buy', gift)}>
               Отметить купленным
             </button>}

@@ -56,6 +56,9 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
             Пригласить участника
           </button>}
           <button type="button" onClick={() => choose(() => onMenu('profile'))}>Мой профиль</button>
+          <button type="button" onClick={() => choose(() => onMenu('notices'))}>Уведомления</button>
+          <button type="button" onClick={() => choose(() => onMenu('shares'))}>Ссылки на желания</button>
+          <button type="button" onClick={() => choose(() => onMenu('requests'))}>Гостевые заявки</button>
           {canManageArtwork && <button type="button" onClick={() => choose(() => onMenu('card-artwork'))}>Фоны и узоры</button>}
           <button type="button" onClick={() => choose(onArchive)}>{archived ? 'Активные желания' : archiveName}</button>
           <button type="button" disabled={pending} onClick={() => choose(onLogout)}>Выйти</button>

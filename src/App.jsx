@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CodeLogin } from './wishlist/CodeLogin.jsx'
+import { AccountTools } from './wishlist/AccountTools.jsx'
 import { BoardDialog } from './wishlist/BoardDialog.jsx'
 import { BoardFilters, BoardHeading, BoardNavigation, WishlistCompanyFilter } from './wishlist/BoardHeader.jsx'
 import { cardArtworkCollection } from './wishlist/cardArtwork.js'
@@ -8,6 +9,7 @@ import { GiftTable } from './wishlist/GiftTable.jsx'
 import { clearInvite, inviteLink, pendingInvite, retainInvite } from './wishlist/companyInvite.js'
 import { groupGifts, matchesWishlistCompany } from './wishlist/giftPresentation.js'
 import { useWishlist } from './wishlist/useWishlist.js'
+import { useMiniApp } from './wishlist/useMiniApp.js'
 import './wishlist/board.css'
 
 const demoNames = ['Юлия', 'Макс', 'Аня', 'Саша']
@@ -134,6 +136,7 @@ export default function App() {
   function closeDialog() {
     setDialog(current => current?.kind === 'create' ? { ...current, closing: true } : null)
   }
+  useMiniApp(Boolean(dialog) && !pending, closeDialog)
 
   async function submit(form) {
     setDialogError('')
@@ -242,11 +245,13 @@ export default function App() {
             pending={pending} artwork={collection} />)}
         </>}
       </main>
-      {displayedDialog && me && <BoardDialog dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
+      {displayedDialog && me && (['notices', 'shares', 'requests'].includes(displayedDialog.kind)
+        ? <AccountTools key={displayedDialog.kind} kind={displayedDialog.kind} api={board.api} companies={companies} onClose={closeDialog} />
+        : <BoardDialog key={displayedDialog.kind} dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
         ohmywishesApi={board.api} importCompany={view === 'board' && !archived ? company : undefined} onGiftsChanged={board.refresh}
         artworkCatalog={collection.catalog} onRemoveArtwork={removeArtwork}
         error={dialogError ? actionError : ''} onClose={closeDialog} onClosed={finishClosingDialog} onSubmit={submit}
-        onGiftAction={openDialog} onCardAction={handleGiftAction} canSplit={(company?.members.length ?? 0) >= 3} />}
+        onGiftAction={openDialog} onCardAction={handleGiftAction} canSplit={(company?.members.length ?? 0) >= 3} />)}
     </>
   )
 }
