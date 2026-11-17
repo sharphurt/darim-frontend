@@ -6,16 +6,16 @@ export function SplitProgress({ state, share }) {
   return (
     <div className="split-progress">
       <div className="split-progress__labels">
-        <p>Занято {taken} из {slots}</p>
+        <p>{state.open ? `Участников: ${taken}. Сбор открыт` : `Участников: ${taken}. Сбор завершён`}</p>
         {share && <p className="split-progress__share">≈ {share} с человека</p>}
       </div>
-      <div className="split-progress__track" aria-hidden="true"
+      {!state.open && <div className="split-progress__track" aria-hidden="true"
         style={{ '--split-slots': slots }}>
         {Array.from({ length: slots }, (_, index) => {
           const filled = index < taken
           return <span key={index} data-filled={filled} />
         })}
-      </div>
+      </div>}
     </div>
   )
 }
@@ -32,24 +32,11 @@ function ParticipantAvatar({ person }) {
   )
 }
 
-export function SplitFields({ gift, maxSlots }) {
-  const [slots, setSlots] = useState('2')
-  const count = Number(slots)
-  const price = gift.details.price
-  const share = price != null && Number.isInteger(count) && count >= 2 && count <= maxSlots
-    ? formatPrice(price / count) : ''
-
+export function SplitFields({ gift }) {
   return (
     <>
-      <p>Разделим «{gift.details.title}» на равные доли. Вы займёте первую, друзья смогут присоединиться.</p>
-      <label>Количество участников
-        <input name="slots" type="number" min="2" max={maxSlots} value={slots} required
-          onChange={event => setSlots(event.target.value)} />
-      </label>
-      <output className="split-share" aria-live="polite">
-        {share && <><strong>≈ {share}</strong> <span>с человека</span></>}
-      </output>
-      <p className="split-hint">Количество долей фиксируется при создании. У каждого участника одна доля.</p>
+      <p>Разделим «{gift.details.title}» на равные доли. Вы станете координатором, друзья смогут присоединиться.</p>
+      <p className="split-hint">Доля пересчитывается по числу участников. Когда все соберутся, завершите сбор. После этого можно отметить покупку.</p>
     </>
   )
 }
@@ -58,7 +45,7 @@ export function SplitDetails({ gift }) {
   const state = gift.participation
   const participants = state.participants ?? []
   const price = gift.details.price
-  const share = price != null && state.slots > 0 ? formatPrice(price / state.slots) : ''
+  const share = price != null && state.taken > 0 ? formatPrice(price / state.taken) : ''
   const status = gift.archived ? 'Желание в архиве.' : state.bought ? 'Подарок уже куплен.' : null
   return (
     <div className="split-details">

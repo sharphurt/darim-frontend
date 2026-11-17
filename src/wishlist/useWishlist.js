@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { createDarimApi } from '../api/darim.js'
 import { invitationToken } from './companyInvite.js'
 import { useCardArtwork } from './useCardArtwork.js'
+import { miniApp } from '../api/miniSession.js'
 
 export function useWishlist(archived) {
   const [api, setApi] = useState(createDarimApi)
   const [revision, setRevision] = useState(0)
-  const [view, setView] = useState('board')
+  const [view, setView] = useState(() => ['mine', 'giving'].includes(new URLSearchParams(location.search).get('tab'))
+    ? new URLSearchParams(location.search).get('tab') : 'board')
   const [companyId, setCompanyId] = useState('')
   const [session, setSession] = useState(null)
   const [result, setResult] = useState(null)
@@ -17,11 +19,12 @@ export function useWishlist(archived) {
   useEffect(() => {
     const controller = new AbortController()
     const { signal } = controller
-    const profile = api.me(signal).catch(error => {
+    const profile = api.ready().then(() => api.me(signal)).catch(error => {
+      if (error.status === 401 && miniApp()?.initData) throw new Error('Сессия Telegram закончилась. Откройте Mini App заново.')
       if (error.status === 401) return null
       throw error
     })
-    Promise.all([api.authInfo(signal), profile]).then(([info, me]) => {
+    Promise.all([api.ready().then(() => api.authInfo(signal)), profile]).then(([info, me]) => {
       if (!signal.aborted) setSession({ api, info, me })
     }).catch(error => {
       if (!signal.aborted) setSession({ api, error: error.message })
@@ -31,6 +34,13 @@ export function useWishlist(archived) {
 
   const current = session?.api === api ? session : null
   const me = current?.me
+  useEffect(() => {
+    if (!me) return
+    const refresh = () => { if (!document.hidden) setRevision(value => value + 1) }
+    const interval = setInterval(refresh, 30000)
+    window.addEventListener('focus', refresh)
+    return () => { clearInterval(interval); window.removeEventListener('focus', refresh) }
+  }, [me])
   const [artwork, updateArtworkImages] = useCardArtwork(session?.me?.user.id)
   const companies = me?.companies ?? (me?.company ? [me.company] : [])
   const company = companies.find(item => item.id === companyId) ?? companies[0]
@@ -99,7 +109,8 @@ export function useWishlist(archived) {
       }, true)
     }
     if (kind === 'invite-company') {
-      return run(client => client.issueInvite(activeCompanyId))
+      const limit = field('inviteLimit')
+      return run(client => client.issueInvite(activeCompanyId, limit === 'unlimited' ? null : Number(limit || 1)))
     }
     if (kind === 'profile') {
       return run(client => client.saveProfile({ name: field('name'), contact: field('contact') }), true)
@@ -130,7 +141,7 @@ export function useWishlist(archived) {
     return run(client => client.act(gift.id, {
       action: kind,
       companyId: activeView === 'board' ? activeCompanyId : undefined,
-      slots: kind === 'split' ? Number(field('slots')) : undefined,
+      userId: kind === 'transfer' ? field('userId') : undefined,
     }))
   }
 

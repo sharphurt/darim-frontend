@@ -2,6 +2,10 @@
 
 Клиент общего вишлиста Darim на React, JavaScript и Vite. [Репозиторий Darim](https://github.com/tripples25/darim)
 
+Основной развиваемый интерфейс проекта, заменяющий прежний Razor/Blazor. Backend, API и миграции остаются в `darim`. [AGENTS.md](AGENTS.md) связывает правила работы двух репозиториев; локально удобно держать их рядом.
+
+Подготовка перехода основного сайта, проверка сценариев и откат: [ops/react-cutover.md](ops/react-cutover.md). Факт подготовки не означает, что production уже переключён.
+
 ## Локальный запуск
 
 Понадобится Node.js 24 с npm.
@@ -19,6 +23,7 @@ npm run dev
 
 ```sh
 npm run lint
+npm test
 npm run build
 ```
 
@@ -27,6 +32,12 @@ npm run build
 ## CI и деплой
 
 [Настройка Woodpecker и Coolify](ops/README.md).
+
+## Проверка интерфейса в браузере
+
+`ops/check-react.cjs` проверяет мобильные диалоги, подтверждение завершения распила, уведомления, ссылки, гостевую заявку и Mini App с имитацией API. Нужны установленный Playwright и Edge (либо `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`). Запустите Vite на порту 5178 и `node ops/check-react.cjs`; при необходимости укажите `NODE_PATH` на каталог с Playwright и `DARIM_FRONTEND_URL` на другой локальный адрес.
+
+Проверка использует искусственные данные и не подтверждает живые Telegram-вход, БД или интеграцию Ohmywishes. Изображение проверки по умолчанию сохраняется вне отслеживаемых файлов; можно задать `DARIM_SCREENSHOT`.
 
 ## Вход по коду
 

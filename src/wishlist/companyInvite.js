@@ -1,6 +1,8 @@
 const storageKey = 'darim.pending-invite'
 
 export function pendingInvite() {
+  const start = window.Telegram?.WebApp?.initDataUnsafe?.start_param
+  if (typeof start === 'string' && start.startsWith('join_')) return start.slice(5)
   const token = new URLSearchParams(window.location.search).get('invite')
   if (token) return token
   try {
