@@ -12,8 +12,10 @@ Coolify собирает Dockerfile из ветки `test`. По UUID из ло�
 
 ## Production
 
-Для `main` настроены только проверки. Приложение в окружении `production` остановлено.
+С 18 ноября 2026 основной сайт [wishes.hype-ny.ru](https://wishes.hype-ny.ru/) обслуживает React. Production-приложение Coolify: `darim-frontend-production`, UUID `dncy9cdvvoiwyi7islmaqoua`, ветка `main`, порт 80, alias `darim-react-ui` в сети `coolify`. Автоматический деплой этого приложения выключен: на push в `main` Woodpecker выполняет проверки, а релиз запускается отдельно через Coolify после готовности совместимого API.
+
+Для ручного запуска используется **POST** `/api/v1/deploy` с JSON `{"uuid":"dncy9cdvvoiwyi7islmaqoua","force":false}`. Административный токен передаётся только через защищённое хранилище. `GET` на этом endpoint больше не запускает деплой. [Подтверждённый релиз](releases/2026-11-18-react.md).
 
 Публичный Caddy направляет `/api/*` и `/auth/*` непосредственно на backend, остальные страницы — на React/nginx. Оба приложения используют один origin; backend сохраняет существующий доверенный IP Caddy. Nginx обслуживает только интерфейс, без дополнительного проксирования API. Полная последовательность и откат — в [react-cutover.md](react-cutover.md).
 
-Прокси Vite действует при локальной разработке. Маршруты `/api` и `/auth` на развёрнутом фронтенде нужно настроить отдельно при подключении API.
+Прокси Vite действует при локальной разработке. В production маршруты `/api` и `/auth` настроены в Caddy; `/health` проверяет backend, `/frontend-health` — nginx.
