@@ -2,6 +2,12 @@ when:
   - event: [push, manual]
     branch: [main, test]
 
+# Keep test-and-deploy workflows in pipeline creation order, including the
+# shared Coolify commit pin. Supported by the installed Woodpecker 3.20.1.
+concurrency:
+  limit: 1
+  group: frontend-release
+
 steps:
   - name: lint-and-build
     image: node:24-bookworm-slim
@@ -12,6 +18,7 @@ steps:
       - npm run build
 
   - name: deploy-test
+    depends_on: [lint-and-build]
     image: alpine:3.22
     environment:
       COOLIFY_DEPLOY_WEBHOOK:
@@ -35,3 +42,15 @@ steps:
     when:
       - event: push
         branch: test
+
+  - name: deploy-production
+    depends_on: [lint-and-build]
+    image: node:24-bookworm-slim
+    environment:
+      COOLIFY_TOKEN:
+        from_secret: coolify_token
+    commands:
+      - node ops/deploy-production.mjs
+    when:
+      - event: push
+        branch: main
