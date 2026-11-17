@@ -6,7 +6,6 @@ COPY . .
 RUN npm run lint && npm test && npm run build
 
 FROM nginx:stable-alpine AS runtime
-ENV DARIM_API_UPSTREAM=http://darim-api:8080
-COPY ops/nginx.conf /etc/nginx/templates/default.conf.template
+COPY ops/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/ /usr/share/nginx/html/
 EXPOSE 80
