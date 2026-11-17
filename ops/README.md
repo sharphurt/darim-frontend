@@ -12,9 +12,15 @@ Coolify собирает Dockerfile из ветки `test`. По UUID из ло�
 
 ## Production
 
-С 18 ноября 2026 основной сайт [wishes.hype-ny.ru](https://wishes.hype-ny.ru/) обслуживает React. Production-приложение Coolify: `darim-frontend-production`, UUID `dncy9cdvvoiwyi7islmaqoua`, ветка `main`, порт 80, alias `darim-react-ui` в сети `coolify`. Автоматический деплой этого приложения выключен: на push в `main` Woodpecker выполняет проверки, а релиз запускается отдельно через Coolify после готовности совместимого API.
+С 18 ноября 2026 основной сайт [wishes.hype-ny.ru](https://wishes.hype-ny.ru/) обслуживает React. Production-приложение Coolify: `darim-frontend-production`, UUID `dncy9cdvvoiwyi7islmaqoua`, ветка `main`, порт 80, alias `darim-react-ui` в сети `coolify`.
+
+После успешных `npm ci`, тестов, линтера и сборки push в `main` автоматически запускает шаг `deploy-production`. Он фиксирует в Coolify именно проверенный `CI_COMMIT_SHA`, отправляет POST на деплой и ждёт его завершения. Затем сверяет коммит через публичный `/frontend-release.json` на основном домене. Ошибка сборки, выкладки, несовпадение версии или таймаут делают CI неуспешным. Для шага используется существующий секрет Woodpecker `coolify_token`, доступный на push; новые секреты не нужны.
+
+Нативный автодеплой Coolify остаётся выключен, чтобы не обходить CI и не запускать вторую выкладку. Полный workflow ограничен одной одновременной обработкой через `concurrency`, поэтому следующие коммиты не обгоняют предыдущие между проверкой и выпуском. Ручной запуск CI выполняет только проверки, ветка `test` обновляет только тестовое приложение. Если frontend требует изменения API, сначала выпустить совместимый backend.
 
 Для ручного запуска используется **POST** `/api/v1/deploy` с JSON `{"uuid":"dncy9cdvvoiwyi7islmaqoua","force":false}`. Административный токен передаётся только через защищённое хранилище. `GET` на этом endpoint больше не запускает деплой. [Подтверждённый релиз](releases/2026-11-18-react.md).
+
+Coolify хранит SHA последней проверенной версии в `git_commit_sha`. Для ручного отката сначала явно указать нужный проверенный SHA. Версия `/frontend-release.json` формируется при старте nginx из служебного `SOURCE_COMMIT`, секретов в ней нет.
 
 Публичный Caddy направляет `/api/*` и `/auth/*` непосредственно на backend, остальные страницы — на React/nginx. Оба приложения используют один origin; backend сохраняет существующий доверенный IP Caddy. Nginx обслуживает только интерфейс, без дополнительного проксирования API. Полная последовательность и откат — в [react-cutover.md](react-cutover.md).
 
