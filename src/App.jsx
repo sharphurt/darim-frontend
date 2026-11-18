@@ -220,11 +220,7 @@ export default function App() {
               <button type="button" className="pill" onClick={dismissInvite}>Скрыть</button>
             </div>
           </div> : !company && <div className="board-message page-inset">
-            <p>Создайте компанию или вступите по приглашению, чтобы увидеть общую доску.</p>
-            <div className="demo-logins">
-              <button type="button" className="pill" onClick={() => openDialog('create-company')}>Создать компанию</button>
-              <button type="button" className="pill" onClick={() => openDialog('join-company')}>Вступить по приглашению</button>
-            </div>
+            <p>Общая доска появится после вступления в компанию по ссылке-приглашению.</p>
           </div>}
           {!archived && (view === 'mine'
             ? <WishlistCompanyFilter companies={companies} value={wishlistCompany} onChange={setWishlistCompany} />

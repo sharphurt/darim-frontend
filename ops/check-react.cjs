@@ -51,8 +51,6 @@ async function fixture(browser, mini = false) {
       result = current
     } else if (path === '/api/notices') result = [{ id: 'notice', text: 'Координатор распила изменён', created: '2026-11-15T00:00:00Z', read: false }]
     else if (path === '/api/wishlist-interest' || path === '/api/wishlist-requests') result = []
-    else if (path === '/api/wishlist-links') result = request.method() === 'POST'
-      ? { link: { id: 'link' }, token: 'public-fixture-token' } : [{ id: 'link', label: 'Мои желания' }]
     else if (path === '/api/public/wishlist') result = { ownerName: owner.name, gifts: [{ ...current, guestReservationEnabled: true }] }
     else if (path.endsWith('/request') || path === '/api/notices/read') result = null
     else return route.fulfill({ status: 404, json: { title: `Unexpected fixture path: ${path}` } })
@@ -76,12 +74,13 @@ async function main() {
     await menu(page, 'Уведомления')
     await page.getByText('Координатор распила изменён', { exact: true }).waitFor()
     await page.getByRole('button', { name: 'Закрыть', exact: true }).click()
-    await menu(page, 'Ссылки на желания')
-    await page.getByRole('button', { name: 'Создать ссылку', exact: true }).click()
-    await page.getByRole('textbox', { name: 'Скопируйте ссылку' }).waitFor()
-    assert.match(await page.getByRole('textbox', { name: 'Скопируйте ссылку' }).inputValue(), /\/share#public-fixture-token$/)
-    await page.getByRole('button', { name: 'Закрыть', exact: true }).click()
-    await menu(page, 'Таблица')
+    await page.getByRole('button', { name: 'Меню', exact: true }).click()
+    const menuPanel = page.locator('#board-menu-panel')
+    await menuPanel.getByRole('button', { name: 'Мой профиль', exact: true }).waitFor()
+    for (const name of ['Создать компанию', 'Вступить по приглашению', 'Ссылки на желания', 'Гостевые заявки']) {
+      assert.equal(await menuPanel.getByRole('button', { name, exact: true }).count(), 0, `${name} must be hidden in the MVP`)
+    }
+    await menuPanel.getByRole('button', { name: 'Таблица', exact: true }).click()
     await page.getByRole('button', { name: /Кофемолка/ }).click()
     await page.getByRole('button', { name: 'Участники и детали', exact: true }).click()
     await page.getByRole('button', { name: 'Завершить сбор', exact: true }).click()
@@ -112,7 +111,7 @@ async function main() {
     assert.ok(!(await mini.page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage }))).includes('fixture-mini-token'))
     assert.deepEqual(mini.errors, [])
     await mini.context.close()
-    console.log('PASS: mobile dialogs, notices, shares, split closure, public requests, Mini App session and safe area')
+    console.log('PASS: mobile dialogs, notices, MVP menu, split closure, public requests, Mini App session and safe area')
   } finally { await browser.close() }
 }
 main().catch(error => { console.error(error); process.exitCode = 1 })
