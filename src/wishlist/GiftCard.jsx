@@ -55,7 +55,8 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
         </a>}
       </div>
     </header>
-    {gift.participation?.mode === 'split' && gift.participation.bought && <p>{giftBadge(gift)}</p>}
+    {(gift.participation?.mode === 'external' ||
+      gift.participation?.mode === 'split' && gift.participation.bought) && <p>{giftBadge(gift)}</p>}
     <div className={modal ? undefined : 'gift-card__body'}>
       {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}
     </div>

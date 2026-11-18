@@ -51,6 +51,7 @@ export function createDarimApi() {
       const body = photo ? { ...gift, photo: await encodePhoto(photo) } : gift
       return id ? http.write(`/api/gifts/${id}`, 'PUT', body) : http.write('/api/gifts', 'POST', body)
     },
+    saveGiftVisibility: (id, visibility) => http.write(`/api/gifts/${id}/visibility`, 'PUT', visibility),
     archiveGift: id => http.write(`/api/gifts/${id}/archive`, 'POST'),
     restoreGift: id => http.write(`/api/gifts/${id}/restore`, 'POST'),
     saveProfile: profile => http.write('/api/profile', 'PUT', profile),
