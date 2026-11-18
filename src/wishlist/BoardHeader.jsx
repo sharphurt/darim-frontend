@@ -37,10 +37,14 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
       }} onKeyDown={event => {
         if (menuOpen && event.key === 'Escape') closeMenu()
       }}>
-        <button type="button" className="board-nav__tab board-nav__notices" aria-haspopup="dialog" onClick={() => {
+        <button type="button" className="board-menu__toggle board-nav__notices" aria-label="Уведомления" aria-haspopup="dialog" onClick={() => {
           setMenuOpen(false)
           onMenu('notices')
-        }}>Уведомления</button>
+        }}>
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 10h18c0-3-3-3-3-10m-8 13a2 2 0 0 0 4 0" />
+          </svg>
+        </button>
         <button ref={menuToggle} type="button" className="board-menu__toggle" aria-label="Меню"
           aria-expanded={menuOpen} aria-controls="board-menu-panel"
           onClick={() => setMenuOpen(open => !open)}><img src={menuIcon} width="32" height="32" alt="" /></button>

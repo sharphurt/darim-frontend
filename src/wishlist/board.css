@@ -844,6 +844,11 @@
 .code-login button { justify-self: start; }
 /* Account dialogs share the existing board controls and spacing. */
 .account-tools { display: grid; gap: 1rem; }
+.board-dialog--notices[open] { display: flex; flex-direction: column; overflow: hidden; padding: 0; background: var(--surface); }
+.account-tools__header { flex: none; position: relative; padding: var(--dialog-padding); padding-inline-end: calc(var(--dialog-close-size) + 16px); }
+.account-tools__header h2 { padding-inline-end: 0; }
+.account-tools__header .board-dialog__close { display: grid; position: absolute; inset-block-start: 12px; inset-inline-end: 12px; margin: 0; }
+.board-dialog--notices .account-tools { min-height: 0; max-height: none; overflow-y: auto; padding: 0 var(--dialog-padding) var(--dialog-padding); }
 .account-tools form, .account-tools label { display: grid; gap: .6rem; }
 .account-tools input, .account-tools select { width: 100%; min-width: 0; box-sizing: border-box; }
 .account-tools__list { list-style: none; padding: 0; display: grid; gap: 1rem; }

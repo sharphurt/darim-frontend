@@ -49,7 +49,10 @@ async function fixture(browser, mini = false) {
         current.participation.coordinatorId = bob.id
       }
       result = current
-    } else if (path === '/api/notices') result = [{ id: 'notice', text: 'Координатор распила изменён', created: '2026-11-15T00:00:00Z', read: false }]
+    } else if (path === '/api/notices') result = Array.from({ length: 24 }, (_, index) => ({
+      id: `notice-${index}`, text: index ? `Уведомление ${index}` : 'Координатор распила изменён',
+      created: '2026-11-15T00:00:00Z', read: false,
+    }))
     else if (path === '/api/wishlist-interest' || path === '/api/wishlist-requests') result = []
     else if (path === '/api/public/wishlist') result = { ownerName: owner.name, gifts: [{ ...current, guestReservationEnabled: true }] }
     else if (path.endsWith('/request') || path === '/api/notices/read') result = null
@@ -73,12 +76,17 @@ async function main() {
     await page.getByRole('button', { name: 'Меню', exact: true }).waitFor()
     await menu(page, 'Уведомления')
     await page.getByText('Координатор распила изменён', { exact: true }).waitFor()
-    await page.getByRole('button', { name: 'Закрыть', exact: true }).click()
+    const closeNotices = page.getByRole('dialog', { name: 'Уведомления' }).getByRole('button', { name: 'Закрыть', exact: true })
+    const closeBeforeScroll = await closeNotices.boundingBox()
+    await page.getByText('Уведомление 23', { exact: true }).scrollIntoViewIfNeeded()
+    assert.deepEqual(await closeNotices.boundingBox(), closeBeforeScroll, 'Close must stay in place when notifications scroll')
+    await closeNotices.click()
     await page.setViewportSize({ width: 1188, height: 900 })
     const menuToggle = page.getByRole('button', { name: 'Меню', exact: true })
     await menuToggle.click()
     const notices = page.getByRole('button', { name: 'Уведомления', exact: true })
     assert.equal(await notices.count(), 1)
+    assert.equal(await notices.locator('svg').count(), 1)
     const noticesRect = await notices.boundingBox()
     const menuRect = await menuToggle.boundingBox()
     assert.ok(noticesRect.x + noticesRect.width <= menuRect.x, 'Notifications must be left of the desktop menu')

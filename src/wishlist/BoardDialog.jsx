@@ -4,6 +4,7 @@ import { GiftActions, GiftBackContent } from './GiftCard.jsx'
 import { SplitDetails, SplitFields } from './GiftSplit.jsx'
 import { artworkCategoryNames } from './cardArtwork.js'
 import { OhmywishesSettings } from './OhmywishesSettings.jsx'
+import { DialogClose } from './DialogClose.jsx'
 
 const actionLabels = {
   'create-company': 'Создать компанию',
@@ -173,11 +174,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
       {kind === 'profile' && <OhmywishesSettings api={ohmywishesApi} company={importCompany}
         outcome={dialog.outcome} profilePending={pending} onGiftsChanged={onGiftsChanged} />}
       </div>}
-      {kind !== 'transfer' && <button type="button" className="board-dialog__close" aria-label="Закрыть" disabled={pending || closing} onClick={onClose}>
-        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </button>}
+      {kind !== 'transfer' && <DialogClose disabled={pending || closing} onClose={onClose} />}
     </dialog>
   )
 }
