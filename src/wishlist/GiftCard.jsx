@@ -49,6 +49,12 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
     <div className={modal ? undefined : 'gift-card__body'}>
       {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}
     </div>
+    {own && gift.archived && !modal && <div className="gift-card__actions">
+      <button type="button" className="gift-action gift-action--primary" disabled={pending}
+        onClick={() => onAction(gift, 'edit')}>Редактировать</button>
+      <button type="button" className="gift-action" disabled={pending}
+        onClick={() => onAction(gift, 'restore')}>Вернуть</button>
+    </div>}
     {!own && !modal && <div className="gift-card__actions">
       <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />
     </div>}
@@ -177,10 +183,6 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
                 </div>
                 {split && <SplitProgress state={split} />}
                 {!split && badge && <p className="gift-card__badge">{badge}</p>}
-                {own && gift.archived && <div className="gift-card__actions">
-                  <button type="button" className="gift-action gift-action--primary" disabled={pending}
-                    onClick={() => onAction(gift, 'restore')}>Вернуть</button>
-                </div>}
               </div>
               <div className="gift-card__face gift-card__back" inert={!backActive}
                 onPointerDown={captureControlPress} ref={back}>

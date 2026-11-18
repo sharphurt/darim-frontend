@@ -497,6 +497,7 @@
   padding: 0 var(--gift-dialog-padding-inline) var(--gift-dialog-padding-block);
 }
 .board-dialog .gift-details__panel footer:empty { display: none; }
+.gift-details__owner-actions { display: grid; gap: 8px; }
 .board-dialog__close {
   display: none;
   place-items: center;

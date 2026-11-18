@@ -108,10 +108,12 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
           </div>
           <footer>
             {archiveButton}
-            {own ? <button type="button" className="gift-action gift-action--primary" disabled={pending}
-              onClick={() => onCardAction(gift, gift.archived ? 'restore' : 'edit')}>
-              {gift.archived ? 'Вернуть' : 'Редактировать'}
-            </button> : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
+            {own ? <div className="gift-details__owner-actions">
+              <button type="button" className="gift-action gift-action--primary" disabled={pending}
+                onClick={() => onCardAction(gift, 'edit')}>Редактировать</button>
+              {gift.archived && <button type="button" className="gift-action" disabled={pending}
+                onClick={() => onCardAction(gift, 'restore')}>Вернуть</button>}
+            </div> : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
           </footer>
         </section>
       ) : <div className="board-dialog__body"><form inert={closing} onSubmit={event => {
