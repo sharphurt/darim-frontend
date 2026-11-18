@@ -28,6 +28,17 @@ export function GiftActions({ gift, canSplit, onAction, pending }) {
   return null
 }
 
+export function OwnerGiftActions({ gift, pending, onAction }) {
+  if (gift.archived) return <button type="button" className="gift-action gift-action--primary" disabled={pending}
+    onClick={() => onAction(gift, 'restore')}>Вернуть</button>
+  return <>
+    <button type="button" className="gift-action" disabled={pending}
+      onClick={() => onAction(gift, 'edit')}>Редактировать</button>
+    {!gift.fromOhmywishes && <button type="button" className="gift-action gift-action--primary" disabled={pending}
+      onClick={() => onAction(gift, 'archive')}>Исполнено</button>}
+  </>
+}
+
 export function GiftBackContent({ gift, own, canSplit, pending, onAction, onCommentClick, modal = false }) {
   const { title, comment, url, price } = gift.details
   const formattedPrice = formatPrice(price)
@@ -48,9 +59,8 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
     <div className={modal ? undefined : 'gift-card__body'}>
       {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}
     </div>
-    {own && gift.archived && !modal && <div className="gift-card__actions">
-      <button type="button" className="gift-action gift-action--primary" disabled={pending}
-        onClick={() => onAction(gift, 'restore')}>Вернуть</button>
+    {own && !modal && <div className="gift-card__actions">
+      <OwnerGiftActions gift={gift} pending={pending} onAction={onAction} />
     </div>}
     {!own && !modal && <div className="gift-card__actions">
       <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />
@@ -75,12 +85,10 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
   const badge = giftBadge(gift)
   const title = gift.details.title
   const own = gift.owner.id === viewerId
-  const editable = own && !gift.archived
   const backActive = flipped || closing || controlPressed
   const returnLabel = `Показать лицевую сторону: ${title}`
   const activate = () => {
     if (openDetails) onAction(gift, 'gift-details')
-    else if (editable) onAction(gift, 'edit')
     else {
       setClosing(flipped)
       setFlipped(!flipped)
@@ -160,9 +168,9 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
         <div className="gift-handle" aria-hidden="true"><img src={clip} width="26" height="19" alt="" /></div>
         <div className="gift-perspective">
           <article className="gift-card" data-tilt data-flipped={flipped} data-back-active={backActive}>
-            <button type="button" className="gift-card__turn" aria-pressed={editable || openDetails ? undefined : flipped}
-              aria-haspopup={editable || openDetails ? 'dialog' : undefined}
-              aria-label={editable && !openDetails ? `Редактировать: ${title}` : flipped && !openDetails ? returnLabel : `Подробнее: ${title}`}
+            <button type="button" className="gift-card__turn" aria-pressed={openDetails ? undefined : flipped}
+              aria-haspopup={openDetails ? 'dialog' : undefined}
+              aria-label={flipped && !openDetails ? returnLabel : `Подробнее: ${title}`}
               onClick={activate} />
             <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
