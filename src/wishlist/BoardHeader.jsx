@@ -6,7 +6,7 @@ import wishPlusRight from '../assets/wish-plus-right.svg'
 const viewNames = { board: 'Доска желаний', mine: 'Мой вишлист', giving: 'Я дарю' }
 const archiveName = 'Архив желаний'
 
-export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, onLogout, canManageArtwork, displayMode, onDisplayMode }) {
+export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, canManageArtwork, displayMode, onDisplayMode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuToggle = useRef(null)
   function closeMenu() {
@@ -61,12 +61,11 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
           {company?.isOrganizer && <button type="button" onClick={() => choose(() => onMenu('invite-company'))}>
             Пригласить участника
           </button>}
-          <button type="button" onClick={() => choose(() => onMenu('profile'))}>Мой профиль</button>
           <button type="button" className="board-menu__notices" aria-haspopup="dialog"
             onClick={() => choose(() => onMenu('notices'))}>Уведомления</button>
           {canManageArtwork && <button type="button" onClick={() => choose(() => onMenu('card-artwork'))}>Фоны и узоры</button>}
           <button type="button" onClick={() => choose(onArchive)}>{archived ? 'Активные желания' : archiveName}</button>
-          <button type="button" disabled={pending} onClick={() => choose(onLogout)}>Выйти</button>
+          <button type="button" onClick={() => choose(() => onMenu('profile'))}>Мой профиль</button>
         </div>
       </div>}
     </header>

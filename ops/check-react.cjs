@@ -15,6 +15,7 @@ async function fixture(browser, mini = false) {
   const page = await context.newPage()
   page.setDefaultTimeout(12000)
   const calls = [], errors = []
+  let loggedOut = false
   const current = structuredClone(gift)
   if (mini) current.photoVersion = '66666666-6666-6666-6666-666666666666'
   page.on('pageerror', error => errors.push(error.message))
@@ -32,8 +33,11 @@ async function fixture(browser, mini = false) {
     let result
     if (path === '/auth/mini') result = { token: 'fixture-mini-token' }
     else if (path === '/api/auth-info') result = { telegramConfigured: false, demoEnabled: false, codeLoginEnabled: true }
+    else if (path === '/api/logout') { loggedOut = true; result = null }
+    else if (path === '/api/me' && loggedOut) return route.fulfill({ status: 401 })
     else if (path === '/api/me') result = { user: me, company, companies: [company] }
     else if (path === '/api/csrf') result = { token: 'csrf-fixture' }
+    else if (path === '/api/ohmywishes') result = { enabled: false }
     else if (path === '/api/card-artwork') result = { images: [], canManage: false }
     else if (path === '/api/gifts') result = [current]
     else if (path === '/api/gifts/mine' || path === '/api/gifts/giving') result = []
@@ -97,6 +101,8 @@ async function main() {
     await page.getByRole('button', { name: 'Меню', exact: true }).click()
     const menuPanel = page.locator('#board-menu-panel')
     await menuPanel.getByRole('button', { name: 'Мой профиль', exact: true }).waitFor()
+    assert.equal(await menuPanel.getByRole('button').last().textContent(), 'Мой профиль')
+    assert.equal(await menuPanel.getByRole('button', { name: 'Выйти', exact: true }).count(), 0)
     for (const name of ['Создать компанию', 'Вступить по приглашению', 'Ссылки на желания', 'Гостевые заявки']) {
       assert.equal(await menuPanel.getByRole('button', { name, exact: true }).count(), 0, `${name} must be hidden in the MVP`)
     }
@@ -118,6 +124,13 @@ async function main() {
     assert.deepEqual(errors, [])
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
     await page.screenshot({ path: process.env.DARIM_SCREENSHOT || 'react-transition-mobile.png', fullPage: true })
+    await page.goto(base)
+    await menu(page, 'Мой профиль')
+    const profile = page.getByRole('dialog', { name: 'Мой профиль' })
+    await profile.getByRole('button', { name: 'Выйти', exact: true }).click()
+    await profile.waitFor({ state: 'hidden' })
+    await menuToggle.waitFor({ state: 'hidden' })
+    assert.ok(calls.some(call => call.path === '/api/logout' && call.method === 'POST'))
     await context.close()
     const mini = await fixture(browser, true)
     await mini.page.goto(base)

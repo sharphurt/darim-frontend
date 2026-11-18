@@ -188,9 +188,13 @@ export default function App() {
   }
 
   async function logout() {
+    setDialogError('')
     if (await board.logout()) {
+      setDialog(null)
       board.setCompanyId('')
       navigate('board')
+    } else {
+      setDialogError('action')
     }
   }
 
@@ -207,7 +211,7 @@ export default function App() {
         displayMode={displayMode} onDisplayMode={changeDisplayMode}
         canManageArtwork={Array.isArray(artworkImages) && artwork.canManage}
         archived={archived} onArchive={() => { setArchived(value => !value); resetFilters() }}
-        onMenu={openDialog} onLogout={logout} />
+        onMenu={openDialog} />
       <main data-display-mode={displayMode}>
         <BoardHeading view={me ? view : 'board'} archived={archived} company={company} companies={companies}
           onCompany={id => { board.setCompanyId(id); navigate('board') }} />
@@ -255,6 +259,7 @@ export default function App() {
         : <BoardDialog key={displayedDialog.kind} dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
         ohmywishesApi={board.api} importCompany={view === 'board' && !archived ? company : undefined} onGiftsChanged={board.refresh}
         artworkCatalog={collection.catalog} onRemoveArtwork={removeArtwork}
+        onLogout={logout}
         error={dialogError ? actionError : ''} onClose={closeDialog} onClosed={finishClosingDialog} onSubmit={submit}
         onGiftAction={openDialog} onCardAction={handleGiftAction} canSplit={(company?.members.length ?? 0) >= 3} />)}
     </>

@@ -574,6 +574,7 @@
 .card-artwork-list li { display: grid; justify-items: center; }
 .card-artwork-list img { border-radius: 8px; object-fit: cover; }
 .board-dialog footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.board-dialog__profile-footer { margin-block-start: 16px; }
 .board-dialog--split form > footer:empty { display: none; }
 .board-dialog :is(.gift-action, .gift-editor__photo-picker) { padding: 12px 16px; }
 .board-dialog__archive {

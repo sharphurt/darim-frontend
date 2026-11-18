@@ -47,7 +47,7 @@ function CardArtworkFields({ catalog, pending, uploaded, onRemove }) {
   </>
 }
 
-export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onClosed, onSubmit, onGiftAction, onCardAction, canSplit, artworkCatalog, onRemoveArtwork, ohmywishesApi, importCompany, onGiftsChanged }) {
+export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onClosed, onSubmit, onLogout, onGiftAction, onCardAction, canSplit, artworkCatalog, onRemoveArtwork, ohmywishesApi, importCompany, onGiftsChanged }) {
   const ref = useRef(null)
   const { kind, gift, link, closing } = dialog
   useEffect(() => {
@@ -171,8 +171,13 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
           </>}
         </footer>
       </form>
-      {kind === 'profile' && <OhmywishesSettings api={ohmywishesApi} company={importCompany}
-        outcome={dialog.outcome} profilePending={pending} onGiftsChanged={onGiftsChanged} />}
+      {kind === 'profile' && <>
+        <OhmywishesSettings api={ohmywishesApi} company={importCompany}
+          outcome={dialog.outcome} profilePending={pending} onGiftsChanged={onGiftsChanged} />
+        <footer className="board-dialog__profile-footer">
+          <button type="button" className="gift-action" disabled={pending} onClick={onLogout}>Выйти</button>
+        </footer>
+      </>}
       </div>}
       {kind !== 'transfer' && <DialogClose disabled={pending || closing} onClose={onClose} />}
     </dialog>
