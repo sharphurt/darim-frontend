@@ -138,10 +138,14 @@ export function useWishlist(archived) {
       return run(client => client.saveGift(gift?.id, details, photo?.size ? photo : undefined))
     }
     if (kind === 'archive') return run(client => client.archiveGift(gift.id))
-    return run(client => client.act(gift.id, {
-      action: kind,
+    return actOnGift(gift.id, kind, kind === 'transfer' ? field('userId') : undefined)
+  }
+
+  function actOnGift(id, action, userId) {
+    return run(client => client.act(id, {
+      action,
       companyId: activeView === 'board' ? activeCompanyId : undefined,
-      userId: kind === 'transfer' ? field('userId') : undefined,
+      userId,
     }))
   }
 
@@ -162,6 +166,7 @@ export function useWishlist(archived) {
     }),
     pending,
     actionError,
+    actOnGift,
     submitDialog,
     restoreGift: id => run(client => client.restoreGift(id)),
     codeLogin: code => run(client => client.codeLogin(code), true, false),

@@ -14,7 +14,6 @@ const actionLabels = {
   reserve: 'Забронировать подарок',
   split: 'Дарить вместе',
   'split-details': 'Участники распила',
-  join: 'Присоединиться к распилу',
   cancel: 'Снять бронь',
   leave: 'Выйти из распила',
   'close-split': 'Завершить сбор участников',
@@ -80,7 +79,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   const title = edit ? (gift ? 'Редактировать желание' : 'Новое желание')
     : kind === 'profile' ? 'Мой профиль' : splitCancel ? 'Выйти из распила' : actionLabels[kind]
   const confirm = kind === 'split' ? 'Распилить и занять долю'
-    : kind === 'join' ? 'Занять долю' : editArtwork ? 'Загрузить'
+    : editArtwork ? 'Загрузить'
     : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
   const state = gift?.participation
   const canManageSplit = splitDetails && gift && !gift.archived && !state.bought

@@ -126,6 +126,16 @@ export default function App() {
   }
 
   async function handleGiftAction(gift, kind) {
+    if (kind === 'join') {
+      setDialogError('')
+      const result = await board.actOnGift(gift.id, 'join')
+      if (result?.response?.participation?.isMine) {
+        openDialog('split-details', result.response, { replace: true })
+      } else if (!result) {
+        setDialogError('action')
+      }
+      return
+    }
     if (kind !== 'restore') return openDialog(kind, gift)
     if (await board.restoreGift(gift.id)) setDialog(current => current?.gift === gift ? null : current)
     else setDialogError('action')
@@ -152,7 +162,7 @@ export default function App() {
       }
       if (dialog.kind === 'create-company' || dialog.kind === 'join-company') navigate('board')
       if (dialog.kind === 'join-company' && inviteToken) dismissInvite()
-      if (['split', 'join'].includes(dialog.kind) && result.response?.participation?.isMine) {
+      if (dialog.kind === 'split' && result.response?.participation?.isMine) {
         openDialog('split-details', result.response, { replace: true })
         return
       }
