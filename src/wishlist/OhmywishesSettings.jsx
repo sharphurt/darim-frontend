@@ -12,7 +12,7 @@ function syncMessage(status) {
     : 'Первое обновление скоро начнётся.'
 }
 
-export function OhmywishesSettings({ api, company, outcome, profilePending, onGiftsChanged }) {
+export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChanged }) {
   const [status, setStatus] = useState(null)
   const [loading, setLoading] = useState(true)
   const [attempt, setAttempt] = useState(0)
@@ -64,9 +64,7 @@ export function OhmywishesSettings({ api, company, outcome, profilePending, onGi
   const busy = working || profilePending || loading
   const sync = status && syncMessage(status)
   const showLink = status?.webApiEnabled && !status.connected && !status.reconnect
-  const visibility = company
-    ? `Новые желания увидят участники компании «${company.name}».`
-    : 'Новые желания будут видны только вам, пока вы не измените их видимость.'
+  const visibility = 'Новые желания будут видны всем вашим компаниям. Видимость можно изменить в карточке желания.'
   const telegram = window.Telegram?.WebApp
 
   return <section className="ohmywishes-settings" aria-labelledby="ohmywishes-heading" aria-busy={busy}>
@@ -97,7 +95,7 @@ export function OhmywishesSettings({ api, company, outcome, profilePending, onGi
         {showLink && <form onSubmit={event => {
           event.preventDefault()
           const url = new FormData(event.currentTarget).get('url').trim()
-          changeConnection(() => api.connectOhmywishesByLink(url, company?.id))
+          changeConnection(() => api.connectOhmywishesByLink(url))
         }}>
           <p id="ohmywishes-link-help">Скопируйте ссылку через «Поделиться» в Ohmywishes.
             Список должен открываться без входа. {visibility}</p>
@@ -113,7 +111,7 @@ export function OhmywishesSettings({ api, company, outcome, profilePending, onGi
           : <form onSubmit={event => {
             event.preventDefault()
             const listId = new FormData(event.currentTarget).get('listId')
-            changeConnection(() => api.selectOhmywishesList(listId, company?.id))
+            changeConnection(() => api.selectOhmywishesList(listId))
           }}>
             <p>{visibility}</p>
             <label>Список для импорта
