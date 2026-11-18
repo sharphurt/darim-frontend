@@ -90,7 +90,8 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   const dialogStyle = kind === 'create' ? ' board-dialog--gift board-dialog--create'
     : edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
     : kind === 'archive' ? ' board-dialog--archive'
-    : kind === 'split' || splitDetails ? ' board-dialog--split' : giftDetails ? ' board-dialog--gift-details' : ''
+    : splitDetails ? ' board-dialog--split board-dialog--split-details'
+    : kind === 'split' ? ' board-dialog--split' : giftDetails ? ' board-dialog--gift-details' : ''
 
   return (
     <dialog ref={ref} className={`board-dialog${dialogStyle}`} data-closing={closing}

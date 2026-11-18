@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { formatPrice, safeLink } from './giftPresentation.js'
 
-export function SplitProgress({ state, share }) {
+export function SplitProgress({ state, share, showOpenStatus = true }) {
   const { taken, slots } = state
+  const status = state.open ? (showOpenStatus ? '. Сбор открыт' : '') : '. Сбор завершён'
   return (
     <div className="split-progress">
       <div className="split-progress__labels">
-        <p>{state.open ? `Участников: ${taken}. Сбор открыт` : `Участников: ${taken}. Сбор завершён`}</p>
+        <p>Участников: {taken}{status}</p>
         {share && <p className="split-progress__share">≈ {share} с человека</p>}
       </div>
       {!state.open && <div className="split-progress__track" aria-hidden="true"
@@ -50,7 +51,7 @@ export function SplitDetails({ gift }) {
   return (
     <div className="split-details">
       <h3>{gift.details.title}</h3>
-      <SplitProgress state={state} share={share} />
+      <SplitProgress state={state} share={share} showOpenStatus={false} />
       {participants.length > 0 && <ul className="split-participants" aria-label="Участники распила">
         {participants.map(person => <li key={person.id}>
           <ParticipantAvatar person={person} />

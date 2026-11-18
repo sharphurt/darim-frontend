@@ -587,6 +587,7 @@
   }
 }
 .board-dialog--split form, .split-details { gap: clamp(20px, 2vw, 26px); }
+.board-dialog--split-details { width: min(calc(100% - 24px), 640px); }
 .split-share:not(:empty) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
 .split-share strong { color: var(--accent-text); font-size: var(--ui-primary-size); }
 .split-hint { color: #626262; font-size: var(--ui-tertiary-size); }
