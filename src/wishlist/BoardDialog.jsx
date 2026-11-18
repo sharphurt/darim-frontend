@@ -90,6 +90,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   const dialogStyle = kind === 'create' ? ' board-dialog--gift board-dialog--create'
     : edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
     : kind === 'archive' ? ' board-dialog--archive'
+    : kind === 'transfer' ? ' board-dialog--transfer'
     : splitDetails ? ' board-dialog--split board-dialog--split-details'
     : kind === 'split' ? ' board-dialog--split' : giftDetails ? ' board-dialog--gift-details' : ''
 
@@ -173,11 +174,11 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
       {kind === 'profile' && <OhmywishesSettings api={ohmywishesApi} company={importCompany}
         outcome={dialog.outcome} profilePending={pending} onGiftsChanged={onGiftsChanged} />}
       </div>}
-      <button type="button" className="board-dialog__close" aria-label="Закрыть" disabled={pending || closing} onClick={onClose}>
+      {kind !== 'transfer' && <button type="button" className="board-dialog__close" aria-label="Закрыть" disabled={pending || closing} onClick={onClose}>
         <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
           <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
-      </button>
+      </button>}
     </dialog>
   )
 }

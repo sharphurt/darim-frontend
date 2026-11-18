@@ -712,6 +712,7 @@
   }
   .board-dialog__close { display: grid; }
   .board-dialog__dismiss, .board-dialog footer:not(:has(> :not(.board-dialog__dismiss))) { display: none; }
+  .board-dialog--transfer .board-dialog__dismiss { display: inline-block; }
   .board-dialog--gift:not(.board-dialog--create) .board-dialog__archive { display: none; }
   :is(.board-dialog--create, .board-dialog--gift-details, .board-dialog--archive) {
     --dialog-viewport-gap: 8px;
