@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
 
 const dateFormat = new Intl.DateTimeFormat('ru-RU', { dateStyle: 'short', timeStyle: 'short' })
 
@@ -20,6 +20,9 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
   const [error, setError] = useState(outcome === 'failed'
     ? 'Не удалось подключить Ohmywishes. Попробуйте ещё раз.' : '')
   const [lists, setLists] = useState(null)
+  const [syncRequest, setSyncRequest] = useState(null)
+  const [syncNotice, setSyncNotice] = useState('')
+  const refreshGifts = useEffectEvent(onGiftsChanged)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -32,6 +35,38 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
     })
     return () => controller.abort()
   }, [api, attempt])
+
+  useEffect(() => {
+    if (!syncRequest) return
+    const controller = new AbortController()
+    const deadline = Date.now() + 140_000
+    let timer = setTimeout(poll, 2000)
+
+    async function poll() {
+      try {
+        const result = await api.ohmywishesStatus(controller.signal)
+        if (controller.signal.aborted) return
+        setStatus(result)
+        if (!result.connected || result.listId !== syncRequest.listId || (result.stale && !syncRequest.stale)) {
+          setSyncNotice('')
+        } else if (result.lastSuccess && result.lastSuccess !== syncRequest.lastSuccess) {
+          refreshGifts()
+          setSyncNotice('Список обновлён.')
+        } else if (Date.now() < deadline) {
+          timer = setTimeout(poll, 3000)
+          return
+        } else {
+          setSyncNotice('Обновление продолжится в фоне.')
+        }
+      } catch {
+        if (controller.signal.aborted) return
+        setSyncNotice('Не удалось проверить результат. Обновление продолжится в фоне.')
+      }
+      setSyncRequest(null)
+    }
+
+    return () => { controller.abort(); clearTimeout(timer) }
+  }, [api, syncRequest])
 
   async function run(action) {
     setWorking(true)
@@ -53,6 +88,7 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
   function changeConnection(action) {
     return run(async () => {
       await action()
+      setSyncNotice('')
       setLists(null)
       onGiftsChanged()
       reload()
@@ -61,7 +97,7 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
 
   if (!loading && !error && !status?.enabled && !status?.connected && !status?.reconnect && !status?.webApiEnabled) return null
 
-  const busy = working || profilePending || loading
+  const busy = working || profilePending || loading || Boolean(syncRequest)
   const sync = status && syncMessage(status)
   const showLink = status?.webApiEnabled && !status.connected && !status.reconnect
   const visibility = 'Новые желания будут видны всем вашим компаниям. Видимость можно изменить в карточке желания.'
@@ -78,6 +114,14 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
         {status.listTitle && <p>Список «{status.listTitle}»</p>}
         {status.lastSuccess && <p>Последнее обновление — {dateFormat.format(new Date(status.lastSuccess))}</p>}
         {sync && <p role="status">{sync}</p>}
+        {syncNotice && <p role="status">{syncNotice}</p>}
+        {status.manualSyncSupported && status.connected && status.listId &&
+          (status.webApiConnected ? status.webApiEnabled : status.enabled) &&
+          <button type="button" className="gift-action gift-action--primary" disabled={busy} onClick={() => run(async () => {
+            setSyncNotice('')
+            await api.syncOhmywishes()
+            setSyncRequest({ listId: status.listId, lastSuccess: status.lastSuccess, stale: status.stale })
+          })}>{syncRequest ? 'Синхронизируем…' : 'Синхронизировать'}</button>}
         {status.enabled && !status.connected && <button type="button" className="gift-action" disabled={busy}
           onClick={() => {
             if (telegram?.initData) {

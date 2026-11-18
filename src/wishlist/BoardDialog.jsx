@@ -163,7 +163,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
             </button>}
           </> : link ? <button type="button" className="gift-action gift-action--primary board-dialog__dismiss" onClick={onClose}>Готово</button> : <>
             {kind === 'edit' && archiveButton}
-            {kind !== 'split' && <button type="button" className="gift-action board-dialog__dismiss" disabled={pending}
+            {kind !== 'split' && kind !== 'profile' && <button type="button" className="gift-action board-dialog__dismiss" disabled={pending}
               onClick={onClose}>{editArtwork ? 'Закрыть' : 'Отмена'}</button>}
             <button type="submit" className="gift-action gift-action--primary" disabled={pending}>
               {pending ? 'Сохраняем…' : confirm}

@@ -55,6 +55,7 @@ export function createDarimApi() {
     restoreGift: id => http.write(`/api/gifts/${id}/restore`, 'POST'),
     saveProfile: profile => http.write('/api/profile', 'PUT', profile),
     ohmywishesStatus: signal => http.get('/api/ohmywishes', signal),
+    syncOhmywishes: () => http.write('/api/ohmywishes/sync', 'POST'),
     ohmywishesLists: () => http.get('/api/ohmywishes/lists'),
     connectOhmywishes: () => http.write('/api/ohmywishes/connect', 'POST'),
     connectOhmywishesByLink: (url, companyId) => http.write('/api/ohmywishes/web-connect', 'POST', { url, companyId }),
