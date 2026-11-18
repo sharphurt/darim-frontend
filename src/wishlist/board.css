@@ -286,8 +286,6 @@
   background-repeat: no-repeat;
 }
 .gift-card[data-flipped="true"] .gift-card__front { --gift-face-angle: 180deg; }
-.gift-card__front:has(.gift-card__actions) { z-index: 2; }
-.gift-card__front .gift-card__actions { padding-block-start: 2.5cqw; }
 .gift-card__front[data-tone="light"][data-has-overlay="true"]::before {
   content: '';
   position: absolute;
@@ -497,7 +495,6 @@
   padding: 0 var(--gift-dialog-padding-inline) var(--gift-dialog-padding-block);
 }
 .board-dialog .gift-details__panel footer:empty { display: none; }
-.gift-details__owner-actions { display: grid; gap: 8px; }
 .board-dialog__close {
   display: none;
   place-items: center;

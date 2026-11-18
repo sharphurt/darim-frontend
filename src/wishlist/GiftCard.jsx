@@ -51,8 +51,6 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
     </div>
     {own && gift.archived && !modal && <div className="gift-card__actions">
       <button type="button" className="gift-action gift-action--primary" disabled={pending}
-        onClick={() => onAction(gift, 'edit')}>Редактировать</button>
-      <button type="button" className="gift-action" disabled={pending}
         onClick={() => onAction(gift, 'restore')}>Вернуть</button>
     </div>}
     {!own && !modal && <div className="gift-card__actions">
