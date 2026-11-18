@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { GiftEditorFields } from './GiftEditorFields.jsx'
+import { CompanyFields, GiftEditorFields } from './GiftEditorFields.jsx'
 import { GiftActions, GiftBackContent, OwnerGiftActions } from './GiftCard.jsx'
 import { SplitDetails, SplitFields } from './GiftSplit.jsx'
 import { artworkCategoryNames } from './cardArtwork.js'
@@ -72,6 +72,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   }, [closing, onClosed])
 
   const edit = kind === 'edit' || kind === 'create'
+  const visibilityOnly = kind === 'edit' && gift.fromOhmywishes
   const giftDetails = kind === 'gift-details'
   const own = gift?.owner.id === me.user.id
   const splitDetails = kind === 'split-details'
@@ -86,7 +87,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   const state = gift?.participation
   const canManageSplit = splitDetails && gift && !gift.archived && !state.bought
   const dialogStyle = kind === 'create' ? ' board-dialog--gift board-dialog--create'
-    : edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
+    : edit && !visibilityOnly ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
     : kind === 'archive' ? ' board-dialog--archive'
     : kind === 'transfer' ? ' board-dialog--transfer'
     : splitDetails ? ' board-dialog--split board-dialog--split-details'
@@ -117,7 +118,11 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
         if (!closing && !link && !splitDetails) onSubmit(new FormData(event.currentTarget))
       }}>
         <h2 id="dialog-title">{title}</h2>
-        {edit && <GiftEditorFields gift={gift} company={company} companies={companies} pending={pending} />}
+        {visibilityOnly && <>
+          <p>Название, описание и фото можно изменить в Ohmywishes.</p>
+          <CompanyFields gift={gift} companies={companies} />
+        </>}
+        {edit && !visibilityOnly && <GiftEditorFields gift={gift} company={company} companies={companies} pending={pending} />}
         {editArtwork && <CardArtworkFields catalog={artworkCatalog} pending={pending}
           uploaded={dialog.uploaded} onRemove={onRemoveArtwork} />}
         {editArtwork && dialog.artworkStatus && !pending && !error && <p role="status">{dialog.artworkStatus}</p>}

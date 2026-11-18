@@ -24,6 +24,7 @@ export function giftBadge(gift) {
   if (gift.archived) return ''
   if (state?.bought) return 'Подарок уже куплен'
   if (state?.isMine) return state.mode === 'split' ? 'Вы участвуете в распиле' : 'Вы забронировали подарок'
+  if (state?.mode === 'external') return 'Подарок забронирован в Ohmywishes'
   if (state?.mode === 'split' && (state.open ?? state.taken < state.slots)) return 'Подарок пилится. Присоединяйтесь!'
   if (state && state.mode !== 'free') return 'Подарок уже занят'
   return ''

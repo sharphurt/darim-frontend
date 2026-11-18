@@ -116,6 +116,13 @@ export function useWishlist(archived) {
       return run(client => client.saveProfile({ name: field('name'), contact: field('contact') }), true)
     }
     if (kind === 'create' || kind === 'edit') {
+      const companyIds = form.getAll('companyIds')
+      if (gift?.fromOhmywishes) {
+        const allCompanies = form.has('allCompanies')
+        return run(client => client.saveGiftVisibility(gift.id, {
+          allCompanies, companyIds: allCompanies ? [] : companyIds,
+        }))
+      }
       const price = field('price')
       const url = field('url')
       const details = {
@@ -127,7 +134,6 @@ export function useWishlist(archived) {
         comment: field('comment'),
         unlimited: gift?.unlimited ?? form.has('unlimited'),
       }
-      const companyIds = form.getAll('companyIds')
       const previousIds = gift?.visibility?.companyIds ?? []
       if (!gift || gift.visibility?.allCompanies ||
         companyIds.length !== previousIds.length || companyIds.some(id => !previousIds.includes(id))) {
