@@ -116,15 +116,13 @@ export default function App() {
     }
   }
 
-  function openDialog(kind, gift) {
+  function openDialog(kind, gift, { replace = false } = {}) {
     setDialogError('')
     if (kind === 'gift-details' && !cardHintDismissed) dismissCardHint()
-    if (kind === 'split-details') {
-      setDialog({ kind, gift, splitSnapshot: data })
-      board.refresh()
-      return
-    }
-    setDialog({ kind, gift, token: kind === 'join-company' ? inviteToken : undefined })
+    const next = kind === 'split-details' ? { kind, gift, splitSnapshot: data }
+      : { kind, gift, token: kind === 'join-company' ? inviteToken : undefined }
+    setDialog(current => ({ ...next, previous: replace ? undefined : current }))
+    if (kind === 'split-details') board.refresh()
   }
 
   async function handleGiftAction(gift, kind) {
@@ -134,7 +132,8 @@ export default function App() {
   }
 
   function closeDialog() {
-    setDialog(current => current?.kind === 'create' ? { ...current, closing: true } : null)
+    setDialogError('')
+    setDialog(current => current?.kind === 'create' ? { ...current, closing: true } : current?.previous ?? null)
   }
   useMiniApp(Boolean(dialog) && !pending, closeDialog)
 
@@ -154,7 +153,7 @@ export default function App() {
       if (dialog.kind === 'create-company' || dialog.kind === 'join-company') navigate('board')
       if (dialog.kind === 'join-company' && inviteToken) dismissInvite()
       if (['split', 'join'].includes(dialog.kind) && result.response?.participation?.isMine) {
-        openDialog('split-details', result.response)
+        openDialog('split-details', result.response, { replace: true })
         return
       }
       const token = result.response?.token
