@@ -37,10 +37,12 @@ async function fixture(browser, mini = false) {
     else if (path === '/api/me' && loggedOut) return route.fulfill({ status: 401 })
     else if (path === '/api/me') result = { user: me, company, companies: [company] }
     else if (path === '/api/csrf') result = { token: 'csrf-fixture' }
-    else if (path === '/api/ohmywishes') result = { enabled: false }
+    else if (path === '/api/ohmywishes') result = { connected: true, webApiConnected: true, webApiEnabled: true,
+      manualSyncSupported: true, listId: 'fixture', listTitle: 'Всё', lastSuccess: '2026-11-15T00:00:00Z' }
     else if (path === '/api/card-artwork') result = { images: [], canManage: false }
     else if (path === '/api/gifts') result = [current]
-    else if (path === '/api/gifts/mine' || path === '/api/gifts/giving') result = []
+    else if (path === '/api/gifts/mine') result = [{ ...gift, owner: me, participation: null, details: { title: 'Моя книга' } }]
+    else if (path === '/api/gifts/giving') result = []
     else if (path.endsWith('/actions')) {
       const { action } = request.postDataJSON()
       if (action === 'close-split') current.participation.open = false
@@ -125,8 +127,19 @@ async function main() {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
     await page.screenshot({ path: process.env.DARIM_SCREENSHOT || 'react-transition-mobile.png', fullPage: true })
     await page.goto(base)
+    await page.getByRole('button', { name: 'Мой вишлист', exact: true }).click()
+    await page.getByRole('button', { name: /Моя книга/ }).click()
+    await page.getByRole('button', { name: 'Редактировать', exact: true }).click()
+    const editor = page.getByRole('dialog', { name: 'Редактировать желание' })
+    await editor.getByRole('button', { name: 'В архив', exact: true }).click()
+    await page.getByRole('dialog', { name: 'Отправить в архив' }).waitFor()
+    await page.goto(base)
     await menu(page, 'Мой профиль')
     const profile = page.getByRole('dialog', { name: 'Мой профиль' })
+    const sync = profile.getByRole('button', { name: 'Синхронизировать', exact: true })
+    await sync.waitFor()
+    const disconnect = profile.getByRole('button', { name: 'Отключить', exact: true })
+    assert.equal((await sync.boundingBox()).y, (await disconnect.boundingBox()).y)
     await profile.getByRole('button', { name: 'Выйти', exact: true }).click()
     await profile.waitFor({ state: 'hidden' })
     await menuToggle.waitFor({ state: 'hidden' })

@@ -175,7 +175,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
         <OhmywishesSettings api={ohmywishesApi} company={importCompany}
           outcome={dialog.outcome} profilePending={pending} onGiftsChanged={onGiftsChanged} />
         <footer className="board-dialog__profile-footer">
-          <button type="button" className="gift-action" disabled={pending} onClick={onLogout}>Выйти</button>
+          <button type="button" className="gift-action board-dialog__logout" disabled={pending} onClick={onLogout}>Выйти</button>
         </footer>
       </>}
       </div>}

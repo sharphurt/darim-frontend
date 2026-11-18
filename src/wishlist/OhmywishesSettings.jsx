@@ -115,13 +115,6 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
         {status.lastSuccess && <p>Последнее обновление — {dateFormat.format(new Date(status.lastSuccess))}</p>}
         {sync && <p role="status">{sync}</p>}
         {syncNotice && <p role="status">{syncNotice}</p>}
-        {status.manualSyncSupported && status.connected && status.listId &&
-          (status.webApiConnected ? status.webApiEnabled : status.enabled) &&
-          <button type="button" className="gift-action gift-action--primary" disabled={busy} onClick={() => run(async () => {
-            setSyncNotice('')
-            await api.syncOhmywishes()
-            setSyncRequest({ listId: status.listId, lastSuccess: status.lastSuccess, stale: status.stale })
-          })}>{syncRequest ? 'Синхронизируем…' : 'Синхронизировать'}</button>}
         {status.enabled && !status.connected && <button type="button" className="gift-action" disabled={busy}
           onClick={() => {
             if (telegram?.initData) {
@@ -166,8 +159,17 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
             </label>
             <button className="gift-action" disabled={busy}>Синхронизировать список</button>
           </form>)}
-        {(status.connected || status.reconnect) && <button type="button" className="gift-action" disabled={busy}
-          onClick={() => changeConnection(api.disconnectOhmywishes)}>Отключить Ohmywishes</button>}
+        {(status.connected || status.reconnect) && <div className="ohmywishes-settings__actions">
+          {status.manualSyncSupported && status.connected && status.listId &&
+            (status.webApiConnected ? status.webApiEnabled : status.enabled) &&
+            <button type="button" className="gift-action" disabled={busy} onClick={() => run(async () => {
+              setSyncNotice('')
+              await api.syncOhmywishes()
+              setSyncRequest({ listId: status.listId, lastSuccess: status.lastSuccess, stale: status.stale })
+            })}>{syncRequest ? 'Синхронизируем…' : 'Синхронизировать'}</button>}
+          <button type="button" className="gift-action" disabled={busy}
+            onClick={() => changeConnection(api.disconnectOhmywishes)}>Отключить</button>
+        </div>}
       </>}
   </section>
 }
