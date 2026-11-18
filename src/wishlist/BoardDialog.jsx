@@ -119,7 +119,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
       }}>
         <h2 id="dialog-title">{title}</h2>
         {visibilityOnly && <>
-          <p>Название, описание и фото можно изменить в Ohmywishes.</p>
+          <p>{gift.details.title}</p>
           <CompanyFields gift={gift} companies={companies} />
         </>}
         {edit && !visibilityOnly && <GiftEditorFields gift={gift} company={company} companies={companies} pending={pending} />}
