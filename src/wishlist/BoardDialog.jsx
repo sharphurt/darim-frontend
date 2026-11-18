@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { GiftEditorFields } from './GiftEditorFields.jsx'
-import { GiftActions, GiftBackContent } from './GiftCard.jsx'
+import { GiftActions, GiftBackContent, OwnerGiftActions } from './GiftCard.jsx'
 import { SplitDetails, SplitFields } from './GiftSplit.jsx'
 import { artworkCategoryNames } from './cardArtwork.js'
 import { OhmywishesSettings } from './OhmywishesSettings.jsx'
@@ -20,7 +20,7 @@ const actionLabels = {
   'close-split': 'Завершить сбор участников',
   transfer: 'Передать координацию',
   buy: 'Отметить купленным',
-  archive: 'Отправить в архив',
+  archive: 'Желание исполнено?',
 }
 
 function CardArtworkFields({ catalog, pending, uploaded, onRemove }) {
@@ -80,13 +80,11 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   const title = edit ? (gift ? 'Редактировать желание' : 'Новое желание')
     : kind === 'profile' ? 'Мой профиль' : splitCancel ? 'Выйти из распила' : actionLabels[kind]
   const confirm = kind === 'split' ? 'Распилить и занять долю'
+    : kind === 'archive' ? 'Исполнено'
     : editArtwork ? 'Загрузить'
     : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
   const state = gift?.participation
   const canManageSplit = splitDetails && gift && !gift.archived && !state.bought
-  const archiveButton = own && !gift.archived && !gift.fromOhmywishes &&
-    <button type="button" className="gift-action board-dialog__archive" disabled={pending}
-      onClick={() => onGiftAction('archive', gift)}>В архив</button>
   const dialogStyle = kind === 'create' ? ' board-dialog--gift board-dialog--create'
     : edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
     : kind === 'archive' ? ' board-dialog--archive'
@@ -109,11 +107,9 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
             {error && <p className="board-error" role="alert">{error}</p>}
           </div>
           <footer>
-            {archiveButton}
-            {own ? <button type="button" className="gift-action gift-action--primary" disabled={pending}
-              onClick={() => onCardAction(gift, gift.archived ? 'restore' : 'edit')}>
-              {gift.archived ? 'Вернуть' : 'Редактировать'}
-            </button> : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
+            {own ? <div className="gift-card__actions">
+              <OwnerGiftActions gift={gift} pending={pending} onAction={onCardAction} />
+            </div> : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
           </footer>
         </section>
       ) : <div className="board-dialog__body"><form inert={closing} onSubmit={event => {
@@ -139,6 +135,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
           <label>Контакт для участников распила<input name="contact" defaultValue={me.user.contact} /></label>
         </>}
         {!edit && !splitDetails && kind !== 'split' && gift && <p>{gift.details.title}</p>}
+        {kind === 'archive' && <p>Карточка переместится в архив. Все бронирования с неё снимутся.</p>}
         {kind === 'split' && <SplitFields gift={gift} maxSlots={(company?.members.length ?? 0) - 1} />}
         {(kind === 'leave' || splitCancel) && <p>Остальные участники сохранят свои доли. Если вы координатор, роль перейдёт первому вступившему из оставшихся. При выходе последнего участника бронь снимется.</p>}
         {kind === 'close-split' && <p>Новые участники больше не смогут вступить. Доли будут рассчитаны на {state.taken} человек. Если кто-то выйдет до покупки, сбор откроется снова.</p>}
@@ -162,7 +159,6 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
               Отметить купленным
             </button>}
           </> : link ? <button type="button" className="gift-action gift-action--primary board-dialog__dismiss" onClick={onClose}>Готово</button> : <>
-            {kind === 'edit' && archiveButton}
             {kind !== 'split' && kind !== 'profile' && <button type="button" className="gift-action board-dialog__dismiss" disabled={pending}
               onClick={onClose}>{editArtwork ? 'Закрыть' : 'Отмена'}</button>}
             <button type="submit" className="gift-action gift-action--primary" disabled={pending}>
