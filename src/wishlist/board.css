@@ -52,7 +52,8 @@
   translate: 0 clamp(-9.5px, -.495vw, -5px);
 }
 .board-nav__create img { flex: none; }
-.board-menu { grid-area: menu; justify-self: end; position: relative; }
+.board-menu { grid-area: menu; justify-self: end; position: relative; display: flex; align-items: center; gap: 12px; }
+.board-menu__notices { display: none; }
 .board-menu__toggle {
   display: grid;
   place-items: center;
@@ -766,6 +767,8 @@
   .gift-slot:nth-child(n) { --hang-at: .94; }
 }
 @media (max-width: 960px) {
+  .board-nav__notices { display: none; }
+  .board-menu__notices { display: block; }
   .board-nav { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "tabs menu"; gap: 12px; padding-block: 12px 16px; }
   .board-nav--dock, .board-nav--dock + main {
     --dock-height: calc(68px + env(safe-area-inset-bottom, 0px));

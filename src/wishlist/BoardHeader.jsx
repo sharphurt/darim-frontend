@@ -37,6 +37,10 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
       }} onKeyDown={event => {
         if (menuOpen && event.key === 'Escape') closeMenu()
       }}>
+        <button type="button" className="board-nav__tab board-nav__notices" aria-haspopup="dialog" onClick={() => {
+          setMenuOpen(false)
+          onMenu('notices')
+        }}>Уведомления</button>
         <button ref={menuToggle} type="button" className="board-menu__toggle" aria-label="Меню"
           aria-expanded={menuOpen} aria-controls="board-menu-panel"
           onClick={() => setMenuOpen(open => !open)}><img src={menuIcon} width="32" height="32" alt="" /></button>
@@ -54,7 +58,8 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
             Пригласить участника
           </button>}
           <button type="button" onClick={() => choose(() => onMenu('profile'))}>Мой профиль</button>
-          <button type="button" onClick={() => choose(() => onMenu('notices'))}>Уведомления</button>
+          <button type="button" className="board-menu__notices" aria-haspopup="dialog"
+            onClick={() => choose(() => onMenu('notices'))}>Уведомления</button>
           {canManageArtwork && <button type="button" onClick={() => choose(() => onMenu('card-artwork'))}>Фоны и узоры</button>}
           <button type="button" onClick={() => choose(onArchive)}>{archived ? 'Активные желания' : archiveName}</button>
           <button type="button" disabled={pending} onClick={() => choose(onLogout)}>Выйти</button>
