@@ -35,6 +35,7 @@ export function createDarimApi() {
     withdrawRequest: id => http.write(`/api/wishlist-requests/${id}`, 'DELETE'),
     requestGift: (id, token, shareUsername) => http.write(`/api/wishlist-links/gifts/${id}/request`, 'POST', { token, shareUsername }),
     createCompany: name => http.write('/api/company', 'POST', { name }),
+    deleteCompany: id => http.write(`/api/company/${encodeURIComponent(id)}`, 'DELETE'),
     joinCompany: token => http.write('/api/company/join?returnCompany=true', 'POST', { token }),
     issueInvite: (companyId, maxUses = 1) => http.write('/api/company/invite', 'POST', { companyId, maxUses }),
     gifts: (view, companyId, signal) => {

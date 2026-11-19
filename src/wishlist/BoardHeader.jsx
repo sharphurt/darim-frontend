@@ -6,7 +6,7 @@ import wishPlusRight from '../assets/wish-plus-right.svg'
 const viewNames = { board: 'Доска желаний', mine: 'Мой вишлист', giving: 'Я дарю' }
 const archiveName = 'Архив желаний'
 
-export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, canManageArtwork, displayMode, onDisplayMode }) {
+export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, canManageArtwork, canManageCompanies, displayMode, onDisplayMode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuToggle = useRef(null)
   function closeMenu() {
@@ -58,8 +58,8 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
                 onClick={() => choose(() => onDisplayMode('table'))}>Таблица</button>
             </div>
           </div>
-          {company?.isOrganizer && <button type="button" onClick={() => choose(() => onMenu('invite-company'))}>
-            Пригласить участника
+          {canManageCompanies && <button type="button" aria-haspopup="dialog" onClick={() => choose(() => onMenu('manage-companies'))}>
+            Управление компаниями
           </button>}
           <button type="button" className="board-menu__notices" aria-haspopup="dialog"
             onClick={() => choose(() => onMenu('notices'))}>Уведомления</button>
