@@ -56,6 +56,7 @@ export default function App() {
   const [archived, setArchived] = useState(false)
   const board = useWishlist(archived)
   const { session, me, company, companies, view, data, pending, actionError, artwork } = board
+  const managedCompanies = companies.filter(item => item.isOrganizer)
   const artworkImages = artwork?.images
   const collection = useMemo(() => cardArtworkCollection(artworkImages), [artworkImages])
   const [owner, setOwner] = useState('')
@@ -116,11 +117,11 @@ export default function App() {
     }
   }
 
-  function openDialog(kind, gift, { replace = false } = {}) {
+  function openDialog(kind, gift, { replace = false, managedCompany } = {}) {
     setDialogError('')
     if (kind === 'gift-details' && !cardHintDismissed) dismissCardHint()
     const next = kind === 'split-details' ? { kind, gift, splitSnapshot: data }
-      : { kind, gift, token: kind === 'join-company' ? inviteToken : undefined }
+      : { kind, gift, managedCompany, token: kind === 'join-company' ? inviteToken : undefined }
     setDialog(current => ({ ...next, previous: replace ? undefined : current }))
     if (kind === 'split-details') board.refresh()
   }
@@ -162,12 +163,23 @@ export default function App() {
       }
       if (dialog.kind === 'create-company' || dialog.kind === 'join-company') navigate('board')
       if (dialog.kind === 'join-company' && inviteToken) dismissInvite()
+      if (dialog.kind === 'delete-company') {
+        if (company?.id === dialog.managedCompany.id) setOwner('')
+        if (wishlistCompany === dialog.managedCompany.id) setWishlistCompany('')
+        setDialog(managedCompanies.length > 1 ? dialog.previous : null)
+        return
+      }
       if (dialog.kind === 'split' && result.response?.participation?.isMine) {
         openDialog('split-details', result.response, { replace: true })
         return
       }
       const token = result.response?.token
-      setDialog(token ? { kind: 'invite-result', link: inviteLink(token) } : null)
+      setDialog(token ? {
+        kind: 'invite-result',
+        link: inviteLink(token),
+        managedCompany: dialog.managedCompany,
+        previous: dialog.previous,
+      } : null)
     } else {
       setDialogError('action')
     }
@@ -208,6 +220,7 @@ export default function App() {
   return (
     <>
       <BoardNavigation view={me ? view : 'board'} onView={navigate} company={company} me={me} pending={pending}
+        canManageCompanies={managedCompanies.length > 0}
         displayMode={displayMode} onDisplayMode={changeDisplayMode}
         canManageArtwork={Array.isArray(artworkImages) && artwork.canManage}
         archived={archived} onArchive={() => { setArchived(value => !value); resetFilters() }}
@@ -260,6 +273,8 @@ export default function App() {
         ohmywishesApi={board.api} importCompany={view === 'board' && !archived ? company : undefined} onGiftsChanged={board.refresh}
         artworkCatalog={collection.catalog} onRemoveArtwork={removeArtwork}
         onLogout={logout}
+        managedCompanies={managedCompanies}
+        onCompanyAction={(kind, item) => openDialog(kind, undefined, { managedCompany: item })}
         error={dialogError ? actionError : ''} onClose={closeDialog} onClosed={finishClosingDialog} onSubmit={submit}
         onGiftAction={openDialog} onCardAction={handleGiftAction} canSplit={(company?.members.length ?? 0) >= 3} />)}
     </>

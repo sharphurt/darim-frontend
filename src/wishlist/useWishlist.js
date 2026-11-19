@@ -87,7 +87,7 @@ export function useWishlist(archived) {
     }
   }
 
-  function submitDialog({ kind, gift }, form) {
+  function submitDialog({ kind, gift, managedCompany }, form) {
     const field = name => form.get(name)?.trim() || null
     if (kind === 'card-artwork') {
       return run(async client => {
@@ -110,7 +110,18 @@ export function useWishlist(archived) {
     }
     if (kind === 'invite-company') {
       const limit = field('inviteLimit')
-      return run(client => client.issueInvite(activeCompanyId, limit === 'unlimited' ? null : Number(limit || 1)))
+      return run(client => client.issueInvite(managedCompany.id, limit === 'unlimited' ? null : Number(limit || 1)))
+    }
+    if (kind === 'delete-company') {
+      return run(async client => {
+        await client.deleteCompany(managedCompany.id)
+        const remaining = companies.filter(item => item.id !== managedCompany.id)
+        setSession(current => ({
+          ...current,
+          me: { ...me, companies: remaining, company: remaining.find(item => item.id === me.company?.id) ?? remaining[0] ?? null },
+        }))
+        if (companyId === managedCompany.id) setCompanyId('')
+      })
     }
     if (kind === 'profile') {
       return run(client => client.saveProfile({ name: field('name'), contact: field('contact') }), true)

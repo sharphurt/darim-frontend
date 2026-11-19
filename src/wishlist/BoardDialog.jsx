@@ -9,6 +9,8 @@ import { DialogClose } from './DialogClose.jsx'
 const actionLabels = {
   'create-company': 'Создать компанию',
   'join-company': 'Вступить по приглашению',
+  'manage-companies': 'Управление компаниями',
+  'delete-company': 'Удалить компанию?',
   'invite-company': 'Пригласить участника',
   'invite-result': 'Ссылка для приглашения',
   'card-artwork': 'Фоны и узоры',
@@ -47,9 +49,9 @@ function CardArtworkFields({ catalog, pending, uploaded, onRemove }) {
   </>
 }
 
-export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onClosed, onSubmit, onLogout, onGiftAction, onCardAction, canSplit, artworkCatalog, onRemoveArtwork, ohmywishesApi, importCompany, onGiftsChanged }) {
+export function BoardDialog({ dialog, me, company, companies, managedCompanies, onCompanyAction, pending, error, onClose, onClosed, onSubmit, onLogout, onGiftAction, onCardAction, canSplit, artworkCatalog, onRemoveArtwork, ohmywishesApi, importCompany, onGiftsChanged }) {
   const ref = useRef(null)
-  const { kind, gift, link, closing } = dialog
+  const { kind, gift, link, managedCompany, closing } = dialog
   useEffect(() => {
     const element = ref.current
     element.showModal()
@@ -77,11 +79,14 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   const own = gift?.owner.id === me.user.id
   const splitDetails = kind === 'split-details'
   const editArtwork = kind === 'card-artwork'
+  const manageCompanies = kind === 'manage-companies'
   const splitCancel = kind === 'cancel' && gift?.participation?.mode === 'split'
   const title = edit ? (gift ? 'Редактировать желание' : 'Новое желание')
     : kind === 'profile' ? 'Мой профиль' : splitCancel ? 'Выйти из распила' : actionLabels[kind]
   const confirm = kind === 'split' ? 'Распилить и занять долю'
     : kind === 'archive' ? 'Исполнено'
+    : kind === 'delete-company' ? 'Удалить компанию'
+    : kind === 'invite-company' ? 'Создать ссылку'
     : editArtwork ? 'Загрузить'
     : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
   const state = gift?.participation
@@ -115,7 +120,7 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
         </section>
       ) : <div className="board-dialog__body"><form inert={closing} onSubmit={event => {
         event.preventDefault()
-        if (!closing && !link && !splitDetails) onSubmit(new FormData(event.currentTarget))
+        if (!pending && !closing && !link && !splitDetails && !manageCompanies) onSubmit(new FormData(event.currentTarget))
       }}>
         <h2 id="dialog-title">{title}</h2>
         {visibilityOnly && <>
@@ -127,6 +132,19 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
           uploaded={dialog.uploaded} onRemove={onRemoveArtwork} />}
         {editArtwork && dialog.artworkStatus && !pending && !error && <p role="status">{dialog.artworkStatus}</p>}
         {kind === 'create-company' && <label>Название компании<input name="name" required maxLength="100" /></label>}
+        {manageCompanies && <ul className="company-management-list">
+          {managedCompanies.map(item => <li key={item.id}>
+            <h3>{item.name}</h3>
+            <div>
+              <button type="button" className="gift-action gift-action--primary" disabled={pending}
+                onClick={() => onCompanyAction('invite-company', item)}>Создать приглашение</button>
+              <button type="button" className="gift-action" disabled={pending}
+                onClick={() => onCompanyAction('delete-company', item)}>Удалить</button>
+            </div>
+          </li>)}
+        </ul>}
+        {managedCompany && <p>{managedCompany.name}</p>}
+        {kind === 'delete-company' && <p>Доска компании и её ссылки станут недоступны всем участникам. Личные желания и существующие бронирования сохранятся.</p>}
         {kind === 'join-company' && <label>Ссылка или код приглашения
           <input name="token" defaultValue={dialog.token} autoComplete="off" required />
         </label>}
@@ -163,7 +181,8 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
               className="gift-action gift-action--primary" disabled={pending} onClick={() => onGiftAction('buy', gift)}>
               Отметить купленным
             </button>}
-          </> : link ? <button type="button" className="gift-action gift-action--primary board-dialog__dismiss" onClick={onClose}>Готово</button> : <>
+          </> : link || manageCompanies ? <button type="button" className="gift-action gift-action--primary board-dialog__dismiss"
+            onClick={onClose}>{link ? 'Готово' : 'Закрыть'}</button> : <>
             {kind !== 'split' && kind !== 'profile' && <button type="button" className="gift-action board-dialog__dismiss" disabled={pending}
               onClick={onClose}>{editArtwork ? 'Закрыть' : 'Отмена'}</button>}
             <button type="submit" className="gift-action gift-action--primary" disabled={pending}>
