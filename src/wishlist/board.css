@@ -548,6 +548,7 @@
 .ohmywishes-settings h3 { margin: 0; }
 .ohmywishes-settings .gift-action { justify-self: start; }
 .ohmywishes-settings__actions { display: flex; gap: 8px; }
+.ohmywishes-disconnect { display: grid; gap: 16px; }
 .board-dialog h2, .board-dialog p { margin: 0; }
 .board-dialog input:not([type="checkbox"], [type="radio"], [type="file"], [type="hidden"]), .board-dialog textarea, .board-dialog--artwork select, .ohmywishes-settings select {
   width: 100%;

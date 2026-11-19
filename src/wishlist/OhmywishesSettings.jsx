@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useState } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
 
 const dateFormat = new Intl.DateTimeFormat('ru-RU', { dateStyle: 'short', timeStyle: 'short' })
 
@@ -12,11 +12,40 @@ function syncMessage(status) {
     : 'Первое обновление скоро начнётся.'
 }
 
+function DisconnectDialog({ busy, error, onCancel, onConfirm }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const dialog = ref.current
+    dialog.showModal()
+    return () => dialog.close()
+  }, [])
+
+  return <dialog ref={ref} className="board-dialog" aria-labelledby="ohmywishes-disconnect-title"
+    aria-describedby="ohmywishes-disconnect-note" onCancel={event => {
+      event.preventDefault()
+      event.stopPropagation()
+      if (!busy) onCancel()
+    }}>
+    <div className="ohmywishes-disconnect">
+      <h2 id="ohmywishes-disconnect-title">Отключить Ohmywishes?</h2>
+      <p id="ohmywishes-disconnect-note">Все импортированные из Ohmywishes желания будут удалены из Darim вместе с настройками видимости и бронями в Darim.</p>
+      {error && <p className="board-error" role="alert">{error}</p>}
+      <footer>
+        <button type="button" className="gift-action" disabled={busy} onClick={onCancel}>Отмена</button>
+        <button type="button" className="gift-action gift-action--primary" disabled={busy}
+          onClick={onConfirm}>Отключить и удалить</button>
+      </footer>
+    </div>
+  </dialog>
+}
+
 export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChanged }) {
   const [status, setStatus] = useState(null)
   const [loading, setLoading] = useState(true)
   const [attempt, setAttempt] = useState(0)
   const [working, setWorking] = useState(false)
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false)
   const [error, setError] = useState(outcome === 'failed'
     ? 'Не удалось подключить Ohmywishes. Попробуйте ещё раз.' : '')
   const [lists, setLists] = useState(null)
@@ -88,6 +117,7 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
   function changeConnection(action) {
     return run(async () => {
       await action()
+      setConfirmDisconnect(false)
       setSyncNotice('')
       setLists(null)
       onGiftsChanged()
@@ -105,7 +135,7 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
 
   return <section className="ohmywishes-settings" aria-labelledby="ohmywishes-heading" aria-busy={busy}>
     <h3 id="ohmywishes-heading">Ohmywishes</h3>
-    {error && <p className="board-error" role="alert">{error}</p>}
+    {error && !confirmDisconnect && <p className="board-error" role="alert">{error}</p>}
     {loading ? <p role="status">Проверяем подключение…</p> : !status ?
       <button type="button" className="gift-action" disabled={busy} onClick={() => {
         setError('')
@@ -167,9 +197,17 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
               await api.syncOhmywishes()
               setSyncRequest({ listId: status.listId, lastSuccess: status.lastSuccess, stale: status.stale })
             })}>{syncRequest ? 'Синхронизируем…' : 'Синхронизировать'}</button>}
-          <button type="button" className="gift-action" disabled={busy}
-            onClick={() => changeConnection(api.disconnectOhmywishes)}>Отключить</button>
+          <button type="button" className="gift-action" aria-haspopup="dialog" disabled={busy} onClick={() => {
+            setError('')
+            setConfirmDisconnect(true)
+          }}>Отключить</button>
         </div>}
+        {confirmDisconnect && <DisconnectDialog busy={busy} error={error}
+          onCancel={() => {
+            setError('')
+            setConfirmDisconnect(false)
+          }}
+          onConfirm={() => changeConnection(api.disconnectOhmywishes)} />}
       </>}
   </section>
 }
