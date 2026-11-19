@@ -66,12 +66,13 @@ function PhotoField({ gift, pending }) {
   )
 }
 
-function CompanyFields({ companies, company, gift }) {
+export function CompanyFields({ companies, company, gift }) {
   const [selected, setSelected] = useState(() => companies.filter(item => gift
     ? gift.visibility?.allCompanies || gift.visibility?.companyIds?.includes(item.id)
     : item.id === company?.id).map(item => item.id))
-  const [shared, setShared] = useState(selected.length > 0)
-  const all = selected.length === companies.length
+  const [allCompanies, setAllCompanies] = useState(Boolean(gift?.fromOhmywishes && gift.visibility?.allCompanies))
+  const [shared, setShared] = useState(allCompanies || selected.length > 0)
+  const all = gift?.fromOhmywishes ? allCompanies : selected.length === companies.length
   return (
     <fieldset className="gift-editor__companies">
       <legend>Видимость</legend>
@@ -85,18 +86,22 @@ function CompanyFields({ companies, company, gift }) {
           Видно другим
         </label>
       </div>
+      {shared && allCompanies && <input type="hidden" name="allCompanies" value="true" />}
       {shared && (companies.length ? <>
         <label className="dialog-check">
-          <input type="checkbox" checked={all} onChange={event => setSelected(
-            event.target.checked ? companies.map(item => item.id) : [],
-          )} />
+          <input type="checkbox" checked={all} onChange={event => {
+            if (gift?.fromOhmywishes) setAllCompanies(event.target.checked)
+            setSelected(event.target.checked ? companies.map(item => item.id) : [])
+          }} />
           Все
         </label>
         <div className="gift-editor__company-options">
           {companies.map(item => <label className="dialog-check" key={item.id}>
             <input type="checkbox" name="companyIds" value={item.id} checked={selected.includes(item.id)}
-              onChange={event => setSelected(event.target.checked
-                ? [...selected, item.id] : selected.filter(id => id !== item.id))} />
+              onChange={event => {
+                setAllCompanies(false)
+                setSelected(event.target.checked ? [...selected, item.id] : selected.filter(id => id !== item.id))
+              }} />
             {item.name}
           </label>)}
         </div>

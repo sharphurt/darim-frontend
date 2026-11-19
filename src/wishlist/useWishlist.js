@@ -87,7 +87,7 @@ export function useWishlist(archived) {
     }
   }
 
-  function submitDialog({ kind, gift }, form) {
+  function submitDialog({ kind, gift, managedCompany }, form) {
     const field = name => form.get(name)?.trim() || null
     if (kind === 'card-artwork') {
       return run(async client => {
@@ -110,12 +110,30 @@ export function useWishlist(archived) {
     }
     if (kind === 'invite-company') {
       const limit = field('inviteLimit')
-      return run(client => client.issueInvite(activeCompanyId, limit === 'unlimited' ? null : Number(limit || 1)))
+      return run(client => client.issueInvite(managedCompany.id, limit === 'unlimited' ? null : Number(limit || 1)))
+    }
+    if (kind === 'delete-company') {
+      return run(async client => {
+        await client.deleteCompany(managedCompany.id)
+        const remaining = companies.filter(item => item.id !== managedCompany.id)
+        setSession(current => ({
+          ...current,
+          me: { ...me, companies: remaining, company: remaining.find(item => item.id === me.company?.id) ?? remaining[0] ?? null },
+        }))
+        if (companyId === managedCompany.id) setCompanyId('')
+      })
     }
     if (kind === 'profile') {
       return run(client => client.saveProfile({ name: field('name'), contact: field('contact') }), true)
     }
     if (kind === 'create' || kind === 'edit') {
+      const companyIds = form.getAll('companyIds')
+      if (gift?.fromOhmywishes) {
+        const allCompanies = form.has('allCompanies')
+        return run(client => client.saveGiftVisibility(gift.id, {
+          allCompanies, companyIds: allCompanies ? [] : companyIds,
+        }))
+      }
       const price = field('price')
       const url = field('url')
       const details = {
@@ -127,7 +145,6 @@ export function useWishlist(archived) {
         comment: field('comment'),
         unlimited: gift?.unlimited ?? form.has('unlimited'),
       }
-      const companyIds = form.getAll('companyIds')
       const previousIds = gift?.visibility?.companyIds ?? []
       if (!gift || gift.visibility?.allCompanies ||
         companyIds.length !== previousIds.length || companyIds.some(id => !previousIds.includes(id))) {
@@ -138,10 +155,14 @@ export function useWishlist(archived) {
       return run(client => client.saveGift(gift?.id, details, photo?.size ? photo : undefined))
     }
     if (kind === 'archive') return run(client => client.archiveGift(gift.id))
-    return run(client => client.act(gift.id, {
-      action: kind,
+    return actOnGift(gift.id, kind, kind === 'transfer' ? field('userId') : undefined)
+  }
+
+  function actOnGift(id, action, userId) {
+    return run(client => client.act(id, {
+      action,
       companyId: activeView === 'board' ? activeCompanyId : undefined,
-      userId: kind === 'transfer' ? field('userId') : undefined,
+      userId,
     }))
   }
 
@@ -162,6 +183,7 @@ export function useWishlist(archived) {
     }),
     pending,
     actionError,
+    actOnGift,
     submitDialog,
     restoreGift: id => run(client => client.restoreGift(id)),
     codeLogin: code => run(client => client.codeLogin(code), true, false),

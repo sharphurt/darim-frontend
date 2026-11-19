@@ -6,7 +6,7 @@ import wishPlusRight from '../assets/wish-plus-right.svg'
 const viewNames = { board: 'Доска желаний', mine: 'Мой вишлист', giving: 'Я дарю' }
 const archiveName = 'Архив желаний'
 
-export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, onLogout, canManageArtwork, displayMode, onDisplayMode }) {
+export function BoardNavigation({ view, onView, company, me, pending, archived, onArchive, onMenu, canManageArtwork, canManageCompanies, displayMode, onDisplayMode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuToggle = useRef(null)
   function closeMenu() {
@@ -37,6 +37,14 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
       }} onKeyDown={event => {
         if (menuOpen && event.key === 'Escape') closeMenu()
       }}>
+        <button type="button" className="board-menu__toggle board-nav__notices" aria-label="Уведомления" aria-haspopup="dialog" onClick={() => {
+          setMenuOpen(false)
+          onMenu('notices')
+        }}>
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 10h18c0-3-3-3-3-10m-8 13a2 2 0 0 0 4 0" />
+          </svg>
+        </button>
         <button ref={menuToggle} type="button" className="board-menu__toggle" aria-label="Меню"
           aria-expanded={menuOpen} aria-controls="board-menu-panel"
           onClick={() => setMenuOpen(open => !open)}><img src={menuIcon} width="32" height="32" alt="" /></button>
@@ -50,18 +58,14 @@ export function BoardNavigation({ view, onView, company, me, pending, archived, 
                 onClick={() => choose(() => onDisplayMode('table'))}>Таблица</button>
             </div>
           </div>
-          <button type="button" onClick={() => choose(() => onMenu('create-company'))}>Создать компанию</button>
-          <button type="button" onClick={() => choose(() => onMenu('join-company'))}>Вступить по приглашению</button>
-          {company?.isOrganizer && <button type="button" onClick={() => choose(() => onMenu('invite-company'))}>
-            Пригласить участника
+          {canManageCompanies && <button type="button" aria-haspopup="dialog" onClick={() => choose(() => onMenu('manage-companies'))}>
+            Управление компаниями
           </button>}
-          <button type="button" onClick={() => choose(() => onMenu('profile'))}>Мой профиль</button>
-          <button type="button" onClick={() => choose(() => onMenu('notices'))}>Уведомления</button>
-          <button type="button" onClick={() => choose(() => onMenu('shares'))}>Ссылки на желания</button>
-          <button type="button" onClick={() => choose(() => onMenu('requests'))}>Гостевые заявки</button>
+          <button type="button" className="board-menu__notices" aria-haspopup="dialog"
+            onClick={() => choose(() => onMenu('notices'))}>Уведомления</button>
           {canManageArtwork && <button type="button" onClick={() => choose(() => onMenu('card-artwork'))}>Фоны и узоры</button>}
           <button type="button" onClick={() => choose(onArchive)}>{archived ? 'Активные желания' : archiveName}</button>
-          <button type="button" disabled={pending} onClick={() => choose(onLogout)}>Выйти</button>
+          <button type="button" onClick={() => choose(() => onMenu('profile'))}>Мой профиль</button>
         </div>
       </div>}
     </header>

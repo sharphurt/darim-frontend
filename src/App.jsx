@@ -56,6 +56,7 @@ export default function App() {
   const [archived, setArchived] = useState(false)
   const board = useWishlist(archived)
   const { session, me, company, companies, view, data, pending, actionError, artwork } = board
+  const managedCompanies = companies.filter(item => item.isOrganizer)
   const artworkImages = artwork?.images
   const collection = useMemo(() => cardArtworkCollection(artworkImages), [artworkImages])
   const [owner, setOwner] = useState('')
@@ -116,25 +117,34 @@ export default function App() {
     }
   }
 
-  function openDialog(kind, gift) {
+  function openDialog(kind, gift, { replace = false, managedCompany } = {}) {
     setDialogError('')
     if (kind === 'gift-details' && !cardHintDismissed) dismissCardHint()
-    if (kind === 'split-details') {
-      setDialog({ kind, gift, splitSnapshot: data })
-      board.refresh()
-      return
-    }
-    setDialog({ kind, gift, token: kind === 'join-company' ? inviteToken : undefined })
+    const next = kind === 'split-details' ? { kind, gift, splitSnapshot: data }
+      : { kind, gift, managedCompany, token: kind === 'join-company' ? inviteToken : undefined }
+    setDialog(current => ({ ...next, previous: replace ? undefined : current }))
+    if (kind === 'split-details') board.refresh()
   }
 
   async function handleGiftAction(gift, kind) {
+    if (kind === 'join') {
+      setDialogError('')
+      const result = await board.actOnGift(gift.id, 'join')
+      if (result?.response?.participation?.isMine) {
+        openDialog('split-details', result.response, { replace: true })
+      } else if (!result) {
+        setDialogError('action')
+      }
+      return
+    }
     if (kind !== 'restore') return openDialog(kind, gift)
     if (await board.restoreGift(gift.id)) setDialog(current => current?.gift === gift ? null : current)
     else setDialogError('action')
   }
 
   function closeDialog() {
-    setDialog(current => current?.kind === 'create' ? { ...current, closing: true } : null)
+    setDialogError('')
+    setDialog(current => current?.kind === 'create' ? { ...current, closing: true } : current?.previous ?? null)
   }
   useMiniApp(Boolean(dialog) && !pending, closeDialog)
 
@@ -153,12 +163,23 @@ export default function App() {
       }
       if (dialog.kind === 'create-company' || dialog.kind === 'join-company') navigate('board')
       if (dialog.kind === 'join-company' && inviteToken) dismissInvite()
-      if (['split', 'join'].includes(dialog.kind) && result.response?.participation?.isMine) {
-        openDialog('split-details', result.response)
+      if (dialog.kind === 'delete-company') {
+        if (company?.id === dialog.managedCompany.id) setOwner('')
+        if (wishlistCompany === dialog.managedCompany.id) setWishlistCompany('')
+        setDialog(managedCompanies.length > 1 ? dialog.previous : null)
+        return
+      }
+      if (dialog.kind === 'split' && result.response?.participation?.isMine) {
+        openDialog('split-details', result.response, { replace: true })
         return
       }
       const token = result.response?.token
-      setDialog(token ? { kind: 'invite-result', link: inviteLink(token) } : null)
+      setDialog(token ? {
+        kind: 'invite-result',
+        link: inviteLink(token),
+        managedCompany: dialog.managedCompany,
+        previous: dialog.previous,
+      } : null)
     } else {
       setDialogError('action')
     }
@@ -179,9 +200,13 @@ export default function App() {
   }
 
   async function logout() {
+    setDialogError('')
     if (await board.logout()) {
+      setDialog(null)
       board.setCompanyId('')
       navigate('board')
+    } else {
+      setDialogError('action')
     }
   }
 
@@ -195,10 +220,11 @@ export default function App() {
   return (
     <>
       <BoardNavigation view={me ? view : 'board'} onView={navigate} company={company} me={me} pending={pending}
+        canManageCompanies={managedCompanies.length > 0}
         displayMode={displayMode} onDisplayMode={changeDisplayMode}
         canManageArtwork={Array.isArray(artworkImages) && artwork.canManage}
         archived={archived} onArchive={() => { setArchived(value => !value); resetFilters() }}
-        onMenu={openDialog} onLogout={logout} />
+        onMenu={openDialog} />
       <main data-display-mode={displayMode}>
         <BoardHeading view={me ? view : 'board'} archived={archived} company={company} companies={companies}
           onCompany={id => { board.setCompanyId(id); navigate('board') }} />
@@ -211,11 +237,7 @@ export default function App() {
               <button type="button" className="pill" onClick={dismissInvite}>Скрыть</button>
             </div>
           </div> : !company && <div className="board-message page-inset">
-            <p>Создайте компанию или вступите по приглашению, чтобы увидеть общую доску.</p>
-            <div className="demo-logins">
-              <button type="button" className="pill" onClick={() => openDialog('create-company')}>Создать компанию</button>
-              <button type="button" className="pill" onClick={() => openDialog('join-company')}>Вступить по приглашению</button>
-            </div>
+            <p>Общая доска появится после вступления в компанию по ссылке-приглашению.</p>
           </div>}
           {!archived && (view === 'mine'
             ? <WishlistCompanyFilter companies={companies} value={wishlistCompany} onChange={setWishlistCompany} />
@@ -250,6 +272,9 @@ export default function App() {
         : <BoardDialog key={displayedDialog.kind} dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
         ohmywishesApi={board.api} importCompany={view === 'board' && !archived ? company : undefined} onGiftsChanged={board.refresh}
         artworkCatalog={collection.catalog} onRemoveArtwork={removeArtwork}
+        onLogout={logout}
+        managedCompanies={managedCompanies}
+        onCompanyAction={(kind, item) => openDialog(kind, undefined, { managedCompany: item })}
         error={dialogError ? actionError : ''} onClose={closeDialog} onClosed={finishClosingDialog} onSubmit={submit}
         onGiftAction={openDialog} onCardAction={handleGiftAction} canSplit={(company?.members.length ?? 0) >= 3} />)}
     </>
