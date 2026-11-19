@@ -173,6 +173,7 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
                   onError={() => setFailedPhoto(photo)} />}
                 <div className="gift-card__summary">
                   <h3>{title}</h3>
+                  {own && gift.fromOhmywishes && <span className="gift-card__source">Из Ohmywishes</span>}
                   {price && <p>{price}</p>}
                 </div>
                 {split && <SplitProgress state={split} />}

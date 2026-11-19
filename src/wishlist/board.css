@@ -850,3 +850,13 @@
 .public-wishlist__gift > img { width: 100%; max-height: 280px; object-fit: contain; }
 .public-wishlist__gift form { display: grid; gap: 1rem; }
 body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe-bottom, 0px); padding-left: var(--darim-safe-left, 0px); padding-right: var(--darim-safe-right, 0px); }
+
+.gift-card__source {
+  display: inline-block;
+  margin-block-start: .3rem;
+  padding: .15rem .4rem;
+  border-radius: .4rem;
+  background: #244b3e;
+  color: #fff;
+  font-size: .75rem;
+}
