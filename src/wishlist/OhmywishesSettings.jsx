@@ -17,6 +17,7 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
   const [loading, setLoading] = useState(true)
   const [attempt, setAttempt] = useState(0)
   const [working, setWorking] = useState(false)
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false)
   const [error, setError] = useState(outcome === 'failed'
     ? 'Не удалось подключить Ohmywishes. Попробуйте ещё раз.' : '')
   const [lists, setLists] = useState(null)
@@ -88,6 +89,7 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
   function changeConnection(action) {
     return run(async () => {
       await action()
+      setConfirmDisconnect(false)
       setSyncNotice('')
       setLists(null)
       onGiftsChanged()
@@ -159,7 +161,7 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
             </label>
             <button className="gift-action" disabled={busy}>Синхронизировать список</button>
           </form>)}
-        {(status.connected || status.reconnect) && <div className="ohmywishes-settings__actions">
+        {!confirmDisconnect && (status.connected || status.reconnect) && <div className="ohmywishes-settings__actions">
           {status.manualSyncSupported && status.connected && status.listId &&
             (status.webApiConnected ? status.webApiEnabled : status.enabled) &&
             <button type="button" className="gift-action" disabled={busy} onClick={() => run(async () => {
@@ -168,8 +170,18 @@ export function OhmywishesSettings({ api, outcome, profilePending, onGiftsChange
               setSyncRequest({ listId: status.listId, lastSuccess: status.lastSuccess, stale: status.stale })
             })}>{syncRequest ? 'Синхронизируем…' : 'Синхронизировать'}</button>}
           <button type="button" className="gift-action" disabled={busy}
-            onClick={() => changeConnection(api.disconnectOhmywishes)}>Отключить</button>
+            onClick={() => setConfirmDisconnect(true)}>Отключить</button>
         </div>}
+        {confirmDisconnect && (status.connected || status.reconnect) && <>
+          <p id="ohmywishes-disconnect-note">Все желания из Ohmywishes будут удалены из Darim вместе с их настройками видимости и бронями в Darim.</p>
+          <div className="ohmywishes-settings__actions">
+            <button type="button" className="gift-action" disabled={busy}
+              onClick={() => setConfirmDisconnect(false)}>Отмена</button>
+            <button type="button" className="gift-action gift-action--primary" disabled={busy}
+              aria-describedby="ohmywishes-disconnect-note"
+              onClick={() => changeConnection(api.disconnectOhmywishes)}>Отключить и удалить</button>
+          </div>
+        </>}
       </>}
   </section>
 }
