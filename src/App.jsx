@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CodeLogin } from './wishlist/CodeLogin.jsx'
 import { AccountTools } from './wishlist/AccountTools.jsx'
 import { BoardDialog } from './wishlist/BoardDialog.jsx'
@@ -8,8 +8,7 @@ import { GiftShelf } from './wishlist/GiftShelf.jsx'
 import { GiftTable } from './wishlist/GiftTable.jsx'
 import { clearInvite, inviteLink, pendingInvite, retainInvite } from './wishlist/companyInvite.js'
 import { groupGifts, matchesWishlistCompany } from './wishlist/giftPresentation.js'
-import { NotificationLinkDialog } from './wishlist/NotificationLinkDialog.jsx'
-import { pendingNotificationLink, retainNotificationLink, clearNotificationLink } from './wishlist/notificationLink.js'
+import { pendingNotificationLink, retainNotificationLink, clearNotificationLink, resolveNotificationBoard, highlightNotificationCard } from './wishlist/notificationLink.js'
 import { useWishlist } from './wishlist/useWishlist.js'
 import { useMiniApp } from './wishlist/useMiniApp.js'
 import './wishlist/board.css'
@@ -63,31 +62,6 @@ export default function App() {
   const artworkImages = artwork?.images
   const collection = useMemo(() => cardArtworkCollection(artworkImages), [artworkImages])
   const [owner, setOwner] = useState('')
-  const ownerAnchor = useRef(null)
-  const linkedOwnerId = notificationLink?.kind === 'owner' ? notificationLink.id : null
-  const linkedCompanyId = linkedOwnerId && companies.find(item =>
-    item.members.some(person => person.id === linkedOwnerId) && linkedOwnerId !== me?.user.id)?.id
-  const { setCompanyId, setView } = board
-  useEffect(() => {
-    if (!linkedCompanyId) return
-    const frame = requestAnimationFrame(() => {
-      setCompanyId(linkedCompanyId)
-      setView('board')
-      setArchived(false)
-      setOwner(linkedOwnerId)
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [linkedCompanyId, linkedOwnerId, setCompanyId, setView])
-  useEffect(() => {
-    if (!linkedCompanyId || company?.id !== linkedCompanyId || owner !== linkedOwnerId || view !== 'board' || !data) return
-    const frame = requestAnimationFrame(() => {
-      ownerAnchor.current?.focus({ preventScroll: true })
-      ownerAnchor.current?.scrollIntoView({ block: 'start' })
-      clearNotificationLink()
-      setNotificationLink(null)
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [linkedCompanyId, linkedOwnerId, company?.id, owner, view, data])
   const [wishlistCompany, setWishlistCompany] = useState('')
   const [dialog, setDialog] = useState(() => {
     const outcome = new URLSearchParams(location.search).get('ohmywishes')
@@ -125,12 +99,82 @@ export default function App() {
       : !owner || gift.owner.id === owner)))
   }, [gifts, loadedGifts, view, wishlistCompany, owner, archived])
 
+  const { api, setCompanyId, setView } = board
+  const [notificationTarget, setNotificationTarget] = useState(null)
+  const [notificationStatus, setNotificationStatus] = useState('')
+  const [notificationRetry, setNotificationRetry] = useState(0)
+  const finishNotification = useCallback(() => {
+    clearNotificationLink()
+    setNotificationLink(null)
+  }, [])
+
+  useEffect(() => {
+    if (!me || !notificationLink) return
+    const controller = new AbortController()
+    const { signal } = controller
+    const target = notificationLink.kind === 'split'
+      ? Promise.resolve({ view: 'giving' })
+      : resolveNotificationBoard(notificationLink, api, me, signal)
+    target.then(destination => {
+      if (signal.aborted) return
+      if (destination) {
+        if (destination.companyId) setCompanyId(destination.companyId)
+        setView(destination.view)
+        setArchived(false)
+        setOwner('')
+        setWishlistCompany('')
+        if (notificationLink.kind !== 'split') setDisplayMode('cards')
+      }
+      setNotificationTarget({ link: notificationLink, destination })
+    }, () => {
+      if (!signal.aborted) setNotificationStatus('retry')
+    })
+    return () => controller.abort()
+  }, [api, me, notificationLink, notificationRetry, setCompanyId, setView])
+
+  useEffect(() => {
+    if (!notificationLink || notificationTarget?.link !== notificationLink) return
+    const { destination } = notificationTarget
+    if (destination && (view !== destination.view || archived || !data ||
+      (destination.companyId && company?.id !== destination.companyId) ||
+      (view !== 'giving' && (owner || displayMode !== 'cards')))) return
+
+    const frame = requestAnimationFrame(() => {
+      if (destination && data?.error) {
+        setNotificationStatus('retry')
+        return
+      }
+      if (notificationLink.kind === 'split') {
+        const gift = data?.gifts?.find(item => item.id === notificationLink.id &&
+          item.participation?.mode === 'split' && item.participation.isMine)
+        if (gift) setDialog({ kind: 'split-details', gift, splitSnapshot: data })
+        else setNotificationStatus('Этот распил больше недоступен.')
+      } else {
+        const isGift = notificationLink.kind === 'gift'
+        const anchorId = isGift ? 'wishlist-gift-' + notificationLink.id : 'wishlist-owner-' + destination?.ownerId
+        const anchor = destination && document.getElementById(anchorId)
+        if (anchor) {
+          const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
+          anchor.focus({ preventScroll: true })
+          anchor.scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: isGift ? 'center' : 'start' })
+          if (isGift) highlightNotificationCard(anchor, reducedMotion)
+        } else {
+          setNotificationStatus(isGift ? 'Это желание больше недоступно.' : 'На этой доске нет доступных желаний участника.')
+        }
+      }
+      finishNotification()
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [notificationLink, notificationTarget, view, archived, data, company?.id, owner, displayMode, finishNotification])
+
   function resetFilters() {
     setOwner('')
     setWishlistCompany('')
   }
 
   function navigate(next) {
+    if (notificationLink) finishNotification()
+    setNotificationStatus('')
     board.setView(next)
     setArchived(false)
     resetFilters()
@@ -174,12 +218,7 @@ export default function App() {
     setDialogError('')
     setDialog(current => current?.kind === 'create' ? { ...current, closing: true } : current?.previous ?? null)
   }
-  function closeNotification() {
-    clearNotificationLink()
-    setNotificationLink(null)
-  }
-  useMiniApp(Boolean(dialog || (me && notificationLink && !linkedCompanyId)) && !pending,
-    notificationLink ? closeNotification : closeDialog)
+  useMiniApp(Boolean(dialog) && !pending, closeDialog)
 
   async function submit(form) {
     setDialogError('')
@@ -282,9 +321,15 @@ export default function App() {
             <p role="alert">{data.error}</p>
             <button className="pill" type="button" onClick={board.refresh}>Повторить</button>
           </div>}
-          {view === 'board' && owner && <h2 ref={ownerAnchor} className="board-owner-anchor page-inset" tabIndex={-1}>
-            Желания: {company?.members.find(person => person.id === owner)?.name}
-          </h2>}
+          {notificationStatus && <div className="board-message page-inset" role="status">
+            <p>{notificationStatus === 'retry' ? 'Не удалось открыть ссылку из уведомления.' : notificationStatus}</p>
+            {notificationStatus === 'retry' && <button className="pill" type="button" onClick={() => {
+              setNotificationStatus('')
+              setNotificationTarget(null)
+              board.refresh()
+              setNotificationRetry(value => value + 1)
+            }}>Повторить</button>}
+          </div>}
           {data?.gifts && !groups.length && <p className="board-message page-inset">Здесь пока нет желаний.</p>}
           {displayMode === 'cards' && !cardHintDismissed && groups.length > 0 && <div className="mobile-card-hint page-inset">
             <div className="mobile-card-hint__message">
@@ -296,6 +341,7 @@ export default function App() {
             gifts={groups.flatMap(group => group.gifts)} archived={archived}
             canFilterFree={view === 'board' && !archived} onAction={handleGiftAction} />
             : groups.map(group => <GiftShelf key={archived ? 'archive' : group.owner.id}
+            ownerId={archived ? undefined : group.owner.id}
             title={archived || view === 'mine' ? undefined : `${group.owner.name} желает`}
             label={archived ? 'Архив желаний' : undefined}
             gifts={group.gifts} viewerId={me.user.id} canSplit={(company?.members.length ?? 0) >= 3}
@@ -303,8 +349,7 @@ export default function App() {
             pending={pending} artwork={collection} />)}
         </>}
       </main>
-      {notificationLink && !linkedCompanyId && me && <NotificationLinkDialog link={notificationLink} api={board.api} me={me} onClose={closeNotification} />}
-      {!notificationLink && displayedDialog && me && (['notices', 'shares', 'requests'].includes(displayedDialog.kind)
+      {displayedDialog && me && (['notices', 'shares', 'requests'].includes(displayedDialog.kind)
         ? <AccountTools key={displayedDialog.kind} kind={displayedDialog.kind} api={board.api} companies={companies} onClose={closeDialog} />
         : <BoardDialog key={displayedDialog.kind} dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
         ohmywishesApi={board.api} importCompany={view === 'board' && !archived ? company : undefined} onGiftsChanged={board.refresh}
