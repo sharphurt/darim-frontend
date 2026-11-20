@@ -921,7 +921,7 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 }
 .gift-slot[id]:focus, .gift-shelf[id]:focus { outline: none; }
 .login-page { min-height: 100svh; display: grid; place-items: center; padding: 32px 20px; }
-.login-card { width: min(100%, 480px); padding: clamp(24px, 5vw, 40px); border-radius: 32px; background: var(--surface); }
+.login-card { width: min(100%, 560px); padding: clamp(24px, 5vw, 40px); border-radius: 32px; background: var(--surface); }
 .login-card h1 { margin: 0; font-size: clamp(30px, 5vw, 40px); font-weight: 500; line-height: 1.1; text-align: center; }
 .login-card .code-login { width: 100%; margin: 28px 0 0; }
 .login-card .code-login p { margin: 0 0 24px; }
