@@ -917,14 +917,14 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 .gift-slot[id]:focus, .gift-shelf[id]:focus { outline: none; }
 .login-page { min-height: 100svh; display: grid; place-items: center; padding: 32px 20px; }
 .login-card { width: min(100%, 480px); padding: clamp(24px, 5vw, 40px); border-radius: 32px; background: var(--surface); }
-.login-brand { margin: 0 0 28px; color: var(--accent); font-size: 28px; font-weight: 700; text-align: center; }
 .login-card h1 { margin: 0; font-size: clamp(30px, 5vw, 40px); font-weight: 500; line-height: 1.1; text-align: center; }
-.login-intro { margin: 16px 0 28px; color: #626262; line-height: 1.5; text-align: center; }
-.login-card .code-login { width: 100%; margin: 0; }
+.login-card .code-login { width: 100%; margin: 28px 0 0; }
 .login-card .code-login p { margin: 0 0 24px; }
-.login-card .code-login input { border-radius: 12px; background: var(--page-background); }
-.login-card .login-submit { justify-self: stretch; min-height: 52px; background: var(--cta); }
-.login-card .login-submit:enabled:hover { background: color-mix(in srgb, var(--cta), white 12%); }
+.login-card .code-login input { border-radius: 12px; background: var(--page-background); text-align: center; }
+.code-login .code-login__bot { display: flex; margin-bottom: 24px; color: #fff; background: var(--accent); }
+.code-login .code-login__bot:hover { background: color-mix(in srgb, var(--accent), black 10%); }
+.login-card .login-submit { justify-self: stretch; min-height: 52px; background: var(--page-background); }
+.login-card .login-submit:enabled:hover { background: color-mix(in srgb, var(--surface), var(--accent) 10%); }
 .login-submit:disabled { opacity: .5; }
 .login-card .demo-logins { margin-top: 20px; }
 .login-card [role="alert"] { color: #a52f20; line-height: 1.5; overflow-wrap: anywhere; }
