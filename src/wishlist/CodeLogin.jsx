@@ -50,7 +50,7 @@ export function CodeLogin({ botUsername, pending, onLogin, legacy = false }) {
             <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
           </svg>
         </button>
-      </span> : '«Дарим»'} в Telegram</p>
+      </span> : '«Дарим»'} в&nbsp;Telegram</p>
     <span className="code-login__copy-status" role="status">{copyStatus}</span>
     {username && <a className="pill code-login__bot" href={`https://t.me/${encodeURIComponent(username)}`}
       target="_blank" rel="noopener noreferrer">Перейти к боту</a>}
