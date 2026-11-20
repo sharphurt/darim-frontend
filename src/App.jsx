@@ -332,7 +332,7 @@ export default function App() {
               setNotificationRetry(value => value + 1)
             }}>Повторить</button>}
           </div>}
-          {data?.gifts && !groups.length && <p className="board-message page-inset">Здесь пока нет желаний.</p>}
+          {data?.gifts && !groups.length && <p className="board-message board-empty">Здесь пока нет желаний</p>}
           {displayMode === 'cards' && !cardHintDismissed && groups.length > 0 && <div className="mobile-card-hint page-inset">
             <div className="mobile-card-hint__message">
               <p>Нажмите на карточку, чтобы посмотреть детали желания.</p>
