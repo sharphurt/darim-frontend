@@ -898,3 +898,7 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   flex-wrap: wrap;
   gap: .5rem;
 }
+
+.board-owner-anchor {
+  scroll-margin-block-start: 100px;
+}
