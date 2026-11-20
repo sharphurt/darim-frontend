@@ -899,6 +899,12 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   gap: .5rem;
 }
 
-.board-owner-anchor {
+.gift-shelf[id] {
   scroll-margin-block-start: 100px;
 }
+
+.gift-slot[id] .gift-card {
+  outline: 3px solid transparent;
+  outline-offset: 4px;
+}
+.gift-slot[id]:focus, .gift-shelf[id]:focus { outline: none; }

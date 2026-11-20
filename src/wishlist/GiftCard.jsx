@@ -164,7 +164,7 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
   }
 
   return (
-    <li className="gift-slot">
+    <li className="gift-slot" id={`wishlist-gift-${gift.id}`} tabIndex={-1}>
       <div className="gift-pendulum" data-pendulum>
         <div className="gift-handle" aria-hidden="true"><img src={clip} width="26" height="19" alt="" /></div>
         <div className="gift-perspective">
