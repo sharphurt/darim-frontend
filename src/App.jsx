@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CodeLogin } from './wishlist/CodeLogin.jsx'
 import { AccountTools } from './wishlist/AccountTools.jsx'
 import { BoardDialog } from './wishlist/BoardDialog.jsx'
@@ -8,6 +8,8 @@ import { GiftShelf } from './wishlist/GiftShelf.jsx'
 import { GiftTable } from './wishlist/GiftTable.jsx'
 import { clearInvite, inviteLink, pendingInvite, retainInvite } from './wishlist/companyInvite.js'
 import { groupGifts, matchesWishlistCompany } from './wishlist/giftPresentation.js'
+import { NotificationLinkDialog } from './wishlist/NotificationLinkDialog.jsx'
+import { pendingNotificationLink, retainNotificationLink, clearNotificationLink } from './wishlist/notificationLink.js'
 import { useWishlist } from './wishlist/useWishlist.js'
 import { useMiniApp } from './wishlist/useMiniApp.js'
 import './wishlist/board.css'
@@ -17,7 +19,7 @@ const emptyGifts = []
 const cardHintKey = 'darim.mobile-card-hint-dismissed'
 const displayModeKey = 'darim.wishlist-display-mode'
 
-function BoardAccess({ session, pending, error, retry, login, codeLogin, inviteToken }) {
+function BoardAccess({ session, pending, error, retry, login, codeLogin, inviteToken, notificationLink }) {
   if (!session) return <p className="board-message page-inset" role="status">Загружаем доску…</p>
   if (session.error) return <div className="board-message page-inset">
     <p role="alert">{session.error}</p>
@@ -26,7 +28,7 @@ function BoardAccess({ session, pending, error, retry, login, codeLogin, inviteT
   return <div className="board-message page-inset">
     <p>Войдите, чтобы увидеть желания друзей.</p>
     {session.info.telegramConfigured && <a className="pill" href="/auth/login"
-      onClick={() => retainInvite(inviteToken)}>Войти через Telegram</a>}
+      onClick={() => { retainInvite(inviteToken); retainNotificationLink(notificationLink) }}>Войти через Telegram</a>}
     {session.info.codeLoginEnabled && <CodeLogin botUsername={session.info.botUsername}
       pending={pending} onLogin={codeLogin} />}
     {session.info.demoEnabled && <div className="demo-logins" aria-label="Демонстрационные аккаунты">
@@ -53,6 +55,7 @@ export default function App() {
       // Keep the selected mode for this visit when storage is unavailable.
     }
   }
+  const [notificationLink, setNotificationLink] = useState(pendingNotificationLink)
   const [archived, setArchived] = useState(false)
   const board = useWishlist(archived)
   const { session, me, company, companies, view, data, pending, actionError, artwork } = board
@@ -60,6 +63,31 @@ export default function App() {
   const artworkImages = artwork?.images
   const collection = useMemo(() => cardArtworkCollection(artworkImages), [artworkImages])
   const [owner, setOwner] = useState('')
+  const ownerAnchor = useRef(null)
+  const linkedOwnerId = notificationLink?.kind === 'owner' ? notificationLink.id : null
+  const linkedCompanyId = linkedOwnerId && companies.find(item =>
+    item.members.some(person => person.id === linkedOwnerId) && linkedOwnerId !== me?.user.id)?.id
+  const { setCompanyId, setView } = board
+  useEffect(() => {
+    if (!linkedCompanyId) return
+    const frame = requestAnimationFrame(() => {
+      setCompanyId(linkedCompanyId)
+      setView('board')
+      setArchived(false)
+      setOwner(linkedOwnerId)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [linkedCompanyId, linkedOwnerId, setCompanyId, setView])
+  useEffect(() => {
+    if (!linkedCompanyId || company?.id !== linkedCompanyId || owner !== linkedOwnerId || view !== 'board' || !data) return
+    const frame = requestAnimationFrame(() => {
+      ownerAnchor.current?.focus({ preventScroll: true })
+      ownerAnchor.current?.scrollIntoView({ block: 'start' })
+      clearNotificationLink()
+      setNotificationLink(null)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [linkedCompanyId, linkedOwnerId, company?.id, owner, view, data])
   const [wishlistCompany, setWishlistCompany] = useState('')
   const [dialog, setDialog] = useState(() => {
     const outcome = new URLSearchParams(location.search).get('ohmywishes')
@@ -146,7 +174,12 @@ export default function App() {
     setDialogError('')
     setDialog(current => current?.kind === 'create' ? { ...current, closing: true } : current?.previous ?? null)
   }
-  useMiniApp(Boolean(dialog) && !pending, closeDialog)
+  function closeNotification() {
+    clearNotificationLink()
+    setNotificationLink(null)
+  }
+  useMiniApp(Boolean(dialog || (me && notificationLink && !linkedCompanyId)) && !pending,
+    notificationLink ? closeNotification : closeDialog)
 
   async function submit(form) {
     setDialogError('')
@@ -229,7 +262,7 @@ export default function App() {
         <BoardHeading view={me ? view : 'board'} archived={archived} company={company} companies={companies}
           onCompany={id => { board.setCompanyId(id); navigate('board') }} />
         {!me ? <BoardAccess session={session} pending={pending} error={actionError} retry={board.retrySession}
-          login={board.demoLogin} codeLogin={board.codeLogin} inviteToken={inviteToken} /> : <>
+          login={board.demoLogin} codeLogin={board.codeLogin} inviteToken={inviteToken} notificationLink={notificationLink} /> : <>
           {inviteToken ? <div className="board-message page-inset">
             <p>У вас есть приглашение в компанию.</p>
             <div className="demo-logins">
@@ -249,6 +282,9 @@ export default function App() {
             <p role="alert">{data.error}</p>
             <button className="pill" type="button" onClick={board.refresh}>Повторить</button>
           </div>}
+          {view === 'board' && owner && <h2 ref={ownerAnchor} className="board-owner-anchor page-inset" tabIndex={-1}>
+            Желания: {company?.members.find(person => person.id === owner)?.name}
+          </h2>}
           {data?.gifts && !groups.length && <p className="board-message page-inset">Здесь пока нет желаний.</p>}
           {displayMode === 'cards' && !cardHintDismissed && groups.length > 0 && <div className="mobile-card-hint page-inset">
             <div className="mobile-card-hint__message">
@@ -267,7 +303,8 @@ export default function App() {
             pending={pending} artwork={collection} />)}
         </>}
       </main>
-      {displayedDialog && me && (['notices', 'shares', 'requests'].includes(displayedDialog.kind)
+      {notificationLink && !linkedCompanyId && me && <NotificationLinkDialog link={notificationLink} api={board.api} me={me} onClose={closeNotification} />}
+      {!notificationLink && displayedDialog && me && (['notices', 'shares', 'requests'].includes(displayedDialog.kind)
         ? <AccountTools key={displayedDialog.kind} kind={displayedDialog.kind} api={board.api} companies={companies} onClose={closeDialog} />
         : <BoardDialog key={displayedDialog.kind} dialog={displayedDialog} me={me} company={company} companies={companies} pending={pending}
         ohmywishesApi={board.api} importCompany={view === 'board' && !archived ? company : undefined} onGiftsChanged={board.refresh}
