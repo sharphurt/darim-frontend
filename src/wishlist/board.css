@@ -847,11 +847,12 @@
 }
 
 .code-login { width: min(100%, 440px); margin-top: 20px; }
-.code-login summary { width: fit-content; padding-block: 8px; cursor: pointer; color: var(--accent-text); }
 .code-login p { font-size: var(--ui-tertiary-size); line-height: 1.5; }
-.code-login form, .code-login label { display: grid; gap: 8px; }
-.code-login form { gap: 16px; }
-.code-login input { width: 100%; min-width: 0; border: 1px solid #cbced3; border-radius: 8px; padding: 12px; background: var(--surface); letter-spacing: .06em; }
+.code-login form { display: grid; gap: 16px; }
+.code-login fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.code-login legend { margin-bottom: 8px; padding: 0; }
+.code-login__digits { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(4px, 1.4vw, 8px); }
+.code-login input { width: 100%; min-width: 0; border: 1px solid #cbced3; border-radius: 8px; min-height: 48px; padding: 8px 0; background: var(--surface); text-align: center; font-size: var(--ui-primary-size); font-variant-numeric: tabular-nums; }
 .code-login button { justify-self: start; }
 /* Account dialogs share the existing board controls and spacing. */
 .account-tools { display: grid; gap: 1rem; }
@@ -908,3 +909,19 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   outline-offset: 4px;
 }
 .gift-slot[id]:focus, .gift-shelf[id]:focus { outline: none; }
+.login-page { min-height: 100svh; display: grid; place-items: center; padding: 32px 20px; }
+.login-card { width: min(100%, 480px); padding: clamp(24px, 5vw, 40px); border-radius: 32px; background: var(--surface); }
+.login-brand { margin: 0 0 28px; color: var(--accent); font-size: 28px; font-weight: 700; text-align: center; }
+.login-card h1 { margin: 0; font-size: clamp(30px, 5vw, 40px); font-weight: 500; line-height: 1.1; text-align: center; }
+.login-intro { margin: 16px 0 28px; color: #626262; line-height: 1.5; text-align: center; }
+.login-card .code-login { width: 100%; margin: 0; }
+.login-card .code-login p { margin: 0 0 24px; }
+.login-card .code-login input { border-radius: 12px; background: var(--page-background); }
+.login-card .login-submit { justify-self: stretch; min-height: 52px; background: var(--cta); }
+.login-card .login-submit:enabled:hover { background: color-mix(in srgb, var(--cta), white 12%); }
+.login-submit:disabled { opacity: .5; }
+.login-card .demo-logins { margin-top: 20px; }
+.login-card [role="alert"] { color: #a52f20; line-height: 1.5; overflow-wrap: anywhere; }
+
+.code-login__legacy { display: grid; gap: 8px; }
+.code-login .code-login__legacy input { padding-inline: 8px; font-size: inherit; }

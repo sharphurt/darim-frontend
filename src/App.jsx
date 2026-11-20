@@ -6,9 +6,9 @@ import { BoardFilters, BoardHeading, BoardNavigation, WishlistCompanyFilter } fr
 import { cardArtworkCollection } from './wishlist/cardArtwork.js'
 import { GiftShelf } from './wishlist/GiftShelf.jsx'
 import { GiftTable } from './wishlist/GiftTable.jsx'
-import { clearInvite, inviteLink, pendingInvite, retainInvite } from './wishlist/companyInvite.js'
+import { clearInvite, inviteLink, pendingInvite } from './wishlist/companyInvite.js'
 import { groupGifts, matchesWishlistCompany } from './wishlist/giftPresentation.js'
-import { pendingNotificationLink, retainNotificationLink, clearNotificationLink, resolveNotificationBoard, highlightNotificationCard } from './wishlist/notificationLink.js'
+import { pendingNotificationLink, clearNotificationLink, resolveNotificationBoard, highlightNotificationCard } from './wishlist/notificationLink.js'
 import { useWishlist } from './wishlist/useWishlist.js'
 import { useMiniApp } from './wishlist/useMiniApp.js'
 import './wishlist/board.css'
@@ -18,24 +18,26 @@ const emptyGifts = []
 const cardHintKey = 'darim.mobile-card-hint-dismissed'
 const displayModeKey = 'darim.wishlist-display-mode'
 
-function BoardAccess({ session, pending, error, retry, login, codeLogin, inviteToken, notificationLink }) {
+function BoardAccess({ session, pending, error, retry, login, codeLogin }) {
   if (!session) return <p className="board-message page-inset" role="status">Загружаем доску…</p>
   if (session.error) return <div className="board-message page-inset">
     <p role="alert">{session.error}</p>
     <button type="button" className="pill" onClick={retry}>Повторить</button>
   </div>
-  return <div className="board-message page-inset">
-    <p>Войдите, чтобы увидеть желания друзей.</p>
-    {session.info.telegramConfigured && <a className="pill" href="/auth/login"
-      onClick={() => { retainInvite(inviteToken); retainNotificationLink(notificationLink) }}>Войти через Telegram</a>}
+  return <section className="login-card" aria-labelledby="login-title">
+    <p className="login-brand">дарим</p>
+    <h1 id="login-title">Рады вас видеть</h1>
+    <p className="login-intro">Войдите, чтобы делиться желаниями и радовать друзей.</p>
     {session.info.codeLoginEnabled && <CodeLogin botUsername={session.info.botUsername}
-      pending={pending} onLogin={codeLogin} />}
+      pending={pending} onLogin={codeLogin} legacy={session.info.codeLoginLength !== 6} />}
+    {!session.info.codeLoginEnabled && !session.info.demoEnabled &&
+      <p role="status">Вход пока недоступен. Попробуйте позже.</p>}
     {session.info.demoEnabled && <div className="demo-logins" aria-label="Демонстрационные аккаунты">
       {demoNames.map((name, index) => <button className="pill" type="button" key={name}
         disabled={pending} onClick={() => login(index)}>{name}</button>)}
     </div>}
     {error && <p role="alert">{error}</p>}
-  </div>
+  </section>
 }
 
 export default function App() {
@@ -291,17 +293,17 @@ export default function App() {
 
   return (
     <>
-      <BoardNavigation view={me ? view : 'board'} onView={navigate} company={company} me={me} pending={pending}
+      {me && <BoardNavigation view={me ? view : 'board'} onView={navigate} company={company} me={me} pending={pending}
         canManageCompanies={managedCompanies.length > 0}
         displayMode={displayMode} onDisplayMode={changeDisplayMode}
         canManageArtwork={Array.isArray(artworkImages) && artwork.canManage}
         archived={archived} onArchive={() => { setArchived(value => !value); resetFilters() }}
-        onMenu={openDialog} />
-      <main data-display-mode={displayMode}>
-        <BoardHeading view={me ? view : 'board'} archived={archived} company={company} companies={companies}
-          onCompany={id => { board.setCompanyId(id); navigate('board') }} />
+        onMenu={openDialog} />}
+      <main className={!me ? 'login-page' : undefined} data-display-mode={displayMode}>
+        {me && <BoardHeading view={me ? view : 'board'} archived={archived} company={company} companies={companies}
+          onCompany={id => { board.setCompanyId(id); navigate('board') }} />}
         {!me ? <BoardAccess session={session} pending={pending} error={actionError} retry={board.retrySession}
-          login={board.demoLogin} codeLogin={board.codeLogin} inviteToken={inviteToken} notificationLink={notificationLink} /> : <>
+          login={board.demoLogin} codeLogin={board.codeLogin} /> : <>
           {inviteToken ? <div className="board-message page-inset">
             <p>У вас есть приглашение в компанию.</p>
             <div className="demo-logins">
