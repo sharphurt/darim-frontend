@@ -30,8 +30,10 @@ export function CodeLogin({ botUsername, pending, onLogin, legacy = false }) {
   return <div className="code-login">
     <p id={hintId}>Отправьте <strong>/login</strong> боту{' '}
       {username ? <a href={`https://t.me/${encodeURIComponent(username)}`} target="_blank"
-        rel="noopener noreferrer">@{username}</a> : '«Дарим»'} в личном сообщении.
-      {' '}Код действует 5 минут.</p>
+        rel="noopener noreferrer">@{username}</a> : '«Дарим»'} в Telegram
+    </p>
+    {username && <a className="pill code-login__bot" href={`https://t.me/${encodeURIComponent(username)}`}
+      target="_blank" rel="noopener noreferrer">Перейти к боту</a>}
     <form onSubmit={submit} aria-label="Вход по коду">
       {legacy ? <label className="code-login__legacy">Код из Telegram
         <input value={legacyCode} onChange={event => setLegacyCode(event.target.value.replace(/\s/g, '').toUpperCase())}

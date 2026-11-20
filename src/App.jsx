@@ -25,9 +25,7 @@ function BoardAccess({ session, pending, error, retry, login, codeLogin }) {
     <button type="button" className="pill" onClick={retry}>Повторить</button>
   </div>
   return <section className="login-card" aria-labelledby="login-title">
-    <p className="login-brand">дарим</p>
-    <h1 id="login-title">Рады вас видеть</h1>
-    <p className="login-intro">Войдите, чтобы делиться желаниями и радовать друзей.</p>
+    <h1 id="login-title">Добро пожаловать в Дарим</h1>
     {session.info.codeLoginEnabled && <CodeLogin botUsername={session.info.botUsername}
       pending={pending} onLogin={codeLogin} legacy={session.info.codeLoginLength !== 6} />}
     {!session.info.codeLoginEnabled && !session.info.demoEnabled &&
