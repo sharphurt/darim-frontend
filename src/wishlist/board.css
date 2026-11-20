@@ -860,6 +860,11 @@
 .code-login__digits { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(4px, 1.4vw, 8px); }
 .code-login input { width: 100%; min-width: 0; border: 1px solid #cbced3; border-radius: 8px; min-height: 48px; padding: 8px 0; background: var(--surface); text-align: center; font-size: var(--ui-primary-size); font-variant-numeric: tabular-nums; }
 .code-login button { justify-self: start; }
+.code-login__username { display: inline-flex; align-items: center; gap: 4px; vertical-align: middle; white-space: nowrap; }
+.code-login__copy { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 4px; border: 0; border-radius: 6px; color: var(--accent-text); background: transparent; cursor: pointer; }
+.code-login__copy:hover { background: var(--accent-tint); }
+.code-login__copy-status { display: block; color: #626262; font-size: var(--ui-tertiary-size); }
+.code-login__copy-status:not(:empty) { margin-block: -12px 16px; }
 /* Account dialogs share the existing board controls and spacing. */
 .account-tools { display: grid; gap: 1rem; }
 .board-dialog--notices[open] { display: flex; flex-direction: column; overflow: hidden; padding: 0; background: var(--surface); }

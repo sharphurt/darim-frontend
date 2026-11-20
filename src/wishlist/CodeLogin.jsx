@@ -6,10 +6,20 @@ export function CodeLogin({ botUsername, pending, onLogin, legacy = false }) {
   const [digits, setDigits] = useState(() => Array(codeLength).fill(''))
   const [legacyCode, setLegacyCode] = useState('')
   const fields = useRef([])
+  const [copyStatus, setCopyStatus] = useState('')
   const hintId = useId()
   const username = botUsername?.replace(/^@/, '')
   const code = legacy ? legacyCode : digits.join('')
   const valid = legacy ? /^[A-F0-9]{12}$/.test(code) : code.length === codeLength
+
+  async function copyUsername() {
+    try {
+      await navigator.clipboard.writeText(`@${username}`)
+      setCopyStatus('Ник бота скопирован')
+    } catch {
+      setCopyStatus('Не удалось скопировать ник. Выделите его и скопируйте вручную.')
+    }
+  }
 
   function enter(index, value) {
     const clean = value.replace(/[^0-9]/g, '').slice(0, codeLength)
@@ -29,9 +39,19 @@ export function CodeLogin({ botUsername, pending, onLogin, legacy = false }) {
 
   return <div className="code-login">
     <p id={hintId}>Отправьте <strong>/login</strong> боту{' '}
-      {username ? <a href={`https://t.me/${encodeURIComponent(username)}`} target="_blank"
-        rel="noopener noreferrer">@{username}</a> : '«Дарим»'} в Telegram
-    </p>
+      {username ? <span className="code-login__username">
+        <a href={`https://t.me/${encodeURIComponent(username)}`} target="_blank"
+          rel="noopener noreferrer">@{username}</a>
+        <button type="button" className="code-login__copy" onClick={copyUsername}
+          aria-label="Скопировать ник бота" title="Скопировать ник бота">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="1.8" aria-hidden="true">
+            <rect x="8" y="8" width="12" height="12" rx="2" />
+            <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
+          </svg>
+        </button>
+      </span> : '«Дарим»'} в Telegram</p>
+    <span className="code-login__copy-status" role="status">{copyStatus}</span>
     {username && <a className="pill code-login__bot" href={`https://t.me/${encodeURIComponent(username)}`}
       target="_blank" rel="noopener noreferrer">Перейти к боту</a>}
     <form onSubmit={submit} aria-label="Вход по коду">
