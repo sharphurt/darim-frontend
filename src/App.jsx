@@ -28,7 +28,9 @@ function BoardAccess({ session, pending, error, retry, login, codeLogin }) {
     <h1 id="login-title">Добро пожаловать в Дарим</h1>
     {session.info.codeLoginEnabled && <CodeLogin botUsername={session.info.botUsername}
       pending={pending} onLogin={codeLogin} legacy={session.info.codeLoginLength !== 6} />}
-    {!session.info.codeLoginEnabled && !session.info.demoEnabled &&
+    {!session.info.codeLoginEnabled && session.info.telegramConfigured &&
+      <div className="demo-logins"><a href="/auth/login" className="pill">Войти через Telegram</a></div>}
+    {!session.info.codeLoginEnabled && !session.info.telegramConfigured && !session.info.demoEnabled &&
       <p role="status">Вход пока недоступен. Попробуйте позже.</p>}
     {session.info.demoEnabled && <div className="demo-logins" aria-label="Демонстрационные аккаунты">
       {demoNames.map((name, index) => <button className="pill" type="button" key={name}
