@@ -17,8 +17,28 @@ steps:
       - npm run lint
       - npm run build
 
-  - name: deploy-production
+  - name: test-telegram-release
     depends_on: [lint-and-build]
+    image: alpine:3.22
+    commands:
+      - apk add --no-cache nodejs git
+      - node --test ops/tests/telegram-release.integration.mjs
+
+  - name: read-production-revision
+    depends_on: [test-telegram-release]
+    image: alpine:3.22
+    failure: ignore
+    commands:
+      - apk add --no-cache curl jq
+      - |
+        response=$(curl -fsS --max-time 10 https://wishes.hype-ny.ru/frontend-release.json) || response='{}'
+        printf '%s\n' "$response" | jq -r '.commit // empty' > .previous-production
+    when:
+      - event: push
+        branch: main
+
+  - name: deploy-production
+    depends_on: [read-production-revision]
     image: node:24-bookworm-slim
     environment:
       COOLIFY_TOKEN:
@@ -42,6 +62,7 @@ steps:
         from_secret: telegram_sharphurt_id
     commands:
       - apk add --no-cache curl jq git
+      - git fetch --unshallow origin || git fetch origin
       - sh ops/telegram-ci.sh release
     when:
       - event: push
