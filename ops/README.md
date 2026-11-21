@@ -4,7 +4,7 @@ Woodpecker выполняет тесты, линтер и сборку Vite дл
 
 ## Тестовое окружение
 
-Coolify собирает тестовый frontend из ветки `dev` через `/Dockerfile`. Dockerfile выполняет тесты и линтер до сборки сайта. В приложении `xx8mn1xps8cpcpa2uccltrhe` установите ветку `dev` и HEAD вместо фиксированного SHA, отключите preview deployments и включите отправку push из Woodpecker по подписанному webhook Coolify. Расширение Woodpecker запускает этот шаг на push в dev, используя отдельный секрет тестового приложения. Coolify принимает прямые push и слияния PR в `dev`.
+Coolify собирает тестовый frontend из ветки `dev` через `/Dockerfile`. Dockerfile выполняет тесты и линтер до сборки сайта. В приложении `xx8mn1xps8cpcpa2uccltrhe` установите ветку `dev` и HEAD вместо фиксированного SHA, отключите preview deployments, настройте alias darim-test-ui и оставьте поле домена пустым. В Coolify разрешите получение подписанных webhook от Woodpecker. Расширение Woodpecker запускает этот шаг на push в dev, используя отдельный секрет тестового приложения. Coolify принимает прямые push и слияния PR в `dev`.
 
 На [test-ui.wishes.hype-ny.ru](https://test-ui.wishes.hype-ny.ru) Caddy направляет `/api`, `/auth` и `/health` на приватный тестовый backend. Остальные запросы идут на frontend. Настройки схемы, backend и прокси находятся в `ops/dev/README.md` репозитория backend.
 
