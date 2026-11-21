@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { DialogClose } from './DialogClose.jsx'
 
 const titles = { notices: 'Уведомления', shares: 'Ссылки на желания', requests: 'Мои гостевые заявки' }
 
@@ -9,7 +10,12 @@ export function AccountTools({ kind, api, companies, onClose }) {
   const [busy, setBusy] = useState(false)
   const [revision, setRevision] = useState(0)
   const [issued, setIssued] = useState({})
-  useEffect(() => { ref.current.showModal() }, [])
+  const notices = kind === 'notices'
+  useEffect(() => {
+    const element = ref.current
+    element.showModal()
+    return () => element.close()
+  }, [])
   useEffect(() => {
     const controller = new AbortController()
     const load = kind === 'notices'
@@ -31,10 +37,14 @@ export function AccountTools({ kind, api, companies, onClose }) {
     finally { setBusy(false) }
   }
 
-  return <dialog ref={ref} className="board-dialog" aria-labelledby="account-tools-title"
+  return <dialog ref={ref} className={`board-dialog${notices ? ' board-dialog--notices' : ''}`} aria-labelledby="account-tools-title"
     onCancel={event => { event.preventDefault(); if (!busy) onClose() }}>
-    <div className="board-dialog__body account-tools">
+    {notices && <header className="account-tools__header">
       <h2 id="account-tools-title">{titles[kind]}</h2>
+      <DialogClose disabled={busy} onClose={onClose} />
+    </header>}
+    <div className="board-dialog__body account-tools">
+      {!notices && <h2 id="account-tools-title">{titles[kind]}</h2>}
       {error && <p role="alert" className="board-error">{error}</p>}
       {!data && !error && <p role="status">Загружаем…</p>}
       {kind === 'shares' && <form onSubmit={event => {
@@ -82,7 +92,7 @@ export function AccountTools({ kind, api, companies, onClose }) {
         </li>)}</ul>
       </>}
       {error && <button className="gift-action" type="button" disabled={busy} onClick={() => { setError(''); setRevision(value => value + 1) }}>Повторить</button>}
-      <button className="gift-action" type="button" disabled={busy} onClick={onClose}>Закрыть</button>
+      {!notices && <button className="gift-action" type="button" disabled={busy} onClick={onClose}>Закрыть</button>}
     </div>
   </dialog>
 }

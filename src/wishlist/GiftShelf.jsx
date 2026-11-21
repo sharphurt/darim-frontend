@@ -18,13 +18,13 @@ function countColumns() {
   return firstMatch < 0 ? 1 : 4 - firstMatch
 }
 
-export function GiftShelf({ title, label = title ?? 'Мои желания', gifts, viewerId, canSplit, onAction, pending, artwork }) {
+export function GiftShelf({ ownerId, title, label = title ?? 'Мои желания', gifts, viewerId, canSplit, onAction, pending, artwork }) {
   const columns = useSyncExternalStore(subscribeColumns, countColumns)
   const rows = useMemo(() => Array.from({ length: Math.ceil(gifts.length / columns) },
     (_, index) => gifts.slice(index * columns, (index + 1) * columns)), [gifts, columns])
   const shelf = useCardMotion(rows)
   return (
-    <section className="gift-shelf" aria-label={label}>
+    <section className="gift-shelf" id={ownerId ? `wishlist-owner-${ownerId}` : undefined} aria-label={label} tabIndex={ownerId ? -1 : undefined}>
       {title && <h2 className="gift-shelf__heading">
         <img src={separator} alt="" width="694" height="62" />
         <span>{title}</span>

@@ -1,14 +1,14 @@
 # CI и деплой в Coolify
 
-Woodpecker выполняет `npm ci`, линтер и сборку Vite при push и ручном запуске для веток `main` и `test`.
+Woodpecker выполняет тесты, линтер и сборку Vite для main.
 
 ## Тестовое окружение
 
-В [Coolify](https://coolify.hype-ny.ru) подключите приватный репозиторий `sharphurt/darim-frontend` с отдельным ключом чтения. Для приложения в окружении `test` укажите ветку `test`, Build Pack **Dockerfile**, путь `/Dockerfile`, порт `80` и домен [test-ui.wishes.hype-ny.ru](https://test-ui.wishes.hype-ny.ru). DNS должен указывать на сервер Coolify.
+Coolify собирает тестовый frontend из ветки `dev` через `/Dockerfile`. Dockerfile выполняет тесты и линтер до сборки сайта. В приложении `xx8mn1xps8cpcpa2uccltrhe` установите ветку `dev` и HEAD вместо фиксированного SHA, отключите preview deployments, настройте alias darim-test-ui и оставьте поле домена пустым. В Coolify разрешите получение подписанных webhook от Woodpecker. Расширение Woodpecker запускает этот шаг на push в dev, используя отдельный секрет тестового приложения. Coolify принимает прямые push и слияния PR в `dev`.
 
-После успешных проверок на push в `test` [Woodpecker](https://ci.hype-ny.ru/repos/2) отправляет `POST` на вебхук тестового приложения Coolify. Для шага `deploy-test` нужны секреты `coolify_test_deploy_webhook` с адресом вебхука и `coolify_token` с правом деплоя тестового приложения. Оба секрета должны быть доступны на push.
+На [test-ui.wishes.hype-ny.ru](https://test-ui.wishes.hype-ny.ru) Caddy направляет `/api`, `/auth` и `/health` на приватный тестовый backend. Остальные запросы идут на frontend. Настройки схемы, backend и прокси находятся в `ops/dev/README.md` репозитория backend.
 
-Coolify собирает Dockerfile из ветки `test`. По UUID из лога Woodpecker можно найти результат в Deployment Logs. При ручном запуске Woodpecker выполняет только проверки.
+После push сравните `/frontend-release.json` с SHA коммита и проверьте `/health` и `/api/auth-info`. После перехода уберите старый секрет `coolify_test_deploy_webhook` из Woodpecker.
 
 ## Production
 
@@ -16,9 +16,9 @@ Coolify собирает Dockerfile из ветки `test`. По UUID из ло�
 
 После успешных `npm ci`, тестов, линтера и сборки push в `main` автоматически запускает шаг `deploy-production`. Он фиксирует в Coolify именно проверенный `CI_COMMIT_SHA`, отправляет POST на деплой и ждёт его завершения. Затем сверяет коммит через публичный `/frontend-release.json` на основном домене. Ошибка сборки, выкладки, несовпадение версии или таймаут делают CI неуспешным. Для шага используется существующий секрет Woodpecker `coolify_token`, доступный на push. Его Coolify abilities: `read`, `write`, `deploy`; одного `deploy` недостаточно для фиксации SHA и ожидания результата. Значение токена в репозиторий не записывается.
 
-Нативный автодеплой Coolify остаётся выключен, чтобы не обходить CI и не запускать вторую выкладку. Полный workflow ограничен одной одновременной обработкой через `concurrency`, поэтому следующие коммиты не обгоняют предыдущие между проверкой и выпуском. Ручной запуск CI выполняет только проверки, ветка `test` обновляет только тестовое приложение. Если frontend требует изменения API, сначала выпустить совместимый backend.
+Нативный автодеплой Coolify остаётся выключен, чтобы не обходить CI и не запускать вторую выкладку. Полный workflow ограничен одной одновременной обработкой через `concurrency`, поэтому следующие коммиты не обгоняют предыдущие между проверкой и выпуском. Ручной запуск CI выполняет проверки. GitHub ruleset для `main` требует PR и результат CodeQL. Список обходов оставлен пустым, чтобы прямой push не запускал production CI. Если frontend требует изменения API, сначала выпустить совместимый backend.
 
-Scope CI-токена ограничен двумя frontend-ресурсами: test `xx8mn1xps8cpcpa2uccltrhe` и production `dncy9cdvvoiwyi7islmaqoua`. Scope только тестового приложения даёт 404 при обращении к production, даже если abilities настроены верно. Доступ ко всем ресурсам команды для CI не требуется.
+Для production CI достаточно scope приложения `dncy9cdvvoiwyi7islmaqoua`.
 
 Для ручного запуска используется **POST** `/api/v1/deploy` с JSON `{"uuid":"dncy9cdvvoiwyi7islmaqoua","force":false}`. Административный токен передаётся только через защищённое хранилище. `GET` на этом endpoint больше не запускает деплой. [Подтверждённый релиз](releases/2026-11-18-react.md).
 

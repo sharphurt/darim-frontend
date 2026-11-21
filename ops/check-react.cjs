@@ -15,6 +15,7 @@ async function fixture(browser, mini = false) {
   const page = await context.newPage()
   page.setDefaultTimeout(12000)
   const calls = [], errors = []
+  let loggedOut = false
   const current = structuredClone(gift)
   if (mini) current.photoVersion = '66666666-6666-6666-6666-666666666666'
   page.on('pageerror', error => errors.push(error.message))
@@ -32,11 +33,16 @@ async function fixture(browser, mini = false) {
     let result
     if (path === '/auth/mini') result = { token: 'fixture-mini-token' }
     else if (path === '/api/auth-info') result = { telegramConfigured: false, demoEnabled: false, codeLoginEnabled: true }
+    else if (path === '/api/logout') { loggedOut = true; result = null }
+    else if (path === '/api/me' && loggedOut) return route.fulfill({ status: 401 })
     else if (path === '/api/me') result = { user: me, company, companies: [company] }
     else if (path === '/api/csrf') result = { token: 'csrf-fixture' }
+    else if (path === '/api/ohmywishes') result = { connected: true, webApiConnected: true, webApiEnabled: true,
+      manualSyncSupported: true, listId: 'fixture', listTitle: 'Всё', lastSuccess: '2026-11-15T00:00:00Z' }
     else if (path === '/api/card-artwork') result = { images: [], canManage: false }
     else if (path === '/api/gifts') result = [current]
-    else if (path === '/api/gifts/mine' || path === '/api/gifts/giving') result = []
+    else if (path === '/api/gifts/mine') result = [{ ...gift, owner: me, participation: null, details: { title: 'Моя книга' } }]
+    else if (path === '/api/gifts/giving') result = []
     else if (path.endsWith('/actions')) {
       const { action } = request.postDataJSON()
       if (action === 'close-split') current.participation.open = false
@@ -49,10 +55,11 @@ async function fixture(browser, mini = false) {
         current.participation.coordinatorId = bob.id
       }
       result = current
-    } else if (path === '/api/notices') result = [{ id: 'notice', text: 'Координатор распила изменён', created: '2026-11-15T00:00:00Z', read: false }]
+    } else if (path === '/api/notices') result = Array.from({ length: 24 }, (_, index) => ({
+      id: `notice-${index}`, text: index ? `Уведомление ${index}` : 'Координатор распила изменён',
+      created: '2026-11-15T00:00:00Z', read: false,
+    }))
     else if (path === '/api/wishlist-interest' || path === '/api/wishlist-requests') result = []
-    else if (path === '/api/wishlist-links') result = request.method() === 'POST'
-      ? { link: { id: 'link' }, token: 'public-fixture-token' } : [{ id: 'link', label: 'Мои желания' }]
     else if (path === '/api/public/wishlist') result = { ownerName: owner.name, gifts: [{ ...current, guestReservationEnabled: true }] }
     else if (path.endsWith('/request') || path === '/api/notices/read') result = null
     else return route.fulfill({ status: 404, json: { title: `Unexpected fixture path: ${path}` } })
@@ -75,13 +82,33 @@ async function main() {
     await page.getByRole('button', { name: 'Меню', exact: true }).waitFor()
     await menu(page, 'Уведомления')
     await page.getByText('Координатор распила изменён', { exact: true }).waitFor()
+    const closeNotices = page.getByRole('dialog', { name: 'Уведомления' }).getByRole('button', { name: 'Закрыть', exact: true })
+    const closeBeforeScroll = await closeNotices.boundingBox()
+    await page.getByText('Уведомление 23', { exact: true }).scrollIntoViewIfNeeded()
+    assert.deepEqual(await closeNotices.boundingBox(), closeBeforeScroll, 'Close must stay in place when notifications scroll')
+    await closeNotices.click()
+    await page.setViewportSize({ width: 1188, height: 900 })
+    const menuToggle = page.getByRole('button', { name: 'Меню', exact: true })
+    await menuToggle.click()
+    const notices = page.getByRole('button', { name: 'Уведомления', exact: true })
+    assert.equal(await notices.count(), 1)
+    assert.equal(await notices.locator('svg').count(), 1)
+    const noticesRect = await notices.boundingBox()
+    const menuRect = await menuToggle.boundingBox()
+    assert.ok(noticesRect.x + noticesRect.width <= menuRect.x, 'Notifications must be left of the desktop menu')
+    await notices.click()
+    await page.getByText('Координатор распила изменён', { exact: true }).waitFor()
     await page.getByRole('button', { name: 'Закрыть', exact: true }).click()
-    await menu(page, 'Ссылки на желания')
-    await page.getByRole('button', { name: 'Создать ссылку', exact: true }).click()
-    await page.getByRole('textbox', { name: 'Скопируйте ссылку' }).waitFor()
-    assert.match(await page.getByRole('textbox', { name: 'Скопируйте ссылку' }).inputValue(), /\/share#public-fixture-token$/)
-    await page.getByRole('button', { name: 'Закрыть', exact: true }).click()
-    await menu(page, 'Таблица')
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.getByRole('button', { name: 'Меню', exact: true }).click()
+    const menuPanel = page.locator('#board-menu-panel')
+    await menuPanel.getByRole('button', { name: 'Мой профиль', exact: true }).waitFor()
+    assert.equal(await menuPanel.getByRole('button').last().textContent(), 'Мой профиль')
+    assert.equal(await menuPanel.getByRole('button', { name: 'Выйти', exact: true }).count(), 0)
+    for (const name of ['Создать компанию', 'Вступить по приглашению', 'Ссылки на желания', 'Гостевые заявки']) {
+      assert.equal(await menuPanel.getByRole('button', { name, exact: true }).count(), 0, `${name} must be hidden in the MVP`)
+    }
+    await menuPanel.getByRole('button', { name: 'Таблица', exact: true }).click()
     await page.getByRole('button', { name: /Кофемолка/ }).click()
     await page.getByRole('button', { name: 'Участники и детали', exact: true }).click()
     await page.getByRole('button', { name: 'Завершить сбор', exact: true }).click()
@@ -99,6 +126,24 @@ async function main() {
     assert.deepEqual(errors, [])
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
     await page.screenshot({ path: process.env.DARIM_SCREENSHOT || 'react-transition-mobile.png', fullPage: true })
+    await page.goto(base)
+    await page.getByRole('button', { name: 'Мой вишлист', exact: true }).click()
+    await page.getByRole('button', { name: /Моя книга/ }).click()
+    await page.getByRole('button', { name: 'Редактировать', exact: true }).click()
+    const editor = page.getByRole('dialog', { name: 'Редактировать желание' })
+    await editor.getByRole('button', { name: 'В архив', exact: true }).click()
+    await page.getByRole('dialog', { name: 'Отправить в архив' }).waitFor()
+    await page.goto(base)
+    await menu(page, 'Мой профиль')
+    const profile = page.getByRole('dialog', { name: 'Мой профиль' })
+    const sync = profile.getByRole('button', { name: 'Синхронизировать', exact: true })
+    await sync.waitFor()
+    const disconnect = profile.getByRole('button', { name: 'Отключить', exact: true })
+    assert.equal((await sync.boundingBox()).y, (await disconnect.boundingBox()).y)
+    await profile.getByRole('button', { name: 'Выйти', exact: true }).click()
+    await profile.waitFor({ state: 'hidden' })
+    await menuToggle.waitFor({ state: 'hidden' })
+    assert.ok(calls.some(call => call.path === '/api/logout' && call.method === 'POST'))
     await context.close()
     const mini = await fixture(browser, true)
     await mini.page.goto(base)
@@ -112,7 +157,7 @@ async function main() {
     assert.ok(!(await mini.page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage }))).includes('fixture-mini-token'))
     assert.deepEqual(mini.errors, [])
     await mini.context.close()
-    console.log('PASS: mobile dialogs, notices, shares, split closure, public requests, Mini App session and safe area')
+    console.log('PASS: mobile dialogs, notices, MVP menu, split closure, public requests, Mini App session and safe area')
   } finally { await browser.close() }
 }
 main().catch(error => { console.error(error); process.exitCode = 1 })

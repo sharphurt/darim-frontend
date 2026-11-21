@@ -1,20 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
-import { GiftEditorFields } from './GiftEditorFields.jsx'
+import { CompanyFields, GiftEditorFields } from './GiftEditorFields.jsx'
 import { GiftActions, GiftBackContent, OwnerGiftActions } from './GiftCard.jsx'
 import { SplitDetails, SplitFields } from './GiftSplit.jsx'
 import { artworkCategoryNames } from './cardArtwork.js'
 import { OhmywishesSettings } from './OhmywishesSettings.jsx'
+import { DialogClose } from './DialogClose.jsx'
 
 const actionLabels = {
   'create-company': 'Создать компанию',
   'join-company': 'Вступить по приглашению',
+  'manage-companies': 'Управление компаниями',
+  'delete-company': 'Удалить компанию?',
   'invite-company': 'Пригласить участника',
   'invite-result': 'Ссылка для приглашения',
   'card-artwork': 'Фоны и узоры',
   reserve: 'Забронировать подарок',
   split: 'Дарить вместе',
   'split-details': 'Участники распила',
-  join: 'Присоединиться к распилу',
   cancel: 'Снять бронь',
   leave: 'Выйти из распила',
   'close-split': 'Завершить сбор участников',
@@ -47,9 +49,9 @@ function CardArtworkFields({ catalog, pending, uploaded, onRemove }) {
   </>
 }
 
-export function BoardDialog({ dialog, me, company, companies, pending, error, onClose, onClosed, onSubmit, onGiftAction, onCardAction, canSplit, artworkCatalog, onRemoveArtwork, ohmywishesApi, importCompany, onGiftsChanged }) {
+export function BoardDialog({ dialog, me, company, companies, managedCompanies, onCompanyAction, pending, error, onClose, onClosed, onSubmit, onLogout, onGiftAction, onCardAction, canSplit, artworkCatalog, onRemoveArtwork, ohmywishesApi, importCompany, onGiftsChanged }) {
   const ref = useRef(null)
-  const { kind, gift, link, closing } = dialog
+  const { kind, gift, link, managedCompany, closing } = dialog
   useEffect(() => {
     const element = ref.current
     element.showModal()
@@ -72,23 +74,29 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
   }, [closing, onClosed])
 
   const edit = kind === 'edit' || kind === 'create'
+  const visibilityOnly = kind === 'edit' && gift.fromOhmywishes
   const giftDetails = kind === 'gift-details'
   const own = gift?.owner.id === me.user.id
   const splitDetails = kind === 'split-details'
   const editArtwork = kind === 'card-artwork'
+  const manageCompanies = kind === 'manage-companies'
   const splitCancel = kind === 'cancel' && gift?.participation?.mode === 'split'
   const title = edit ? (gift ? 'Редактировать желание' : 'Новое желание')
     : kind === 'profile' ? 'Мой профиль' : splitCancel ? 'Выйти из распила' : actionLabels[kind]
   const confirm = kind === 'split' ? 'Распилить и занять долю'
     : kind === 'archive' ? 'Исполнено'
-    : kind === 'join' ? 'Занять долю' : editArtwork ? 'Загрузить'
+    : kind === 'delete-company' ? 'Удалить компанию'
+    : kind === 'invite-company' ? 'Создать ссылку'
+    : editArtwork ? 'Загрузить'
     : edit || kind === 'profile' ? 'Сохранить' : 'Подтвердить'
   const state = gift?.participation
   const canManageSplit = splitDetails && gift && !gift.archived && !state.bought
   const dialogStyle = kind === 'create' ? ' board-dialog--gift board-dialog--create'
-    : edit ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
+    : edit && !visibilityOnly ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
     : kind === 'archive' ? ' board-dialog--archive'
-    : kind === 'split' || splitDetails ? ' board-dialog--split' : giftDetails ? ' board-dialog--gift-details' : ''
+    : kind === 'transfer' ? ' board-dialog--transfer'
+    : splitDetails ? ' board-dialog--split board-dialog--split-details'
+    : kind === 'split' ? ' board-dialog--split' : giftDetails ? ' board-dialog--gift-details' : ''
 
   return (
     <dialog ref={ref} className={`board-dialog${dialogStyle}`} data-closing={closing}
@@ -112,14 +120,31 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
         </section>
       ) : <div className="board-dialog__body"><form inert={closing} onSubmit={event => {
         event.preventDefault()
-        if (!closing && !link && !splitDetails) onSubmit(new FormData(event.currentTarget))
+        if (!pending && !closing && !link && !splitDetails && !manageCompanies) onSubmit(new FormData(event.currentTarget))
       }}>
         <h2 id="dialog-title">{title}</h2>
-        {edit && <GiftEditorFields gift={gift} company={company} companies={companies} pending={pending} />}
+        {visibilityOnly && <>
+          <p>{gift.details.title}</p>
+          <CompanyFields gift={gift} companies={companies} />
+        </>}
+        {edit && !visibilityOnly && <GiftEditorFields gift={gift} company={company} companies={companies} pending={pending} />}
         {editArtwork && <CardArtworkFields catalog={artworkCatalog} pending={pending}
           uploaded={dialog.uploaded} onRemove={onRemoveArtwork} />}
         {editArtwork && dialog.artworkStatus && !pending && !error && <p role="status">{dialog.artworkStatus}</p>}
         {kind === 'create-company' && <label>Название компании<input name="name" required maxLength="100" /></label>}
+        {manageCompanies && <ul className="company-management-list">
+          {managedCompanies.map(item => <li key={item.id}>
+            <h3>{item.name}</h3>
+            <div>
+              <button type="button" className="gift-action gift-action--primary" disabled={pending}
+                onClick={() => onCompanyAction('invite-company', item)}>Создать приглашение</button>
+              <button type="button" className="gift-action" disabled={pending}
+                onClick={() => onCompanyAction('delete-company', item)}>Удалить</button>
+            </div>
+          </li>)}
+        </ul>}
+        {managedCompany && <p>{managedCompany.name}</p>}
+        {kind === 'delete-company' && <p>Доска компании и её ссылки станут недоступны всем участникам. Личные желания и существующие бронирования сохранятся.</p>}
         {kind === 'join-company' && <label>Ссылка или код приглашения
           <input name="token" defaultValue={dialog.token} autoComplete="off" required />
         </label>}
@@ -156,24 +181,25 @@ export function BoardDialog({ dialog, me, company, companies, pending, error, on
               className="gift-action gift-action--primary" disabled={pending} onClick={() => onGiftAction('buy', gift)}>
               Отметить купленным
             </button>}
-            <button type="button" className="gift-action board-dialog__dismiss" onClick={onClose}>Закрыть</button>
-          </> : link ? <button type="button" className="gift-action gift-action--primary board-dialog__dismiss" onClick={onClose}>Готово</button> : <>
-            <button type="button" className="gift-action board-dialog__dismiss" disabled={pending}
-              onClick={onClose}>{editArtwork ? 'Закрыть' : 'Отмена'}</button>
+          </> : link || manageCompanies ? <button type="button" className="gift-action gift-action--primary board-dialog__dismiss"
+            onClick={onClose}>{link ? 'Готово' : 'Закрыть'}</button> : <>
+            {kind !== 'split' && kind !== 'profile' && <button type="button" className="gift-action board-dialog__dismiss" disabled={pending}
+              onClick={onClose}>{editArtwork ? 'Закрыть' : 'Отмена'}</button>}
             <button type="submit" className="gift-action gift-action--primary" disabled={pending}>
               {pending ? 'Сохраняем…' : confirm}
             </button>
           </>}
         </footer>
       </form>
-      {kind === 'profile' && <OhmywishesSettings api={ohmywishesApi} company={importCompany}
-        outcome={dialog.outcome} profilePending={pending} onGiftsChanged={onGiftsChanged} />}
+      {kind === 'profile' && <>
+        <OhmywishesSettings api={ohmywishesApi} company={importCompany}
+          outcome={dialog.outcome} profilePending={pending} onGiftsChanged={onGiftsChanged} />
+        <footer className="board-dialog__profile-footer">
+          <button type="button" className="gift-action board-dialog__logout" disabled={pending} onClick={onLogout}>Выйти</button>
+        </footer>
+      </>}
       </div>}
-      <button type="button" className="board-dialog__close" aria-label="Закрыть" disabled={pending || closing} onClick={onClose}>
-        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </button>
+      {kind !== 'transfer' && <DialogClose disabled={pending || closing} onClose={onClose} />}
     </dialog>
   )
 }

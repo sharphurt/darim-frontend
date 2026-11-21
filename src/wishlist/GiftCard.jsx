@@ -55,7 +55,8 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
         </a>}
       </div>
     </header>
-    {gift.participation?.mode === 'split' && gift.participation.bought && <p>{giftBadge(gift)}</p>}
+    {(gift.participation?.mode === 'external' ||
+      gift.participation?.mode === 'split' && gift.participation.bought) && <p>{giftBadge(gift)}</p>}
     <div className={modal ? undefined : 'gift-card__body'}>
       {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}
     </div>
@@ -163,7 +164,7 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
   }
 
   return (
-    <li className="gift-slot">
+    <li className="gift-slot" id={`wishlist-gift-${gift.id}`} tabIndex={-1}>
       <div className="gift-pendulum" data-pendulum>
         <div className="gift-handle" aria-hidden="true"><img src={clip} width="26" height="19" alt="" /></div>
         <div className="gift-perspective">
@@ -184,6 +185,7 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
                   onError={() => setFailedPhoto(photo)} />}
                 <div className="gift-card__summary">
                   <h3>{title}</h3>
+                  {own && gift.fromOhmywishes && <span className="gift-card__source">Из Ohmywishes</span>}
                   {price && <p>{price}</p>}
                 </div>
                 {split && <SplitProgress state={split} />}

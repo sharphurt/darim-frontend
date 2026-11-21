@@ -81,8 +81,7 @@ export function PublicWishlist() {
       <h1>Желания · {state.wishlist.ownerName}</h1>
       {!state.me && <section>
         <p>Войдите, чтобы отправить заявку на подарок.</p>
-        {state.info.telegramConfigured && <a className="pill" href="/auth/login?returnTo=share">Войти через Telegram</a>}
-        {state.info.codeLoginEnabled && <CodeLogin pending={pending} botUsername={state.info.botUsername}
+        {state.info.codeLoginEnabled && <CodeLogin legacy={state.info.codeLoginLength !== 6} pending={pending} botUsername={state.info.botUsername}
           onLogin={code => run(() => api.codeLogin(code), 'Вы вошли. Теперь можно выбрать подарок.')} />}
       </section>}
       {!state.wishlist.gifts.length && <p>Здесь пока нет желаний.</p>}

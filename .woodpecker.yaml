@@ -1,8 +1,8 @@
 when:
   - event: [push, manual]
-    branch: [main, test]
+    branch: main
 
-# Keep test-and-deploy workflows in pipeline creation order, including the
+# Keep production workflows in pipeline creation order, including the
 # shared Coolify commit pin. Supported by the installed Woodpecker 3.20.1.
 concurrency:
   limit: 1
@@ -17,32 +17,6 @@ steps:
       - npm run lint
       - npm run build
 
-  - name: deploy-test
-    depends_on: [lint-and-build]
-    image: alpine:3.22
-    environment:
-      COOLIFY_DEPLOY_WEBHOOK:
-        from_secret: coolify_test_deploy_webhook
-      COOLIFY_TOKEN:
-        from_secret: coolify_token
-    commands:
-      - apk add --no-cache curl jq
-      - |
-        test -n "$COOLIFY_DEPLOY_WEBHOOK" && test -n "$COOLIFY_TOKEN" || {
-          echo 'Configure coolify_test_deploy_webhook and coolify_token in Woodpecker' >&2
-          exit 1
-        }
-        response=$(curl --fail --silent --show-error --max-time 30 \
-          --request POST --proto '=https' \
-          --header "Authorization: Bearer $COOLIFY_TOKEN" \
-          --header 'Accept: application/json' \
-          "$COOLIFY_DEPLOY_WEBHOOK")
-        printf '%s\n' "$response" |
-          jq -er '.deployments[0].deployment_uuid | select(type == "string" and length > 0)'
-    when:
-      - event: push
-        branch: test
-
   - name: deploy-production
     depends_on: [lint-and-build]
     image: node:24-bookworm-slim
@@ -54,3 +28,38 @@ steps:
     when:
       - event: push
         branch: main
+
+  - name: telegram-frontend-release
+    depends_on: [deploy-production]
+    image: alpine:3.22
+    failure: ignore
+    environment:
+      TELEGRAM_BOT_TOKEN:
+        from_secret: telegram_bot_token
+      TELEGRAM_LICKREAL_ID:
+        from_secret: telegram_lickreal_id
+      TELEGRAM_SHARPHURT_ID:
+        from_secret: telegram_sharphurt_id
+    commands:
+      - apk add --no-cache curl jq git
+      - sh ops/telegram-ci.sh release
+    when:
+      - event: push
+        branch: main
+        status: [success]
+
+  - name: telegram-pipeline-failure
+    image: alpine:3.22
+    failure: ignore
+    environment:
+      TELEGRAM_BOT_TOKEN:
+        from_secret: telegram_bot_token
+      TELEGRAM_LICKREAL_ID:
+        from_secret: telegram_lickreal_id
+      TELEGRAM_SHARPHURT_ID:
+        from_secret: telegram_sharphurt_id
+    commands:
+      - apk add --no-cache curl jq
+      - sh ops/telegram-ci.sh failure
+    when:
+      - status: [failure]
