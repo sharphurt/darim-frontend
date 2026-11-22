@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createHttpClient } from '../src/api/http.js'
+import { createDarimApi } from '../src/api/darim.js'
 
 test('Mini App uses bearer for reads and writes without cookie CSRF', async () => {
   const calls = []
@@ -30,5 +31,25 @@ test('browser writes still fetch and send CSRF', async () => {
     await createHttpClient().write('/api/profile', 'PUT', {})
     assert.deepEqual(calls.map(call => call.url), ['/api/csrf', '/api/profile'])
     assert.equal(calls[1].headers['X-CSRF-TOKEN'], 'csrf')
+  } finally { globalThis.fetch = original }
+})
+
+test('deleting a wish sends DELETE with CSRF and accepts an empty response', async () => {
+  const calls = []
+  const original = globalThis.fetch
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, ...options })
+    return url === '/api/csrf'
+      ? Response.json({ token: 'csrf' })
+      : new Response(null, { status: 204 })
+  }
+  try {
+    await createDarimApi().deleteGift('gift-id')
+    assert.deepEqual(calls.map(call => [call.method, call.url]), [
+      ['GET', '/api/csrf'],
+      ['DELETE', '/api/gifts/gift-id'],
+    ])
+    assert.equal(calls[1].headers['X-CSRF-TOKEN'], 'csrf')
+    assert.equal(calls[1].body, undefined)
   } finally { globalThis.fetch = original }
 })
