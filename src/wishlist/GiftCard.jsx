@@ -29,12 +29,12 @@ export function GiftActions({ gift, canSplit, onAction, pending }) {
 }
 
 export function OwnerGiftActions({ gift, pending, onAction }) {
-  if (gift.archived) return <button type="button" className="gift-action gift-action--primary" disabled={pending}
-    onClick={() => onAction(gift, 'restore')}>Вернуть</button>
   return <>
-    <button type="button" className="gift-action" disabled={pending}
-      onClick={() => onAction(gift, 'edit')}>Редактировать</button>
-    {!gift.fromOhmywishes && <button type="button" className="gift-action gift-action--primary" disabled={pending}
+    {gift.archived ? <button type="button" className="gift-action gift-action--primary" disabled={pending}
+      onClick={() => onAction(gift, 'restore')}>Вернуть</button>
+      : <button type="button" className="gift-action" disabled={pending}
+        onClick={() => onAction(gift, 'edit')}>Редактировать</button>}
+    {!gift.archived && !gift.fromOhmywishes && <button type="button" className="gift-action gift-action--primary" disabled={pending}
       onClick={() => onAction(gift, 'archive')}>Исполнено</button>}
   </>
 }
@@ -44,10 +44,18 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
   const formattedPrice = formatPrice(price)
   const link = safeLink(url)
   const Heading = modal ? 'h2' : 'h3'
+  const canDelete = own && !gift.fromOhmywishes
   return <>
     {modal && <GiftPhoto gift={gift} className="gift-details__photo" />}
     <header>
-      <Heading id={modal ? 'dialog-title' : undefined}>{title}</Heading>
+      <Heading id={modal ? 'dialog-title' : undefined} className={canDelete ? 'gift-title--deletable' : undefined}>{title}</Heading>
+      {canDelete && <button type="button" className="gift-delete" aria-label="Удалить желание"
+        title="Удалить желание" aria-haspopup="dialog" disabled={pending} onClick={() => onAction(gift, 'delete-gift')}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+          strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6m4-6v6" />
+        </svg>
+      </button>}
       <div className="gift-card__meta">
         {formattedPrice && <p>{formattedPrice}</p>}
         {link && <a href={link} target="_blank" rel="noreferrer">

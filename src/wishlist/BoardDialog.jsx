@@ -23,6 +23,7 @@ const actionLabels = {
   transfer: 'Передать координацию',
   buy: 'Отметить купленным',
   archive: 'Желание исполнено?',
+  'delete-gift': 'Удалить желание?',
 }
 
 function CardArtworkFields({ catalog, pending, uploaded, onRemove }) {
@@ -85,6 +86,7 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
     : kind === 'profile' ? 'Мой профиль' : splitCancel ? 'Выйти из распила' : actionLabels[kind]
   const confirm = kind === 'split' ? 'Распилить и занять долю'
     : kind === 'archive' ? 'Исполнено'
+    : kind === 'delete-gift' ? 'Удалить'
     : kind === 'delete-company' ? 'Удалить компанию'
     : kind === 'invite-company' ? 'Создать ссылку'
     : editArtwork ? 'Загрузить'
@@ -94,6 +96,7 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
   const dialogStyle = kind === 'create' ? ' board-dialog--gift board-dialog--create'
     : edit && !visibilityOnly ? ' board-dialog--gift' : editArtwork ? ' board-dialog--artwork'
     : kind === 'archive' ? ' board-dialog--archive'
+    : kind === 'delete-gift' ? ' board-dialog--delete-gift'
     : kind === 'transfer' ? ' board-dialog--transfer'
     : splitDetails ? ' board-dialog--split board-dialog--split-details'
     : kind === 'split' ? ' board-dialog--split' : giftDetails ? ' board-dialog--gift-details' : ''
@@ -109,7 +112,7 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
       {giftDetails ? (
         <section className="gift-details__panel">
           <div className="gift-details__content" tabIndex={0}>
-            <GiftBackContent gift={gift} modal />
+            <GiftBackContent gift={gift} own={own} pending={pending} onAction={onCardAction} modal />
             {error && <p className="board-error" role="alert">{error}</p>}
           </div>
           <footer>
@@ -159,6 +162,7 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
         </>}
         {!edit && !splitDetails && kind !== 'split' && gift && <p>{gift.details.title}</p>}
         {kind === 'archive' && <p>Карточка переместится в архив. Все бронирования с неё снимутся.</p>}
+        {kind === 'delete-gift' && <p>Восстановить желание будет нельзя. Брони и сборы будут удалены, а их участники получат уведомление.</p>}
         {kind === 'split' && <SplitFields gift={gift} maxSlots={(company?.members.length ?? 0) - 1} />}
         {(kind === 'leave' || splitCancel) && <p>Остальные участники сохранят свои доли. Если вы координатор, роль перейдёт первому вступившему из оставшихся. При выходе последнего участника бронь снимется.</p>}
         {kind === 'close-split' && <p>Новые участники больше не смогут вступить. Доли будут рассчитаны на {state.taken} человек. Если кто-то выйдет до покупки, сбор откроется снова.</p>}
@@ -186,7 +190,7 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
             {kind !== 'split' && kind !== 'profile' && <button type="button" className="gift-action board-dialog__dismiss" disabled={pending}
               onClick={onClose}>{editArtwork ? 'Закрыть' : 'Отмена'}</button>}
             <button type="submit" className="gift-action gift-action--primary" disabled={pending}>
-              {pending ? 'Сохраняем…' : confirm}
+              {pending ? (kind === 'delete-gift' ? 'Удаляем…' : 'Сохраняем…') : confirm}
             </button>
           </>}
         </footer>
