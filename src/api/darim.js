@@ -54,6 +54,7 @@ export function createDarimApi() {
     },
     saveGiftVisibility: (id, visibility) => http.write(`/api/gifts/${id}/visibility`, 'PUT', visibility),
     archiveGift: id => http.write(`/api/gifts/${id}/archive`, 'POST'),
+    deleteGift: id => http.write(`/api/gifts/${id}`, 'DELETE'),
     restoreGift: id => http.write(`/api/gifts/${id}/restore`, 'POST'),
     saveProfile: profile => http.write('/api/profile', 'PUT', profile),
     ohmywishesStatus: signal => http.get('/api/ohmywishes', signal),

@@ -731,7 +731,7 @@
   }
   .board-dialog__close { display: grid; }
   .board-dialog__dismiss, .board-dialog footer:not(:has(> :not(.board-dialog__dismiss))) { display: none; }
-  .board-dialog--transfer .board-dialog__dismiss { display: inline-block; }
+  :is(.board-dialog--transfer, .board-dialog--delete-gift) .board-dialog__dismiss { display: inline-block; }
   :is(.board-dialog--create, .board-dialog--gift-details, .board-dialog--archive) {
     --dialog-viewport-gap: 8px;
     --gift-dialog-padding-block: 16px;

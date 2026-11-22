@@ -155,6 +155,12 @@ export function useWishlist(archived) {
       return run(client => client.saveGift(gift?.id, details, photo?.size ? photo : undefined))
     }
     if (kind === 'archive') return run(client => client.archiveGift(gift.id))
+    if (kind === 'delete-gift') return run(async client => {
+      await client.deleteGift(gift.id)
+      setResult(current => current?.gifts
+        ? { ...current, gifts: current.gifts.filter(item => item.id !== gift.id) }
+        : current)
+    })
     return actOnGift(gift.id, kind, kind === 'transfer' ? field('userId') : undefined)
   }
 

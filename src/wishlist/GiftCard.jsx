@@ -29,13 +29,15 @@ export function GiftActions({ gift, canSplit, onAction, pending }) {
 }
 
 export function OwnerGiftActions({ gift, pending, onAction }) {
-  if (gift.archived) return <button type="button" className="gift-action gift-action--primary" disabled={pending}
-    onClick={() => onAction(gift, 'restore')}>Вернуть</button>
   return <>
-    <button type="button" className="gift-action" disabled={pending}
-      onClick={() => onAction(gift, 'edit')}>Редактировать</button>
-    {!gift.fromOhmywishes && <button type="button" className="gift-action gift-action--primary" disabled={pending}
+    {gift.archived ? <button type="button" className="gift-action gift-action--primary" disabled={pending}
+      onClick={() => onAction(gift, 'restore')}>Вернуть</button>
+      : <button type="button" className="gift-action" disabled={pending}
+        onClick={() => onAction(gift, 'edit')}>Редактировать</button>}
+    {!gift.archived && !gift.fromOhmywishes && <button type="button" className="gift-action gift-action--primary" disabled={pending}
       onClick={() => onAction(gift, 'archive')}>Исполнено</button>}
+    {!gift.fromOhmywishes && <button type="button" className="gift-action" disabled={pending}
+      onClick={() => onAction(gift, 'delete-gift')}>Удалить</button>}
   </>
 }
 
