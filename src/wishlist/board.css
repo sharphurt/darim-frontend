@@ -341,7 +341,6 @@
   block-size: 44px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
   background: var(--surface);
   color: #b4232b;
   cursor: pointer;
@@ -420,7 +419,8 @@
   text-align: center;
 }
 .gift-action { border: 0; border-radius: 12px; min-height: 38px; padding: 10px 12px; background: transparent; color: var(--cta); }
-.gift-card__actions .gift-action { border-radius: 3.75cqw; min-height: 0; padding: 4.7cqw 2cqw; }
+.gift-card__actions .gift-action, .gift-delete { border-radius: 3.75cqw; }
+.gift-card__actions .gift-action { min-height: 0; padding: 4.7cqw 2cqw; }
 .gift-action--primary { background: var(--cta); color: #fff; }
 .gift-action:disabled { opacity: .55; }
 
