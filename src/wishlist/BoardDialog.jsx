@@ -112,7 +112,7 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
       {giftDetails ? (
         <section className="gift-details__panel">
           <div className="gift-details__content" tabIndex={0}>
-            <GiftBackContent gift={gift} modal />
+            <GiftBackContent gift={gift} own={own} pending={pending} onAction={onCardAction} modal />
             {error && <p className="board-error" role="alert">{error}</p>}
           </div>
           <footer>
