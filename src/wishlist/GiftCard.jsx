@@ -19,6 +19,7 @@ export function GiftActions({ gift, canSplit, onAction, pending }) {
 
   if (state?.mode === 'split' && state.isMine) return action('split-details', 'Участники и детали', true)
   if (!state || state.bought || gift.archived) return null
+  if (state.mode === 'free' && gift.variants?.length) return null
   if (state.mode === 'free') return <>{canSplit && !gift.unlimited && action('split', 'Распилить')}{action('reserve', 'Хочу подарить!', true)}</>
   if (state.isMine) {
     return <>
@@ -46,6 +47,8 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
   const link = safeLink(url)
   const Heading = modal ? 'h2' : 'h3'
   const canDelete = own && !gift.fromOhmywishes
+  const showVariants = gift.variants?.length > 0 && (own || !gift.selectedVariant)
+  const variantActions = showVariants && !own && !gift.archived && gift.participation?.mode === 'free'
   return <>
     {modal && <GiftPhoto gift={gift} className="gift-details__photo" />}
     <header>
@@ -66,15 +69,21 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
     </header>
     {(gift.participation?.mode === 'external' ||
       gift.participation?.mode === 'split' && gift.participation.bought) && <p>{giftBadge(gift)}</p>}
-    <div className={modal ? undefined : 'gift-card__body'}>
+    {(!showVariants || comment) && <div className={modal ? undefined : 'gift-card__body'}>
       {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}
-    </div>
+    </div>}
     {gift.selectedVariant && <VariantDetails variant={gift.selectedVariant} selected />}
-    {modal && (own || !gift.selectedVariant) && <GiftVariants gift={gift} />}
+    {showVariants && <GiftVariants key={gift.variantsVersion} gift={gift} pending={pending} compact={!modal}
+      renderActions={variantActions ? variant => <div className="variant-deck__actions">
+        <button type="button" className="gift-action gift-action--primary" disabled={pending}
+          onClick={() => onAction(gift, 'reserve', variant.id)}>Подарить этот вариант</button>
+        {canSplit && <button type="button" className="gift-action" disabled={pending}
+          onClick={() => onAction(gift, 'split', variant.id)}>Распилить этот вариант</button>}
+      </div> : undefined} />}
     {own && !modal && <div className="gift-card__actions">
       <OwnerGiftActions gift={gift} pending={pending} onAction={onAction} />
     </div>}
-    {!own && !modal && <div className="gift-card__actions">
+    {!own && !modal && !variantActions && <div className="gift-card__actions">
       <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />
     </div>}
   </>
@@ -100,7 +109,7 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
   const backActive = flipped || closing || controlPressed
   const returnLabel = `Показать лицевую сторону: ${title}`
   const activate = () => {
-    if (openDetails) onAction(gift, 'gift-details')
+    if (openDetails && !flipped) onAction(gift, 'gift-details')
     else {
       setClosing(flipped)
       setFlipped(!flipped)
@@ -180,9 +189,10 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
         <div className="gift-handle" aria-hidden="true"><img src={clip} width="26" height="19" alt="" /></div>
         <div className="gift-perspective">
           <article className="gift-card" data-tilt data-flipped={flipped} data-back-active={backActive}>
-            <button type="button" className="gift-card__turn" aria-pressed={openDetails ? undefined : flipped}
+            {gift.variants?.length > 0 && <span className="variant-stack" aria-hidden="true" />}
+            <button type="button" className="gift-card__turn" aria-pressed={openDetails && !flipped ? undefined : flipped}
               aria-haspopup={openDetails ? 'dialog' : undefined}
-              aria-label={flipped && !openDetails ? returnLabel : `Подробнее: ${title}`}
+              aria-label={flipped ? returnLabel : `Подробнее: ${title}`}
               onClick={activate} />
             <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
