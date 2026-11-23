@@ -1,3 +1,4 @@
+import { GiftVariants } from './GiftVariants.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { CompanyFields, GiftEditorFields } from './GiftEditorFields.jsx'
 import { GiftActions, GiftBackContent, OwnerGiftActions } from './GiftCard.jsx'
@@ -81,6 +82,8 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
   const splitDetails = kind === 'split-details'
   const editArtwork = kind === 'card-artwork'
   const manageCompanies = kind === 'manage-companies'
+  const choosingVariant = kind === 'reserve' || kind === 'split'
+  const unavailable = choosingVariant && gift.participation?.mode !== 'free'
   const splitCancel = kind === 'cancel' && gift?.participation?.mode === 'split'
   const title = edit ? (gift ? 'Редактировать желание' : 'Новое желание')
     : kind === 'profile' ? 'Мой профиль' : splitCancel ? 'Выйти из распила' : actionLabels[kind]
@@ -123,7 +126,7 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
         </section>
       ) : <div className="board-dialog__body"><form inert={closing} onSubmit={event => {
         event.preventDefault()
-        if (!pending && !closing && !link && !splitDetails && !manageCompanies) onSubmit(new FormData(event.currentTarget))
+        if (!pending && !closing && !link && !splitDetails && !manageCompanies && !unavailable) onSubmit(new FormData(event.currentTarget))
       }}>
         <h2 id="dialog-title">{title}</h2>
         {visibilityOnly && <>
@@ -164,6 +167,8 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
         {kind === 'archive' && <p>Карточка переместится в архив. Все бронирования с неё снимутся.</p>}
         {kind === 'delete-gift' && <p>Восстановить желание будет нельзя. Брони и сборы будут удалены, а их участники получат уведомление.</p>}
         {kind === 'split' && <SplitFields gift={gift} maxSlots={(company?.members.length ?? 0) - 1} />}
+        {choosingVariant && !unavailable && <GiftVariants key={gift.variantsVersion ?? ''} gift={gift} choose pending={pending} />}
+        {unavailable && !error && <p role="status">Желание больше недоступно для бронирования.</p>}
         {(kind === 'leave' || splitCancel) && <p>Остальные участники сохранят свои доли. Если вы координатор, роль перейдёт первому вступившему из оставшихся. При выходе последнего участника бронь снимется.</p>}
         {kind === 'close-split' && <p>Новые участники больше не смогут вступить. Доли будут рассчитаны на {state.taken} человек. Если кто-то выйдет до покупки, сбор откроется снова.</p>}
         {kind === 'transfer' && <label>Новый координатор<select name="userId" required>
@@ -189,7 +194,7 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
             onClick={onClose}>{link ? 'Готово' : 'Закрыть'}</button> : <>
             {kind !== 'split' && kind !== 'profile' && <button type="button" className="gift-action board-dialog__dismiss" disabled={pending}
               onClick={onClose}>{editArtwork ? 'Закрыть' : 'Отмена'}</button>}
-            <button type="submit" className="gift-action gift-action--primary" disabled={pending}>
+            <button type="submit" className="gift-action gift-action--primary" disabled={pending || unavailable}>
               {pending ? (kind === 'delete-gift' ? 'Удаляем…' : 'Сохраняем…') : confirm}
             </button>
           </>}

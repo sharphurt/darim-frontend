@@ -3,6 +3,12 @@ import { createDarimApi } from '../api/darim.js'
 import { invitationToken } from './companyInvite.js'
 import { useCardArtwork } from './useCardArtwork.js'
 import { miniApp } from '../api/miniSession.js'
+import { variantSelection } from './giftPresentation.js'
+
+function normalizeShopUrl(url) {
+  if (!url || /^[a-z][a-z\d+.-]*:\/\//i.test(url)) return url
+  return `https://${url.replace(/^\/\//, '')}`
+}
 
 export function useWishlist(archived) {
   const [api, setApi] = useState(createDarimApi)
@@ -135,15 +141,25 @@ export function useWishlist(archived) {
         }))
       }
       const price = field('price')
-      const url = field('url')
       const details = {
         title: field('title'),
-        url: url && !/^[a-z][a-z\d+.-]*:\/\//i.test(url) ? `https://${url.replace(/^\/\//, '')}` : url,
+        url: normalizeShopUrl(field('url')),
         price: price === null ? null : Number(price),
         occasion: gift?.details.occasion,
         occasionDate: gift?.details.occasionDate,
         comment: field('comment'),
         unlimited: gift?.unlimited ?? form.has('unlimited'),
+      }
+      if (form.has('editVariants')) {
+        const ids = form.getAll('variantIds')
+        const urls = form.getAll('variantUrls')
+        const prices = form.getAll('variantPrices')
+        details.variants = form.getAll('variantTitles').map((title, index) => ({
+          id: ids[index] || null,
+          title: title.trim(),
+          url: normalizeShopUrl(urls[index].trim() || null),
+          price: prices[index] === '' ? null : Number(prices[index]),
+        }))
       }
       const previousIds = gift?.visibility?.companyIds ?? []
       if (!gift || gift.visibility?.allCompanies ||
@@ -161,14 +177,15 @@ export function useWishlist(archived) {
         ? { ...current, gifts: current.gifts.filter(item => item.id !== gift.id) }
         : current)
     })
-    return actOnGift(gift.id, kind, kind === 'transfer' ? field('userId') : undefined)
+    const fields = kind === 'transfer' ? { userId: field('userId') } : variantSelection(form)
+    return actOnGift(gift.id, kind, fields)
   }
 
-  function actOnGift(id, action, userId) {
+  function actOnGift(id, action, fields) {
     return run(client => client.act(id, {
       action,
       companyId: activeView === 'board' ? activeCompanyId : undefined,
-      userId,
+      ...fields,
     }))
   }
 

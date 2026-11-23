@@ -962,3 +962,20 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 
 .code-login__legacy { display: grid; gap: 8px; }
 .code-login .code-login__legacy input { padding-inline: 8px; font-size: inherit; }
+
+.board-budget { display: flex; flex-wrap: wrap; align-items: center; align-self: center; gap: 8px; }
+.board-budget input { width: 8rem; }
+.gift-variant-editor, .gift-editor__fields > div:not([hidden]), .gift-variant-editor fieldset, .gift-variants {
+  display: grid;
+  gap: 10px;
+  min-inline-size: 0;
+}
+.gift-variant-editor fieldset, fieldset.gift-variants {
+  border: 1px solid currentColor;
+  border-radius: 12px;
+  padding: 12px;
+}
+ul.gift-variants { padding: 0; list-style: none; }
+.gift-variant__choice { display: flex; gap: 10px; align-items: start; }
+.gift-variant__choice input[type=radio] { width: auto; margin-block-start: .3em; flex: none; }
+.gift-variant__details { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; overflow-wrap: anywhere; }
