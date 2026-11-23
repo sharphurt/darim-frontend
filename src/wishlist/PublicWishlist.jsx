@@ -24,7 +24,7 @@ function PublicGift({ gift, token, request, pending, signedIn, onRequest, onWith
     {!gift.variants?.length && gift.details.price != null && <p>{formatPrice(gift.details.price)}</p>}
     {gift.details.comment && <p>{gift.details.comment}</p>}
     {shop && <a href={shop} target="_blank" rel="noopener noreferrer">Где купить</a>}
-    {(!signedIn || request || gift.guestReservationEnabled === false) && <GiftVariants gift={gift} />}
+    {(!signedIn || request || gift.guestReservationEnabled === false) && <GiftVariants key={gift.variantsVersion} gift={gift} />}
     {request ? <>
       {request.selectedVariant && <VariantDetails variant={request.selectedVariant} selected />}
       <p>{request.confirmed ? 'Бронь подтверждена' : 'Заявка ожидает решения'}</p>
@@ -38,7 +38,7 @@ function PublicGift({ gift, token, request, pending, signedIn, onRequest, onWith
       <GiftVariants key={gift.variantsVersion ?? ''} gift={gift} choose pending={pending} />
       <p>Доступность подарка скрыта. Заявку можно отменить, пока она не подтверждена.</p>
       <label><input type="checkbox" name="shareUsername" /> Разрешаю показать мой Telegram-ник тому, кто уже дарит этот подарок, если он занят.</label>
-      <button className="gift-action gift-action--primary" disabled={pending}>Хочу подарить</button>
+      <button className="gift-action gift-action--primary" disabled={pending}>{gift.variants?.length ? 'Подарить этот вариант' : 'Хочу подарить'}</button>
     </form>}
   </li>
 }

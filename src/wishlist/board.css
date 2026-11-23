@@ -965,17 +965,126 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 
 .board-budget { display: flex; flex-wrap: wrap; align-items: center; align-self: center; gap: 8px; }
 .board-budget input { width: 8rem; }
-.gift-variant-editor, .gift-editor__fields > div:not([hidden]), .gift-variant-editor fieldset, .gift-variants {
+.gift-variant-editor, .gift-editor__fields > div:not([hidden]), .gift-variant-editor fieldset {
   display: grid;
   gap: 10px;
   min-inline-size: 0;
 }
-.gift-variant-editor fieldset, fieldset.gift-variants {
+.gift-variant-editor fieldset {
   border: 1px solid currentColor;
   border-radius: 12px;
   padding: 12px;
 }
-ul.gift-variants { padding: 0; list-style: none; }
-.gift-variant__choice { display: flex; gap: 10px; align-items: start; }
-.gift-variant__choice input[type=radio] { width: auto; margin-block-start: .3em; flex: none; }
 .gift-variant__details { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; overflow-wrap: anywhere; }
+
+.variant-stack {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.variant-stack::before, .variant-stack::after {
+  content: '';
+  position: absolute;
+  inset: 2% 3% 1%;
+  border: 1px solid #b7c9e3;
+  border-radius: var(--variant-card-radius, 7.5cqw);
+  background: #dce8f8;
+  transform: translate(-4%, -2%) rotate(-7deg);
+  transform-origin: 50% 82%;
+}
+.variant-stack::after {
+  border-color: #e7b5ab;
+  background: #f5d8d0;
+  transform: translate(4%, -1%) rotate(6deg);
+}
+
+.variant-deck {
+  display: grid;
+  gap: 10px;
+  min-inline-size: 0;
+}
+.variant-deck__viewport {
+  position: relative;
+  isolation: isolate;
+  padding-block-start: 18px;
+  touch-action: pan-y pinch-zoom;
+}
+.variant-deck__viewport .variant-stack {
+  --variant-card-radius: 16px;
+  inset: 17px 8px 4px;
+}
+.variant-deck__card {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-block-size: 124px;
+  padding: 16px 48px;
+  border: 1px solid #eddbd6;
+  border-radius: 16px;
+  background: #fff9f6;
+}
+.variant-deck__viewport:not(:has(.variant-deck__arrow)) .variant-deck__card { padding-inline: 20px; }
+.variant-deck__model {
+  min-inline-size: 0;
+  animation: variant-model-in 180ms ease-out;
+}
+.variant-deck__model .gift-variant__details {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+.variant-deck__model strong { font-size: 1.125em; line-height: 1.15; }
+.variant-deck__model a { text-underline-offset: .14em; }
+.variant-deck__arrow {
+  position: absolute;
+  inset-block-start: calc(50% + 9px);
+  inset-inline-start: 2px;
+  translate: 0 -50%;
+  inline-size: 44px;
+  block-size: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--accent-text);
+  background: var(--accent-tint);
+  transition: background-color var(--control-duration), color var(--control-duration);
+}
+.variant-deck__arrow:last-child {
+  inset-inline-start: auto;
+  inset-inline-end: 2px;
+}
+.variant-deck__arrow[aria-disabled="true"]:not(:focus-visible) { visibility: hidden; }
+.variant-deck__chevron {
+  inline-size: 9px;
+  block-size: 9px;
+  border-block-start: 2px solid currentColor;
+  border-inline-end: 2px solid currentColor;
+  rotate: -135deg;
+}
+.variant-deck__arrow:last-child .variant-deck__chevron { rotate: 45deg; }
+@media (hover: hover) and (pointer: fine) {
+  .variant-deck__arrow:not(:hover, :focus-visible) { background: transparent; }
+  .variant-deck__arrow:not([aria-disabled="true"]):hover { background: var(--accent-text); color: var(--surface); }
+}
+.variant-deck__position {
+  margin: 0;
+  color: #6e534b;
+  text-align: center;
+  font-size: .875em;
+  font-variant-numeric: tabular-nums;
+}
+.variant-deck__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.variant-deck__actions .gift-action { min-block-size: 44px; }
+@keyframes variant-model-in {
+  from { opacity: .55; transform: translateY(2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .variant-deck__model { animation: none; }
+  .variant-deck__arrow { transition: none; }
+}

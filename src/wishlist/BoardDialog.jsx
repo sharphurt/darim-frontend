@@ -84,10 +84,14 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
   const manageCompanies = kind === 'manage-companies'
   const choosingVariant = kind === 'reserve' || kind === 'split'
   const unavailable = choosingVariant && gift.participation?.mode !== 'free'
+  const variantActions = giftDetails && !own && gift.variants?.length > 0 &&
+    gift.participation?.mode === 'free' && !gift.archived
+  const variantConfirmation = choosingVariant && gift.variants?.length > 0
   const splitCancel = kind === 'cancel' && gift?.participation?.mode === 'split'
   const title = edit ? (gift ? 'Редактировать желание' : 'Новое желание')
     : kind === 'profile' ? 'Мой профиль' : splitCancel ? 'Выйти из распила' : actionLabels[kind]
-  const confirm = kind === 'split' ? 'Распилить и занять долю'
+  const confirm = variantConfirmation ? kind === 'split' ? 'Распилить этот вариант' : 'Подарить этот вариант'
+    : kind === 'split' ? 'Распилить и занять долю'
     : kind === 'archive' ? 'Исполнено'
     : kind === 'delete-gift' ? 'Удалить'
     : kind === 'delete-company' ? 'Удалить компанию'
@@ -115,13 +119,13 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
       {giftDetails ? (
         <section className="gift-details__panel">
           <div className="gift-details__content" tabIndex={0}>
-            <GiftBackContent gift={gift} own={own} pending={pending} onAction={onCardAction} modal />
+            <GiftBackContent gift={gift} own={own} canSplit={canSplit} pending={pending} onAction={onCardAction} modal variantActions={variantActions} />
             {error && <p className="board-error" role="alert">{error}</p>}
           </div>
           <footer>
             {own ? <div className="gift-card__actions">
               <OwnerGiftActions gift={gift} pending={pending} onAction={onCardAction} />
-            </div> : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
+            </div> : !variantActions && <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
           </footer>
         </section>
       ) : <div className="board-dialog__body"><form inert={closing} onSubmit={event => {
@@ -167,7 +171,8 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
         {kind === 'archive' && <p>Карточка переместится в архив. Все бронирования с неё снимутся.</p>}
         {kind === 'delete-gift' && <p>Восстановить желание будет нельзя. Брони и сборы будут удалены, а их участники получат уведомление.</p>}
         {kind === 'split' && <SplitFields gift={gift} maxSlots={(company?.members.length ?? 0) - 1} />}
-        {choosingVariant && !unavailable && <GiftVariants key={gift.variantsVersion ?? ''} gift={gift} choose pending={pending} />}
+        {variantConfirmation && !unavailable && <GiftVariants key={gift.variantsVersion} gift={gift} choose pending={pending}
+          initialVariantId={dialog.gift.variantsVersion === dialog.initialVariantsVersion ? dialog.initialVariantId : undefined} />}
         {unavailable && !error && <p role="status">Желание больше недоступно для бронирования.</p>}
         {(kind === 'leave' || splitCancel) && <p>Остальные участники сохранят свои доли. Если вы координатор, роль перейдёт первому вступившему из оставшихся. При выходе последнего участника бронь снимется.</p>}
         {kind === 'close-split' && <p>Новые участники больше не смогут вступить. Доли будут рассчитаны на {state.taken} человек. Если кто-то выйдет до покупки, сбор откроется снова.</p>}

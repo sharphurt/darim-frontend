@@ -40,7 +40,7 @@ export function OwnerGiftActions({ gift, pending, onAction }) {
   </>
 }
 
-export function GiftBackContent({ gift, own, canSplit, pending, onAction, onCommentClick, modal = false }) {
+export function GiftBackContent({ gift, own, canSplit, pending, onAction, onCommentClick, modal = false, variantActions = false }) {
   const { title, comment, url } = gift.details
   const formattedPrice = formatGiftPrice(gift)
   const link = safeLink(url)
@@ -70,7 +70,13 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
       {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}
     </div>
     {gift.selectedVariant && <VariantDetails variant={gift.selectedVariant} selected />}
-    {modal && (own || !gift.selectedVariant) && <GiftVariants gift={gift} />}
+    {modal && (own || !gift.selectedVariant) && <GiftVariants key={gift.variantsVersion} gift={gift} pending={pending}
+      renderActions={variantActions ? variant => <div className="variant-deck__actions">
+        <button type="button" className="gift-action gift-action--primary" disabled={pending}
+          onClick={() => onAction(gift, 'reserve', variant.id)}>Подарить этот вариант</button>
+        {canSplit && <button type="button" className="gift-action" disabled={pending}
+          onClick={() => onAction(gift, 'split', variant.id)}>Распилить этот вариант</button>}
+      </div> : undefined} />}
     {own && !modal && <div className="gift-card__actions">
       <OwnerGiftActions gift={gift} pending={pending} onAction={onAction} />
     </div>}
@@ -180,6 +186,7 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
         <div className="gift-handle" aria-hidden="true"><img src={clip} width="26" height="19" alt="" /></div>
         <div className="gift-perspective">
           <article className="gift-card" data-tilt data-flipped={flipped} data-back-active={backActive}>
+            {gift.variants?.length > 0 && <span className="variant-stack" aria-hidden="true" />}
             <button type="button" className="gift-card__turn" aria-pressed={openDetails ? undefined : flipped}
               aria-haspopup={openDetails ? 'dialog' : undefined}
               aria-label={flipped && !openDetails ? returnLabel : `Подробнее: ${title}`}

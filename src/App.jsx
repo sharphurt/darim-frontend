@@ -193,16 +193,17 @@ export default function App() {
     }
   }
 
-  function openDialog(kind, gift, { replace = false, managedCompany } = {}) {
+  function openDialog(kind, gift, { replace = false, managedCompany, initialVariantId } = {}) {
     setDialogError('')
     if (kind === 'gift-details' && !cardHintDismissed) dismissCardHint()
     const next = kind === 'split-details' ? { kind, gift, splitSnapshot: data }
-      : { kind, gift, managedCompany, token: kind === 'join-company' ? inviteToken : undefined }
+      : { kind, gift, managedCompany, initialVariantId, initialVariantsVersion: gift?.variantsVersion,
+        token: kind === 'join-company' ? inviteToken : undefined }
     setDialog(current => ({ ...next, previous: replace ? undefined : current }))
     if (kind === 'split-details') board.refresh()
   }
 
-  async function handleGiftAction(gift, kind) {
+  async function handleGiftAction(gift, kind, initialVariantId) {
     if (kind === 'join') {
       setDialogError('')
       const result = await board.actOnGift(gift.id, 'join')
@@ -213,7 +214,7 @@ export default function App() {
       }
       return
     }
-    if (kind !== 'restore') return openDialog(kind, gift)
+    if (kind !== 'restore') return openDialog(kind, gift, { initialVariantId })
     if (await board.restoreGift(gift.id)) setDialog(current => current?.gift === gift ? null : current)
     else setDialogError('action')
   }
@@ -293,7 +294,7 @@ export default function App() {
     displayedDialog = { ...dialog, gift }
   }
 
-  if (dialog && (dialog.kind === 'reserve' || dialog.kind === 'split') && data?.gifts) {
+  if (dialog && ['gift-details', 'reserve', 'split'].includes(dialog.kind) && data?.gifts) {
     const gift = loadedGifts.find(item => item.id === dialog.gift.id)
     displayedDialog = { ...dialog, gift: gift ?? { ...dialog.gift, participation: null } }
   }
