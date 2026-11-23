@@ -49,17 +49,33 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
   const canDelete = own && !gift.fromOhmywishes
   const showVariants = gift.variants?.length > 0 && (own || !gift.selectedVariant)
   const variantActions = showVariants && !own && !gift.archived && gift.participation?.mode === 'free'
+  const renderVariantActions = variant => <div className="variant-deck__actions">
+    <button type="button" className="gift-action gift-action--primary" disabled={pending}
+      onClick={() => onAction(gift, 'reserve', variant.id)}>Подарить этот вариант</button>
+    {canSplit && <button type="button" className="gift-action" disabled={pending}
+      onClick={() => onAction(gift, 'split', variant.id)}>Распилить этот вариант</button>}
+  </div>
+  const deleteButton = canDelete && <button type="button" className="gift-delete" aria-label="Удалить желание"
+    title="Удалить желание" aria-haspopup="dialog" disabled={pending} onClick={() => onAction(gift, 'delete-gift')}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6m4-6v6" />
+    </svg>
+  </button>
+  if (!modal && showVariants) return <GiftVariants key={gift.variantsVersion} gift={gift} pending={pending} compact
+    renderActions={variant => <>
+      {deleteButton}
+      {comment && <p className="gift-card__comment" tabIndex={0}>{comment}</p>}
+      {variantActions ? renderVariantActions(variant) : <div className="gift-card__actions">
+        {own ? <OwnerGiftActions gift={gift} pending={pending} onAction={onAction} />
+          : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />}
+      </div>}
+    </>} />
   return <>
     {modal && <GiftPhoto gift={gift} className="gift-details__photo" />}
     <header>
       <Heading id={modal ? 'dialog-title' : undefined} className={canDelete ? 'gift-title--deletable' : undefined}>{title}</Heading>
-      {canDelete && <button type="button" className="gift-delete" aria-label="Удалить желание"
-        title="Удалить желание" aria-haspopup="dialog" disabled={pending} onClick={() => onAction(gift, 'delete-gift')}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-          strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6m4-6v6" />
-        </svg>
-      </button>}
+      {deleteButton}
       <div className="gift-card__meta">
         {formattedPrice && <p>{formattedPrice}</p>}
         {link && <a href={link} target="_blank" rel="noreferrer">
@@ -73,13 +89,8 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
       {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}
     </div>}
     {gift.selectedVariant && <VariantDetails variant={gift.selectedVariant} selected />}
-    {showVariants && <GiftVariants key={gift.variantsVersion} gift={gift} pending={pending} compact={!modal}
-      renderActions={variantActions ? variant => <div className="variant-deck__actions">
-        <button type="button" className="gift-action gift-action--primary" disabled={pending}
-          onClick={() => onAction(gift, 'reserve', variant.id)}>Подарить этот вариант</button>
-        {canSplit && <button type="button" className="gift-action" disabled={pending}
-          onClick={() => onAction(gift, 'split', variant.id)}>Распилить этот вариант</button>}
-      </div> : undefined} />}
+    {showVariants && <GiftVariants key={gift.variantsVersion} gift={gift} pending={pending}
+      renderActions={variantActions ? renderVariantActions : undefined} />}
     {own && !modal && <div className="gift-card__actions">
       <OwnerGiftActions gift={gift} pending={pending} onAction={onAction} />
     </div>}
@@ -193,7 +204,7 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
             <button type="button" className="gift-card__turn" aria-pressed={openDetails && !flipped ? undefined : flipped}
               aria-haspopup={openDetails ? 'dialog' : undefined}
               aria-label={flipped ? returnLabel : `Подробнее: ${title}`}
-              onClick={activate} />
+              onClick={activate}>{flipped && gift.variants?.length > 0 && (own || !gift.selectedVariant) ? 'К желанию' : null}</button>
             <div className="gift-card__inner">
               <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
                 data-tone={background.tone} data-has-overlay={Boolean(background.overlay)}

@@ -25,11 +25,15 @@ export function GiftVariants({ gift, choose = false, pending = false, initialVar
     const next = variants[index + step]
     if (pending || !next) return
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      viewport.current.querySelector('[data-depth="0"]').animate([
+      const outgoing = viewport.current.querySelector('[data-depth="0"]')
+      outgoing.animate([
         { translate: '0', opacity: 1 },
         { translate: `${step * -55}%`, opacity: .15, offset: .5 },
         { translate: '0' },
       ], { duration: 320, easing: 'ease-out' })
+      if (compact) outgoing.querySelector('.variant-deck__model').animate(
+        [{ visibility: 'visible' }, { visibility: 'visible' }], { duration: 160 },
+      )
     }
     setVariantId(next.id)
   }
@@ -86,7 +90,10 @@ export function GiftVariants({ gift, choose = false, pending = false, initialVar
         {variants.map((item, position) => {
           const depth = (position - index + variants.length) % variants.length
           return <div key={item.id} className="variant-deck__card" data-depth={depth} inert={depth !== 0}>
-            <div className="variant-deck__model"><VariantDetails variant={item} /></div>
+            <div className="variant-deck__model">
+              <VariantDetails variant={item} />
+              {compact && renderActions?.(item)}
+            </div>
           </div>
         })}
       </div>
@@ -98,6 +105,6 @@ export function GiftVariants({ gift, choose = false, pending = false, initialVar
     {multiple && <p className="variant-deck__position" role="status">
       <span className="sr-only">{variant.title}, вариант </span>{index + 1} из {variants.length}
     </p>}
-    {renderActions?.(variant)}
+    {!compact && renderActions?.(variant)}
   </section>
 }

@@ -981,7 +981,10 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   position: absolute;
   inset: 0;
   pointer-events: none;
+  transform: perspective(920px) rotateY(0deg);
+  transition: transform var(--gift-flip-duration) cubic-bezier(.2,.7,.14,1);
 }
+.gift-card[data-flipped="true"] > .variant-stack { transform: perspective(920px) rotateY(180deg); }
 .variant-stack::before, .variant-stack::after {
   content: '';
   position: absolute;
@@ -1107,17 +1110,46 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 }
 
 .variant-deck--compact {
-  gap: 6px;
-  margin-block: auto;
+  position: relative;
+  display: grid;
+  flex: 1;
+  min-block-size: var(--card-height);
   pointer-events: auto;
 }
-.variant-deck--compact .variant-deck__viewport { padding-block: 0; overflow: clip; }
+.gift-card__back:has(.variant-deck--compact) {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.gift-card[data-flipped="true"]:has(.variant-deck--compact) > .gift-card__turn {
+  inset: 8px auto auto 10px;
+  z-index: 3;
+  padding: 8px;
+  min-height: 40px;
+  color: var(--accent-text);
+  background: var(--surface);
+  font-size: 14px;
+}
+.variant-deck--compact .variant-deck__viewport {
+  display: grid;
+  padding-block: 0;
+  overflow: clip;
+}
 .variant-deck--compact .variant-deck__card {
-  min-block-size: 112px;
-  padding: 10px 49px;
+  min-block-size: var(--card-height);
+  padding: 54px 12px 14px;
   border: 0;
   border-radius: 0;
-  background: transparent;
+  background: var(--surface);
+  align-items: stretch;
+}
+.variant-deck--compact .variant-deck__model { display: flex; flex-direction: column; gap: 8px; min-block-size: 0; }
+.variant-deck--compact .variant-deck__model .gift-variant__details { padding-inline: 34px; margin-block: auto; }
+.variant-deck--compact .variant-deck__viewport:not(:has(.variant-deck__arrow)) .variant-deck__card { padding-inline: 12px; }
+.variant-deck--compact .variant-deck__position {
+  position: absolute;
+  inset: 20px 42px auto;
+  pointer-events: none;
 }
 .variant-deck--compact .variant-deck__card[data-depth="1"] { transform: translateX(34%) scale(.91); }
 .variant-deck--compact .variant-deck__card[data-depth="2"] { transform: translateX(52%) scale(.84); }
