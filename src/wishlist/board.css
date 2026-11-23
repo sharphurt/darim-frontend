@@ -1088,3 +1088,25 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   .variant-deck__model { animation: none; }
   .variant-deck__arrow { transition: none; }
 }
+
+.variant-deck--compact {
+  gap: 6px;
+  margin-block: auto;
+  pointer-events: auto;
+}
+.variant-deck--compact .variant-deck__viewport { padding-block-start: 0; }
+.variant-deck--compact .variant-deck__card {
+  min-block-size: 105px;
+  padding: 10px 49px;
+  border-radius: 4.5cqw;
+}
+.variant-deck--compact .variant-deck__arrow {
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+}
+.variant-deck--compact .variant-deck__arrow:last-child {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+.variant-deck--compact .variant-deck__actions { display: grid; }
+.variant-deck--compact .variant-deck__actions .gift-action { font-size: inherit; }

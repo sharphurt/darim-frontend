@@ -10,7 +10,7 @@ export function VariantDetails({ variant, selected = false }) {
   </div>
 }
 
-export function GiftVariants({ gift, choose = false, pending = false, initialVariantId, renderActions }) {
+export function GiftVariants({ gift, choose = false, pending = false, initialVariantId, renderActions, compact = false }) {
   const variants = gift.variants ?? []
   const [variantId, setVariantId] = useState(initialVariantId)
   const touch = useRef(null)
@@ -45,7 +45,7 @@ export function GiftVariants({ gift, choose = false, pending = false, initialVar
     <span className="variant-deck__chevron" aria-hidden="true" />
   </button>
 
-  return <section className="variant-deck" aria-label="Варианты подарка">
+  return <section className={compact ? "variant-deck variant-deck--compact" : "variant-deck"} aria-label="Варианты подарка">
     {choose && <>
       <input type="hidden" name="variantsVersion" value={gift.variantsVersion} />
       <input type="hidden" name="variantId" value={variant.id} />
@@ -57,7 +57,7 @@ export function GiftVariants({ gift, choose = false, pending = false, initialVar
         event.preventDefault()
         move(event.key === 'ArrowLeft' ? -1 : 1)
       }}>
-      <span className="variant-stack" aria-hidden="true" />
+      {!compact && <span className="variant-stack" aria-hidden="true" />}
       <div className="variant-deck__card">
         <div className="variant-deck__model" key={variant.id}>
           <VariantDetails variant={variant} />

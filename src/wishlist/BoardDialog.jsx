@@ -84,8 +84,6 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
   const manageCompanies = kind === 'manage-companies'
   const choosingVariant = kind === 'reserve' || kind === 'split'
   const unavailable = choosingVariant && gift.participation?.mode !== 'free'
-  const variantActions = giftDetails && !own && gift.variants?.length > 0 &&
-    gift.participation?.mode === 'free' && !gift.archived
   const variantConfirmation = choosingVariant && gift.variants?.length > 0
   const splitCancel = kind === 'cancel' && gift?.participation?.mode === 'split'
   const title = edit ? (gift ? 'Редактировать желание' : 'Новое желание')
@@ -119,13 +117,13 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
       {giftDetails ? (
         <section className="gift-details__panel">
           <div className="gift-details__content" tabIndex={0}>
-            <GiftBackContent gift={gift} own={own} canSplit={canSplit} pending={pending} onAction={onCardAction} modal variantActions={variantActions} />
+            <GiftBackContent gift={gift} own={own} canSplit={canSplit} pending={pending} onAction={onCardAction} modal />
             {error && <p className="board-error" role="alert">{error}</p>}
           </div>
           <footer>
             {own ? <div className="gift-card__actions">
               <OwnerGiftActions gift={gift} pending={pending} onAction={onCardAction} />
-            </div> : !variantActions && <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
+            </div> : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onCardAction} />}
           </footer>
         </section>
       ) : <div className="board-dialog__body"><form inert={closing} onSubmit={event => {

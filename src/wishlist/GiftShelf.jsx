@@ -33,7 +33,7 @@ export function GiftShelf({ ownerId, title, label = title ?? 'Мои желан�
       <div className="gift-shelf__cards" ref={shelf}>
         {rows.map(row => <ul className="gift-row" key={row[0].id}>
           {row.map(gift => <GiftCard key={gift.id} gift={gift} viewerId={viewerId}
-            openDetails={columns <= 2 || Boolean(gift.variants?.length || gift.selectedVariant)} canSplit={canSplit} onAction={onAction} pending={pending} artwork={artwork} />)}
+            openDetails={columns <= 2 && !gift.variants?.length && !gift.selectedVariant} canSplit={canSplit} onAction={onAction} pending={pending} artwork={artwork} />)}
         </ul>)}
       </div>
     </section>
