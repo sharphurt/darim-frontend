@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { VariantDetails } from './GiftVariants.jsx'
 import { formatPrice, safeLink } from './giftPresentation.js'
 
 export function SplitProgress({ state, share, showOpenStatus = true }) {
@@ -45,12 +46,13 @@ export function SplitFields({ gift }) {
 export function SplitDetails({ gift }) {
   const state = gift.participation
   const participants = state.participants ?? []
-  const price = gift.details.price
+  const price = gift.selectedVariant ? gift.selectedVariant.price : gift.details.price ?? gift.original?.price
   const share = price != null && state.taken > 0 ? formatPrice(price / state.taken) : ''
   const status = gift.archived ? 'Желание в архиве.' : state.bought ? 'Подарок уже куплен.' : null
   return (
     <div className="split-details">
       <h3>{gift.details.title}</h3>
+      {gift.selectedVariant && <VariantDetails variant={gift.selectedVariant} selected />}
       <SplitProgress state={state} share={share} showOpenStatus={false} />
       {participants.length > 0 && <ul className="split-participants" aria-label="Участники распила">
         {participants.map(person => <li key={person.id}>

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import clip from '../assets/clip.svg'
-import { cardPhoto, formatPrice, giftBadge, safeLink } from './giftPresentation.js'
+import { cardPhoto, formatGiftPrice, formatPrice, giftBadge, safeLink } from './giftPresentation.js'
 import { backgroundFor } from './cardArtwork.js'
+import { GiftVariants, VariantDetails } from './GiftVariants.jsx'
 import { SplitProgress } from './GiftSplit.jsx'
 import { GiftPhoto } from './GiftPhoto.jsx'
 import { usePrivateImage } from '../api/usePrivateImage.js'
@@ -40,8 +41,8 @@ export function OwnerGiftActions({ gift, pending, onAction }) {
 }
 
 export function GiftBackContent({ gift, own, canSplit, pending, onAction, onCommentClick, modal = false }) {
-  const { title, comment, url, price } = gift.details
-  const formattedPrice = formatPrice(price)
+  const { title, comment, url } = gift.details
+  const formattedPrice = formatGiftPrice(gift)
   const link = safeLink(url)
   const Heading = modal ? 'h2' : 'h3'
   const canDelete = own && !gift.fromOhmywishes
@@ -68,6 +69,8 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
     <div className={modal ? undefined : 'gift-card__body'}>
       {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}
     </div>
+    {gift.selectedVariant && <VariantDetails variant={gift.selectedVariant} selected />}
+    {modal && (own || !gift.selectedVariant) && <GiftVariants gift={gift} />}
     {own && !modal && <div className="gift-card__actions">
       <OwnerGiftActions gift={gift} pending={pending} onAction={onAction} />
     </div>}
@@ -89,7 +92,7 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
   const backgroundImage = usePrivateImage(background.image)
   const overlayImage = usePrivateImage(background.overlay)
   const showPhoto = photo && photo !== failedPhoto
-  const price = formatPrice(gift.details.price)
+  const price = formatGiftPrice(gift)
   const split = gift.participation?.mode === 'split' ? gift.participation : null
   const badge = giftBadge(gift)
   const title = gift.details.title
@@ -196,7 +199,9 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
                   {own && gift.fromOhmywishes && <span className="gift-card__source">Из Ohmywishes</span>}
                   {price && <p>{price}</p>}
                 </div>
-                {split && <SplitProgress state={split} />}
+                {split && <SplitProgress state={split}
+                  share={gift.selectedVariant?.price != null && split.taken > 0
+                    ? formatPrice(gift.selectedVariant.price / split.taken) : ''} />}
                 {!split && badge && <p className="gift-card__badge">{badge}</p>}
               </div>
               <div className="gift-card__face gift-card__back" inert={!backActive}

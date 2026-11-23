@@ -42,3 +42,9 @@ test('status sorting uses visible labels and preserves hidden status', () => {
   assert.deepEqual(ids(sortTableGifts([hidden, free, archived], { key: 'status', direction: 'ascending' })), ['archive', 'free', 'hidden'])
   assert.deepEqual(ids(sortTableGifts([hidden, free, archived], { key: 'status', direction: 'descending' })), ['free', 'archive', 'hidden'])
 })
+
+test('variant prices sort by the lowest known price', () => {
+  const variants = { ...gift('mouse', 'Mouse', null), variants: [{ price: 9000 }, { price: null }, { price: 3500 }] }
+  const gifts = [gift('cheap', 'Cheap', 3000), variants, gift('mid', 'Mid', 4000)]
+  assert.deepEqual(ids(sortTableGifts(gifts, { key: 'price', direction: 'ascending' })), ['cheap', 'mouse', 'mid'])
+})

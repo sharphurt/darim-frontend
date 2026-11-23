@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { formatPrice, safeLink } from './giftPresentation.js'
+import { formatGiftPrice, formatPrice, safeLink } from './giftPresentation.js'
 import { isFreeGift, sortTableGifts, tableGiftStatus } from './giftTableSorting.js'
 import { GiftPhoto } from './GiftPhoto.jsx'
 import './giftTable.css'
@@ -49,7 +49,7 @@ export function GiftTable({ gifts, archived, canFilterFree, onAction }) {
           <th scope="col">Магазин</th>
         </tr></thead>
         <tbody>{sortedGifts.map(gift => {
-          const link = safeLink(gift.details.url)
+          const link = safeLink(gift.selectedVariant ? gift.selectedVariant.url : gift.details.url)
           const status = tableGiftStatus(gift)
           return <tr key={gift.id} onClick={event => openRow(event, gift)}>
             <th scope="row">
@@ -58,12 +58,13 @@ export function GiftTable({ gifts, archived, canFilterFree, onAction }) {
                 <div className="gift-table__description">
                   <button type="button" className="gift-table__title" aria-haspopup="dialog"
                     onClick={() => onAction(gift, 'gift-details')}>{gift.details.title}</button>
+                  {gift.selectedVariant && <p className="gift-table__comment">{gift.selectedVariant.title} · {formatPrice(gift.selectedVariant.price) || 'Цена не указана'}</p>}
                   {gift.details.comment && <p className="gift-table__comment">{gift.details.comment}</p>}
                 </div>
               </div>
             </th>
             <td>{gift.owner.name}</td>
-            <td className="gift-table__price">{formatPrice(gift.details.price) || <span className="gift-table__muted">Не указана</span>}</td>
+            <td className="gift-table__price">{formatGiftPrice(gift) || <span className="gift-table__muted">Не указана</span>}</td>
             <td>{status ? <span className="gift-table__status" data-free={gift.participation?.mode === 'free' && !gift.archived}>{status}</span>
               : <span className="gift-table__muted" aria-label="Статус не отображается">—</span>}</td>
             <td>{link ? <a className="gift-table__shop" href={link} target="_blank" rel="noreferrer"

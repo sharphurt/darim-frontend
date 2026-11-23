@@ -19,6 +19,29 @@ export function cardPhoto(gift) {
 
 export const formatPrice = value => value == null ? '' : priceFormat.format(value)
 
+function giftPrices(gift) {
+  return gift.variants?.length ? gift.variants.map(variant => variant.price) : [gift.details.price]
+}
+
+export function minimumGiftPrice(gift) {
+  const prices = giftPrices(gift).filter(price => price != null)
+  return prices.length ? Math.min(...prices) : null
+}
+
+export function matchesGiftBudget(gift, budget) {
+  return budget === '' || giftPrices(gift).some(price => price != null && price <= Number(budget))
+}
+
+export function formatGiftPrice(gift) {
+  const allPrices = giftPrices(gift)
+  const prices = allPrices.filter(price => price != null)
+  if (!prices.length) return ''
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  const range = min === max ? formatPrice(min) : `${formatPrice(min)} – ${formatPrice(max)}`
+  return prices.length === allPrices.length ? range : `${range} · есть варианты без цены`
+}
+
 export function giftBadge(gift) {
   const state = gift.participation
   if (gift.archived) return ''
@@ -43,4 +66,9 @@ export function matchesWishlistCompany(visibility, company) {
   if (!company) return true
   if (company === 'private') return !visibility?.allCompanies && !visibility?.companyIds?.length
   return Boolean(visibility?.allCompanies || visibility?.companyIds?.includes(company))
+}
+
+export function variantSelection(form) {
+  const variantId = form.get('variantId')
+  return variantId ? { variantId, variantsVersion: form.get('variantsVersion') } : {}
 }

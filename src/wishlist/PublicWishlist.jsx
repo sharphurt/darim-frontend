@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { createDarimApi } from '../api/darim.js'
 import { usePrivateImage } from '../api/usePrivateImage.js'
 import { CodeLogin } from './CodeLogin.jsx'
-import { formatPrice, safeLink } from './giftPresentation.js'
+import { GiftVariants, VariantDetails } from './GiftVariants.jsx'
+import { formatPrice, safeLink, variantSelection } from './giftPresentation.js'
 import './board.css'
 
 function shareToken() {
@@ -20,17 +21,21 @@ function PublicGift({ gift, token, request, pending, signedIn, onRequest, onWith
   return <li className="public-wishlist__gift">
     {photo && <img src={photo} alt="" loading="lazy" referrerPolicy="no-referrer" />}
     <h2>{gift.details.title}</h2>
-    <p>{formatPrice(gift.details.price)}</p>
+    {!gift.variants?.length && gift.details.price != null && <p>{formatPrice(gift.details.price)}</p>}
     {gift.details.comment && <p>{gift.details.comment}</p>}
     {shop && <a href={shop} target="_blank" rel="noopener noreferrer">Где купить</a>}
+    {(!signedIn || request || gift.guestReservationEnabled === false) && <GiftVariants gift={gift} />}
     {request ? <>
+      {request.selectedVariant && <VariantDetails variant={request.selectedVariant} selected />}
       <p>{request.confirmed ? 'Бронь подтверждена' : 'Заявка ожидает решения'}</p>
       {request.confirmed ? <a href="/?tab=giving">Открыть в «Я дарю»</a> :
         <button className="gift-action" disabled={pending} onClick={() => onWithdraw(request.id)}>Отменить заявку</button>}
     </> : gift.guestReservationEnabled !== false && signedIn && <form onSubmit={event => {
       event.preventDefault()
-      onRequest(gift.id, new FormData(event.currentTarget).has('shareUsername'))
+      const form = new FormData(event.currentTarget)
+      onRequest(gift.id, form.has('shareUsername'), variantSelection(form))
     }}>
+      <GiftVariants key={gift.variantsVersion ?? ''} gift={gift} choose pending={pending} />
       <p>Доступность подарка скрыта. Заявку можно отменить, пока она не подтверждена.</p>
       <label><input type="checkbox" name="shareUsername" /> Разрешаю показать мой Telegram-ник тому, кто уже дарит этот подарок, если он занят.</label>
       <button className="gift-action gift-action--primary" disabled={pending}>Хочу подарить</button>
@@ -67,7 +72,10 @@ export function PublicWishlist() {
     if (pending) return
     setPending(true); setError(''); setMessage('')
     try { await action(); setMessage(success); setRevision(value => value + 1) }
-    catch (failure) { setError(failure.message) }
+    catch (failure) {
+      setError(failure.message)
+      if (failure.status === 409) setRevision(value => value + 1)
+    }
     finally { setPending(false) }
   }
 
@@ -87,7 +95,7 @@ export function PublicWishlist() {
       {!state.wishlist.gifts.length && <p>Здесь пока нет желаний.</p>}
       <ul className="public-wishlist__gifts">{state.wishlist.gifts.map(gift => <PublicGift key={gift.id} gift={gift} token={token}
         request={state.requests.find(request => request.giftId === gift.id)} pending={pending} signedIn={Boolean(state.me)}
-        onRequest={(id, shareUsername) => run(() => api.requestGift(id, token, shareUsername), 'Запрос принят. Подарок мог быть уже занят.')}
+        onRequest={(id, shareUsername, selection) => run(() => api.requestGift(id, token, shareUsername, selection), 'Запрос принят. Подарок мог быть уже занят.')}
         onWithdraw={id => run(() => api.withdrawRequest(id), 'Заявка отменена.')} />)}</ul>
     </>}
   </main>
