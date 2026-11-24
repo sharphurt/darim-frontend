@@ -1023,7 +1023,7 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 .variant-deck__model strong { font-size: 1.25em; line-height: 1.15; }
 .variant-deck__model a { text-underline-offset: .14em; }
 .variant-deck:not(.variant-deck--board) { padding-block-start: 10px; }
-/* The edge hit areas stay within the card padding so text and actions remain clickable. */
+/* Extend the edge targets outward to keep text and actions clickable. */
 .variant-deck__edge { display: none; }
 @media (hover: hover) and (pointer: fine) {
   .variant-deck__edge {
@@ -1031,18 +1031,19 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
     z-index: 4;
     display: block;
     inset-block: 20% 20%;
-    inline-size: min(5cqw, 16px);
+    --variant-edge-extension: 12px;
+    inline-size: calc(min(5cqw, 16px) + var(--variant-edge-extension));
     padding: 0;
     border: 0;
     border-radius: 6px;
     background: transparent;
   }
   .variant-deck__edge--left {
-    left: 0;
+    left: calc(-1 * var(--variant-edge-extension));
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M16 4l-8 8 8 8' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M16 4l-8 8 8 8' fill='none' stroke='%23356bb7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, w-resize;
   }
   .variant-deck__edge--right {
-    right: 0;
+    right: calc(-1 * var(--variant-edge-extension));
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M8 4l8 8-8 8' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M8 4l8 8-8 8' fill='none' stroke='%23356bb7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, e-resize;
   }
   .variant-deck__edge[aria-disabled="true"] { cursor: default; }
