@@ -32,6 +32,7 @@ function PublicGift({ gift, token, request, pending, signedIn, onRequest, onWith
         <button className="gift-action" disabled={pending} onClick={() => onWithdraw(request.id)}>Отменить заявку</button>}
     </> : gift.guestReservationEnabled !== false && signedIn && <form onSubmit={event => {
       event.preventDefault()
+      if (pending || event.currentTarget.querySelector('[data-deck-busy="true"]')) return
       const form = new FormData(event.currentTarget)
       onRequest(gift.id, form.has('shareUsername'), variantSelection(form))
     }}>
