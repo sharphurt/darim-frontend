@@ -351,8 +351,8 @@
 @media (hover: hover) {
   .gift-delete:not(:disabled):hover { background: #ffebeb; }
 }
-.gift-card__back .gift-delete { inset-block-start: 3cqw; inset-inline-end: 3cqw; }
-.gift-card__back .gift-title--deletable { padding-inline-end: 44px; }
+:is(.gift-card__back, .variant-deck--board .variant-deck__model) .gift-delete { inset-block-start: 3cqw; inset-inline-end: 3cqw; }
+:is(.gift-card__back, .variant-deck--board .variant-deck__model) .gift-title--deletable { padding-inline-end: 44px; }
 .gift-card__body {
   --gift-body-padding: 14px;
   /* Size the scroll area from the space left by the header and actions. */
@@ -381,7 +381,7 @@
   mask: url("../assets/shop-arrow.svg") center / contain no-repeat;
 }
 .gift-card__comment { white-space: pre-wrap; }
-.gift-card__back .gift-card__comment {
+:is(.gift-card__back, .variant-deck--board .variant-deck__model) .gift-card__comment {
   min-block-size: 0;
   overflow-y: auto;
   overscroll-behavior-y: contain;
@@ -1084,22 +1084,21 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   border-radius: 7.5cqw;
   backface-visibility: hidden;
   min-block-size: var(--card-height);
+  background: var(--surface);
 }
 .variant-deck--board .variant-deck__cover .gift-card__front {
   transform: none;
   transition: none;
   flex: 1;
 }
-.variant-deck--board .variant-deck__model {
+.variant-deck--board .variant-deck__viewport .variant-deck__model {
   transform: rotateY(180deg);
-  padding: 52px 12px 14px;
-  gap: 8px;
+  padding: 5cqw;
+  gap: 3.5cqw;
 }
-.variant-deck--board .variant-deck__model .gift-variant__details { margin-block: auto; padding-inline: 34px; }
-.variant-deck--board .variant-deck__actions { display: grid; }
 .variant-deck--board .variant-deck__position {
   position: absolute;
-  inset: 17px 42px auto;
+  inset: calc(50% + 20px) 44px auto;
   z-index: 5;
   pointer-events: none;
 }
@@ -1112,12 +1111,13 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   background: transparent;
 }
 .variant-deck[data-opened="true"] .variant-deck__flip {
-  inset: 8px auto auto 10px;
-  padding: 8px;
-  min-height: 40px;
-  color: var(--accent-text);
-  background: var(--surface);
-  font-size: 14px;
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .variant-deck--board .variant-deck__flip,
+  .variant-deck--board[data-opened="true"] .variant-deck__viewport {
+    cursor: url('../assets/card-turn.svg') 12 12, default;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .variant-deck--board .variant-deck__faces, .variant-deck__arrow { transition: none; }

@@ -49,7 +49,7 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
   const canDelete = own && !gift.fromOhmywishes
   const showVariants = gift.variants?.length > 0 && (own || !gift.selectedVariant)
   const variantActions = showVariants && !own && !gift.archived && gift.participation?.mode === 'free'
-  const renderVariantActions = variant => <div className="variant-deck__actions">
+  const renderVariantActions = variant => <div className={deck ? 'gift-card__actions' : 'variant-deck__actions'}>
     <button type="button" className="gift-action gift-action--primary" disabled={pending}
       onClick={() => onAction(gift, 'reserve', variant.id)}>Подарить этот вариант</button>
     {canSplit && <button type="button" className="gift-action" disabled={pending}
@@ -62,10 +62,12 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
       <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6m4-6v6" />
     </svg>
   </button>
-  if (deck) return <GiftVariants key={gift.variantsVersion} gift={gift} pending={pending} board={deck}
+  if (deck) return <GiftVariants key={gift.variantsVersion} gift={gift} pending={pending} board={{ ...deck, canDelete }}
     renderActions={variant => <>
       {deleteButton}
-      {comment && <p className="gift-card__comment" tabIndex={0}>{comment}</p>}
+      <div className="gift-card__body">
+        {comment && <p className="gift-card__comment" tabIndex={0}>{comment}</p>}
+      </div>
       {variantActions ? renderVariantActions(variant) : <div className="gift-card__actions">
         {own ? <OwnerGiftActions gift={gift} pending={pending} onAction={onAction} />
           : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />}
