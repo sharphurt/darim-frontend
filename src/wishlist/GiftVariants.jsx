@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatPrice, safeLink } from './giftPresentation.js'
 
-export function VariantDetails({ variant, selected = false }) {
+export function VariantDetails({ variant, selected = false, card = false, canDelete = false }) {
   const link = safeLink(variant.url)
+  if (card) return <header>
+    <h3 className={canDelete ? 'gift-title--deletable' : undefined}>{variant.title}</h3>
+    <div className="gift-card__meta">
+      <p>{formatPrice(variant.price) || 'Цена не указана'}</p>
+      {link && <a href={link} target="_blank" rel="noreferrer" aria-label={`Где купить: ${variant.title}`}>
+        Где купить <span className="gift-card__shop-arrow" aria-hidden="true" />
+      </a>}
+    </div>
+  </header>
   return <div className="gift-variant__details">
     <strong>{selected ? 'Выбранный вариант: ' : ''}{variant.title}</strong>
     <span>{formatPrice(variant.price) || 'Цена не указана'}</span>
@@ -33,6 +42,7 @@ export function GiftVariants({ gift, choose = false, pending = false, renderActi
   const [moving, setMoving] = useState(false)
   const viewport = useRef(null)
   const gesture = useRef(null)
+  const swiped = useRef(false)
   const operation = useRef(null)
   const count = variants.length
   const variant = variants[index]
@@ -108,6 +118,7 @@ export function GiftVariants({ gift, choose = false, pending = false, renderActi
   }
 
   function start(event) {
+    if (event.isPrimary) swiped.current = false
     if (!opened || !multiple || pending || operation.current || gesture.current ||
       !event.isPrimary || event.button !== 0 || event.target.closest('button, a')) return
     gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp }
@@ -125,6 +136,7 @@ export function GiftVariants({ gift, choose = false, pending = false, renderActi
         return
       }
       active.horizontal = true
+      swiped.current = true
       event.currentTarget.setPointerCapture(event.pointerId)
     }
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -165,6 +177,11 @@ export function GiftVariants({ gift, choose = false, pending = false, renderActi
         operation.current = null
       }
     }} role="group" aria-label="Листать варианты" tabIndex={opened && multiple ? 0 : undefined}
+      onClick={event => {
+        if (!board || !opened || swiped.current || operation.current || event.target.closest('button, a')) return
+        if (!window.getSelection()?.isCollapsed) return
+        board.onFlip()
+      }}
       onPointerDown={start} onPointerMove={drag} onPointerUp={event => finish(event)}
       onPointerLeave={event => { if (!gesture.current?.horizontal) finish(event, true) }}
       onPointerCancel={event => finish(event, true)}
@@ -183,7 +200,7 @@ export function GiftVariants({ gift, choose = false, pending = false, renderActi
             <div className="variant-deck__faces">
               {board && <div className="variant-deck__cover" inert={opened}>{depth === 0 && board.cover}</div>}
               <div className="variant-deck__model" inert={!opened}>
-                <VariantDetails variant={item} />
+                <VariantDetails variant={item} card={Boolean(board)} canDelete={board?.canDelete} />
                 {renderActions?.(item)}
               </div>
             </div>
@@ -197,9 +214,7 @@ export function GiftVariants({ gift, choose = false, pending = false, renderActi
     </div>
     {board && <button type="button" className="variant-deck__flip" onClick={board.onFlip}
       disabled={moving} aria-pressed={opened}
-      aria-label={opened ? `Показать лицевую сторону: ${board.title}` : `Подробнее: ${board.title}`}>
-      {opened ? 'К желанию' : null}
-    </button>}
+      aria-label={opened ? `Показать лицевую сторону: ${board.title}` : `Подробнее: ${board.title}`} />}
     {opened && multiple && <p className="variant-deck__position" role="status">
       <span className="sr-only">{variant.title}, вариант </span>{index + 1} из {count}
     </p>}
