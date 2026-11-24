@@ -160,10 +160,9 @@ export function GiftVariants({ gift, choose = false, pending = false, renderActi
     settle(commit ? neighbor(step) : index, step)
   }
 
-  const arrow = (step, label) => <button type="button" className="variant-deck__arrow"
-    aria-label={label} aria-disabled={pending || moving} onClick={() => move(step)}>
-    <span className="variant-deck__chevron" aria-hidden="true" />
-  </button>
+  const edge = (step, side, label) => <button type="button"
+    className={`variant-deck__edge variant-deck__edge--${side}`}
+    aria-label={label} aria-disabled={pending || moving} onClick={() => move(step)} />
 
   return <section className={board ? 'variant-deck variant-deck--board' : 'variant-deck'}
     data-deck-busy={moving} data-opened={opened} aria-label="Варианты подарка">
@@ -210,14 +209,14 @@ export function GiftVariants({ gift, choose = false, pending = false, renderActi
         })}
       </div>
       {opened && multiple && <>
-        {arrow(-1, 'Предыдущий вариант')}
-        {arrow(1, 'Следующий вариант')}
+        {edge(-1, 'left', 'Предыдущий вариант')}
+        {edge(1, 'right', 'Следующий вариант')}
       </>}
+      {board && <button type="button" className="variant-deck__flip" onClick={board.onFlip}
+        disabled={moving} aria-pressed={board.openDetails ? undefined : opened}
+        aria-haspopup={board.openDetails ? 'dialog' : undefined}
+        aria-label={opened ? `Показать лицевую сторону: ${board.title}` : `Подробнее: ${board.title}`} />}
     </div>
-    {board && <button type="button" className="variant-deck__flip" onClick={board.onFlip}
-      disabled={moving} aria-pressed={board.openDetails ? undefined : opened}
-      aria-haspopup={board.openDetails ? 'dialog' : undefined}
-      aria-label={opened ? `Показать лицевую сторону: ${board.title}` : `Подробнее: ${board.title}`} />}
     {opened && multiple && <p className="variant-deck__position" role="status">
       <span className="sr-only">{variant.title}, вариант </span>{index + 1} из {count}
     </p>}
