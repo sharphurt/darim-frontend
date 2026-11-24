@@ -1084,6 +1084,8 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   border-radius: 7.5cqw;
   backface-visibility: hidden;
   min-block-size: var(--card-height);
+}
+.variant-deck--board .variant-deck__model {
   background: var(--surface);
 }
 .variant-deck--board .variant-deck__cover .gift-card__front {
