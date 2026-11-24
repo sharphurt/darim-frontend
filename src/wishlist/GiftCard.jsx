@@ -66,7 +66,10 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
     renderActions={variant => <>
       {deleteButton}
       <div className="gift-card__body">
-        {comment && <p className="gift-card__comment" tabIndex={0}>{comment}</p>}
+        {(variant.description || comment) && <div className="gift-card__comment" tabIndex={0}>
+          {variant.description && <p>{variant.description}</p>}
+          {comment && <p>{comment}</p>}
+        </div>}
       </div>
       {variantActions ? renderVariantActions(variant) : <div className="gift-card__actions">
         {own ? <OwnerGiftActions gift={gift} pending={pending} onAction={onAction} />
@@ -223,7 +226,10 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
         <div className="gift-perspective">
           <article className="gift-card" data-tilt data-flipped={flipped} data-back-active={backActive}>
             {variantDeck ? <GiftBackContent gift={gift} own={own} canSplit={canSplit} pending={pending}
-              onAction={onAction} deck={{ cover, onFlip: () => setFlipped(!flipped), flipped, title }} /> : <>
+              onAction={onAction} deck={{
+                cover, flipped, title, openDetails,
+                onFlip: () => { if (openDetails && !flipped) onAction(gift, 'gift-details'); else setFlipped(!flipped) },
+              }} /> : <>
               <button type="button" className="gift-card__turn" aria-pressed={openDetails && !flipped ? undefined : flipped}
                 aria-haspopup={openDetails ? 'dialog' : undefined}
                 aria-label={flipped ? returnLabel : `Подробнее: ${title}`}

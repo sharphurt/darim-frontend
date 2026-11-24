@@ -153,10 +153,12 @@ export function useWishlist(archived) {
       if (form.has('editVariants')) {
         const ids = form.getAll('variantIds')
         const urls = form.getAll('variantUrls')
+        const descriptions = form.getAll('variantDescriptions')
         const prices = form.getAll('variantPrices')
         details.variants = form.getAll('variantTitles').map((title, index) => ({
           id: ids[index] || null,
           title: title.trim(),
+          description: descriptions[index].trim() || null,
           url: normalizeShopUrl(urls[index].trim() || null),
           price: prices[index] === '' ? null : Number(prices[index]),
         }))

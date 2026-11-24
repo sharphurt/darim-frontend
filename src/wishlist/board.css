@@ -1124,3 +1124,6 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 @media (prefers-reduced-motion: reduce) {
   .variant-deck--board .variant-deck__faces, .variant-deck__arrow { transition: none; }
 }
+
+.gift-variant__description { flex-basis: 100%; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.variant-deck--board .gift-card__comment p + p { margin-block-start: .6em; }
