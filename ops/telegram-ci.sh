@@ -11,8 +11,16 @@ case "$kind" in
     ;;
   release)
     button='Все изменения'
-    link="https://github.com/$CI_REPO/commit/$sha"
-    notes=$(git log -1 --format='• %s' "$sha")
+    previous=$(cat .previous-production 2>/dev/null || true)
+    [ "$previous" != "$sha" ] || exit 0
+    if [ -n "$previous" ] && git cat-file -e "$previous^{commit}" 2>/dev/null; then
+      notes=$(git log --no-merges -3 --format='• %s' "$previous..$sha")
+      link="https://github.com/$CI_REPO/compare/$previous...$sha"
+    else
+      notes=$(git log -1 --format='• %s' "$sha")
+      link="https://github.com/$CI_REPO/commit/$sha"
+    fi
+    [ -n "$notes" ] || notes=$(git log -1 --format='• %s' "$sha")
     message=$(printf '🚀 %s · production · %.12s\n%s' "$component" "$sha" "$notes")
     ;;
   *) exit 2 ;;
