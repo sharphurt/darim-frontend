@@ -1,4 +1,4 @@
-import { giftBadge } from './giftPresentation.js'
+import { giftBadge, minimumGiftPrice } from './giftPresentation.js'
 
 const collator = new Intl.Collator('ru', { numeric: true, sensitivity: 'base' })
 
@@ -15,7 +15,7 @@ export function sortTableGifts(gifts, sort) {
   const valueOf = {
     title: gift => gift.details.title,
     owner: gift => gift.owner.name,
-    price: gift => gift.details.price,
+    price: minimumGiftPrice,
     status: tableGiftStatus,
   }[sort.key]
   const direction = sort.direction === 'ascending' ? 1 : -1

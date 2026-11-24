@@ -114,6 +114,22 @@ export function CompanyFields({ companies, company, gift }) {
 export function GiftEditorFields({ gift, company, companies, pending }) {
   const details = gift?.details
   const priceInput = useRef(null)
+  const urlInput = useRef(null)
+  const titleInput = useRef(null)
+  const nextVariantKey = useRef(0)
+  const [variants, setVariants] = useState(() =>
+    (gift?.variants ?? []).map(variant => ({ ...variant, key: variant.id })))
+  const [unlimited, setUnlimited] = useState(false)
+  const hasVariants = variants.length > 0
+
+  function addVariant() {
+    const first = !hasVariants
+    const price = first ? priceInput.current.value : ''
+    const url = first ? urlInput.current.value : ''
+    const title = price || url ? titleInput.current.value : ''
+    const key = nextVariantKey.current++
+    setVariants(current => [...current, { key, title, price, url }])
+  }
 
   useEffect(() => {
     const input = priceInput.current
@@ -133,13 +149,32 @@ export function GiftEditorFields({ gift, company, companies, pending }) {
       <PhotoField gift={gift} pending={pending} />
       <div className="gift-editor__fields">
         <label>Название (до {maxTitleLength} символов)
-          <input name="title" required maxLength={maxTitleLength} defaultValue={details?.title} />
+          <input ref={titleInput} name="title" required maxLength={maxTitleLength} defaultValue={details?.title} />
         </label>
-        <label>Ссылка<input name="url" inputMode="url" maxLength="2048" defaultValue={details?.url} /></label>
-        <label>Цена, ₽<input ref={priceInput} name="price" type="number" inputMode="decimal"
-          min="0" max="100000000" step={priceStep} defaultValue={details?.price} /></label>
+        <div hidden={hasVariants}>
+          <label>Ссылка<input ref={urlInput} name="url" disabled={hasVariants} inputMode="url" maxLength="2048" defaultValue={details?.url} /></label>
+          <label>Цена, ₽<input ref={priceInput} name="price" disabled={hasVariants} type="number" inputMode="decimal"
+            min="0" max="100000000" step={priceStep} defaultValue={details?.price} /></label>
+        </div>
+        {!gift?.unlimited && !unlimited && <div className="gift-variant-editor">
+          <input type="hidden" name="editVariants" value="true" />
+          {variants.map((variant, index) => <fieldset key={variant.key} disabled={pending}>
+            <legend>Вариант {index + 1}</legend>
+            <input name="variantIds" type="hidden" value={variant.id ?? ''} />
+            <label>Название модели<input name="variantTitles" required maxLength={maxTitleLength} defaultValue={variant.title} /></label>
+            <label>Описание варианта<textarea name="variantDescriptions" rows="2" maxLength="2000"
+              defaultValue={variant.description} /></label>
+            <label>Ссылка<input name="variantUrls" inputMode="url" maxLength="2048" defaultValue={variant.url} /></label>
+            <label>Цена, ₽<input name="variantPrices" type="number" inputMode="decimal"
+              min="0" max="100000000" step={priceStep} defaultValue={variant.price} /></label>
+            <button type="button" className="gift-action" aria-label={`Удалить вариант ${index + 1}`}
+              onClick={() => setVariants(current => current.filter(item => item.key !== variant.key))}>Удалить вариант</button>
+          </fieldset>)}
+          <button type="button" className="gift-action" disabled={pending} onClick={addVariant}>Добавить вариант</button>
+        </div>}
         <label>Комментарий<textarea name="comment" rows="3" maxLength="2000" defaultValue={details?.comment} /></label>
-        {!gift && <label className="dialog-check"><input type="checkbox" name="unlimited" /> Бесконечное желание</label>}
+        {!gift && <label className="dialog-check"><input type="checkbox" name="unlimited" disabled={hasVariants} checked={unlimited}
+          onChange={event => setUnlimited(event.target.checked)} /> Бесконечное желание</label>}
         <CompanyFields companies={companies} company={company} gift={gift} />
       </div>
     </div>

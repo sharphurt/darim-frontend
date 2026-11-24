@@ -7,7 +7,7 @@ import { cardArtworkCollection } from './wishlist/cardArtwork.js'
 import { GiftShelf } from './wishlist/GiftShelf.jsx'
 import { GiftTable } from './wishlist/GiftTable.jsx'
 import { clearInvite, inviteLink, pendingInvite } from './wishlist/companyInvite.js'
-import { groupGifts, matchesWishlistCompany } from './wishlist/giftPresentation.js'
+import { groupGifts, matchesGiftBudget, matchesWishlistCompany } from './wishlist/giftPresentation.js'
 import { pendingNotificationLink, clearNotificationLink, resolveNotificationBoard, highlightNotificationCard } from './wishlist/notificationLink.js'
 import { useWishlist } from './wishlist/useWishlist.js'
 import { useMiniApp } from './wishlist/useMiniApp.js'
@@ -64,6 +64,7 @@ export default function App() {
   const artworkImages = artwork?.images
   const collection = useMemo(() => cardArtworkCollection(artworkImages), [artworkImages])
   const [owner, setOwner] = useState('')
+  const [budget, setBudget] = useState('')
   const [wishlistCompany, setWishlistCompany] = useState('')
   const [dialog, setDialog] = useState(() => {
     const outcome = new URLSearchParams(location.search).get('ohmywishes')
@@ -98,8 +99,8 @@ export default function App() {
     if (archived) return loadedGifts.length ? [{ gifts: loadedGifts }] : []
     return groupGifts(gifts.filter(gift => !gift.archived && (view === 'mine'
       ? matchesWishlistCompany(gift.visibility, wishlistCompany)
-      : !owner || gift.owner.id === owner)))
-  }, [gifts, loadedGifts, view, wishlistCompany, owner, archived])
+      : (!owner || gift.owner.id === owner) && (view !== 'board' || matchesGiftBudget(gift, budget)))))
+  }, [gifts, loadedGifts, view, wishlistCompany, owner, budget, archived])
 
   const { api, setCompanyId, setView } = board
   const [notificationTarget, setNotificationTarget] = useState(null)
@@ -170,6 +171,7 @@ export default function App() {
   }, [notificationLink, notificationTarget, view, archived, data, company?.id, owner, displayMode, finishNotification])
 
   function resetFilters() {
+    setBudget('')
     setOwner('')
     setWishlistCompany('')
   }
@@ -191,16 +193,17 @@ export default function App() {
     }
   }
 
-  function openDialog(kind, gift, { replace = false, managedCompany } = {}) {
+  function openDialog(kind, gift, { replace = false, managedCompany, initialVariantId } = {}) {
     setDialogError('')
     if (kind === 'gift-details' && !cardHintDismissed) dismissCardHint()
     const next = kind === 'split-details' ? { kind, gift, splitSnapshot: data }
-      : { kind, gift, managedCompany, token: kind === 'join-company' ? inviteToken : undefined }
+      : { kind, gift, managedCompany, initialVariantId, initialVariantsVersion: gift?.variantsVersion,
+        token: kind === 'join-company' ? inviteToken : undefined }
     setDialog(current => ({ ...next, previous: replace ? undefined : current }))
     if (kind === 'split-details') board.refresh()
   }
 
-  async function handleGiftAction(gift, kind) {
+  async function handleGiftAction(gift, kind, initialVariantId) {
     if (kind === 'join') {
       setDialogError('')
       const result = await board.actOnGift(gift.id, 'join')
@@ -211,7 +214,7 @@ export default function App() {
       }
       return
     }
-    if (kind !== 'restore') return openDialog(kind, gift)
+    if (kind !== 'restore') return openDialog(kind, gift, { initialVariantId })
     if (await board.restoreGift(gift.id)) setDialog(current => current?.gift === gift ? null : current)
     else setDialogError('action')
   }
@@ -224,7 +227,7 @@ export default function App() {
 
   async function submit(form) {
     setDialogError('')
-    const result = await board.submitDialog(dialog, form)
+    const result = await board.submitDialog(displayedDialog, form)
     if (result) {
       if (dialog.kind === 'card-artwork') {
         setDialog({ ...dialog, uploaded: (dialog.uploaded ?? 0) + 1, artworkStatus: 'Изображение добавлено.' })
@@ -291,6 +294,11 @@ export default function App() {
     displayedDialog = { ...dialog, gift }
   }
 
+  if (dialog && ['gift-details', 'reserve', 'split'].includes(dialog.kind) && data?.gifts) {
+    const gift = loadedGifts.find(item => item.id === dialog.gift.id)
+    displayedDialog = { ...dialog, gift: gift ?? { ...dialog.gift, participation: null } }
+  }
+
   return (
     <>
       {me && <BoardNavigation view={me ? view : 'board'} onView={navigate} company={company} me={me} pending={pending}
@@ -316,7 +324,7 @@ export default function App() {
           {!archived && (view === 'mine'
             ? <WishlistCompanyFilter companies={companies} value={wishlistCompany} onChange={setWishlistCompany} />
             : view === 'board' && <BoardFilters people={company.members.filter(person => person.id !== viewerId)}
-              owner={owner} onOwner={setOwner} />)}
+              owner={owner} onOwner={setOwner} budget={budget} onBudget={setBudget} />)}
           {actionError && !dialog && <p className="board-error page-inset" role="alert">{actionError}</p>}
           {!data && <p className="board-message page-inset" role="status">Загружаем желания…</p>}
           {data?.error && <div className="board-message page-inset">
@@ -332,7 +340,7 @@ export default function App() {
               setNotificationRetry(value => value + 1)
             }}>Повторить</button>}
           </div>}
-          {data?.gifts && !groups.length && <p className="board-message board-empty">Здесь пока нет желаний</p>}
+          {data?.gifts && !groups.length && <p className="board-message board-empty">{view === 'board' && budget !== '' ? 'Нет желаний в этом бюджете' : 'Здесь пока нет желаний'}</p>}
           {displayMode === 'cards' && !cardHintDismissed && groups.length > 0 && <div className="mobile-card-hint page-inset">
             <div className="mobile-card-hint__message">
               <p>Нажмите на карточку, чтобы посмотреть детали желания.</p>

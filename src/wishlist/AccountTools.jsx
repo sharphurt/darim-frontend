@@ -1,3 +1,4 @@
+import { VariantDetails } from './GiftVariants.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { DialogClose } from './DialogClose.jsx'
 
@@ -87,6 +88,7 @@ export function AccountTools({ kind, api, companies, onClose }) {
         {!data.length && <p>Гостевых заявок пока нет.</p>}
         <ul className="account-tools__list">{data.map(request => <li key={request.id}>
           <p>{request.title} — {request.confirmed ? 'Бронь подтверждена' : 'Заявка ожидает решения'}</p>
+          {request.selectedVariant && <VariantDetails variant={request.selectedVariant} selected />}
           {request.confirmed ? <a href="/?tab=giving">Открыть в «Я дарю»</a> :
             <button className="gift-action" disabled={busy} onClick={() => run(() => api.withdrawRequest(request.id))}>Отменить заявку</button>}
         </li>)}</ul>

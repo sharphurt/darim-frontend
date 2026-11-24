@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { cloneElement, useEffect, useRef, useState } from 'react'
 import clip from '../assets/clip.svg'
-import { cardPhoto, formatPrice, giftBadge, safeLink } from './giftPresentation.js'
+import { cardPhoto, formatGiftPrice, formatPrice, giftBadge, safeLink } from './giftPresentation.js'
 import { backgroundFor } from './cardArtwork.js'
+import { GiftVariants, VariantDetails } from './GiftVariants.jsx'
 import { SplitProgress } from './GiftSplit.jsx'
 import { GiftPhoto } from './GiftPhoto.jsx'
 import { usePrivateImage } from '../api/usePrivateImage.js'
@@ -18,6 +19,7 @@ export function GiftActions({ gift, canSplit, onAction, pending }) {
 
   if (state?.mode === 'split' && state.isMine) return action('split-details', 'Участники и детали', true)
   if (!state || state.bought || gift.archived) return null
+  if (state.mode === 'free' && gift.variants?.length) return null
   if (state.mode === 'free') return <>{canSplit && !gift.unlimited && action('split', 'Распилить')}{action('reserve', 'Хочу подарить!', true)}</>
   if (state.isMine) {
     return <>
@@ -39,23 +41,46 @@ export function OwnerGiftActions({ gift, pending, onAction }) {
   </>
 }
 
-export function GiftBackContent({ gift, own, canSplit, pending, onAction, onCommentClick, modal = false }) {
-  const { title, comment, url, price } = gift.details
-  const formattedPrice = formatPrice(price)
+export function GiftBackContent({ gift, own, canSplit, pending, onAction, onCommentClick, modal = false, deck }) {
+  const { title, comment, url } = gift.details
+  const formattedPrice = formatGiftPrice(gift)
   const link = safeLink(url)
   const Heading = modal ? 'h2' : 'h3'
   const canDelete = own && !gift.fromOhmywishes
+  const showVariants = gift.variants?.length > 0 && (own || !gift.selectedVariant)
+  const variantActions = showVariants && !own && !gift.archived && gift.participation?.mode === 'free'
+  const renderVariantActions = variant => <div className={deck ? 'gift-card__actions' : 'variant-deck__actions'}>
+    <button type="button" className="gift-action gift-action--primary" disabled={pending}
+      onClick={() => onAction(gift, 'reserve', variant.id)}>Подарить этот вариант</button>
+    {canSplit && <button type="button" className="gift-action" disabled={pending}
+      onClick={() => onAction(gift, 'split', variant.id)}>Распилить этот вариант</button>}
+  </div>
+  const deleteButton = canDelete && <button type="button" className="gift-delete" aria-label="Удалить желание"
+    title="Удалить желание" aria-haspopup="dialog" disabled={pending} onClick={() => onAction(gift, 'delete-gift')}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6m4-6v6" />
+    </svg>
+  </button>
+  if (deck) return <GiftVariants key={gift.variantsVersion} gift={gift} pending={pending} board={{ ...deck, canDelete }}
+    renderActions={variant => <>
+      {deleteButton}
+      <div className="gift-card__body">
+        {(variant.description || comment) && <div className="gift-card__comment" tabIndex={0}>
+          {variant.description && <p>{variant.description}</p>}
+          {comment && <p>{comment}</p>}
+        </div>}
+      </div>
+      {variantActions ? renderVariantActions(variant) : <div className="gift-card__actions">
+        {own ? <OwnerGiftActions gift={gift} pending={pending} onAction={onAction} />
+          : <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />}
+      </div>}
+    </>} />
   return <>
     {modal && <GiftPhoto gift={gift} className="gift-details__photo" />}
     <header>
       <Heading id={modal ? 'dialog-title' : undefined} className={canDelete ? 'gift-title--deletable' : undefined}>{title}</Heading>
-      {canDelete && <button type="button" className="gift-delete" aria-label="Удалить желание"
-        title="Удалить желание" aria-haspopup="dialog" disabled={pending} onClick={() => onAction(gift, 'delete-gift')}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-          strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6m4-6v6" />
-        </svg>
-      </button>}
+      {deleteButton}
       <div className="gift-card__meta">
         {formattedPrice && <p>{formattedPrice}</p>}
         {link && <a href={link} target="_blank" rel="noreferrer">
@@ -65,13 +90,16 @@ export function GiftBackContent({ gift, own, canSplit, pending, onAction, onComm
     </header>
     {(gift.participation?.mode === 'external' ||
       gift.participation?.mode === 'split' && gift.participation.bought) && <p>{giftBadge(gift)}</p>}
-    <div className={modal ? undefined : 'gift-card__body'}>
+    {(!showVariants || comment) && <div className={modal ? undefined : 'gift-card__body'}>
       {comment && <p className="gift-card__comment" tabIndex={modal ? undefined : 0} onClick={onCommentClick}>{comment}</p>}
-    </div>
+    </div>}
+    {gift.selectedVariant && <VariantDetails variant={gift.selectedVariant} selected />}
+    {showVariants && <GiftVariants key={gift.variantsVersion} gift={gift} pending={pending}
+      renderActions={variantActions ? renderVariantActions : undefined} />}
     {own && !modal && <div className="gift-card__actions">
       <OwnerGiftActions gift={gift} pending={pending} onAction={onAction} />
     </div>}
-    {!own && !modal && <div className="gift-card__actions">
+    {!own && !modal && !variantActions && <div className="gift-card__actions">
       <GiftActions gift={gift} canSplit={canSplit} pending={pending} onAction={onAction} />
     </div>}
   </>
@@ -89,15 +117,16 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
   const backgroundImage = usePrivateImage(background.image)
   const overlayImage = usePrivateImage(background.overlay)
   const showPhoto = photo && photo !== failedPhoto
-  const price = formatPrice(gift.details.price)
+  const price = formatGiftPrice(gift)
   const split = gift.participation?.mode === 'split' ? gift.participation : null
   const badge = giftBadge(gift)
   const title = gift.details.title
   const own = gift.owner.id === viewerId
+  const variantDeck = gift.variants?.length > 0 && (own || !gift.selectedVariant)
   const backActive = flipped || closing || controlPressed
   const returnLabel = `Показать лицевую сторону: ${title}`
   const activate = () => {
-    if (openDetails) onAction(gift, 'gift-details')
+    if (openDetails && !flipped) onAction(gift, 'gift-details')
     else {
       setClosing(flipped)
       setFlipped(!flipped)
@@ -111,7 +140,7 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
   }
 
   useEffect(() => {
-    if (!closing) return
+    if (!closing || !back.current) return
     const [animation] = back.current.getAnimations()
     let current = true
     const finish = () => { if (current) setClosing(false) }
@@ -171,40 +200,49 @@ export function GiftCard({ gift, viewerId, openDetails, canSplit, onAction, pend
     window.addEventListener('blur', cancel, { signal: controller.signal })
   }
 
+  const cover = <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
+    data-tone={background.tone} data-has-overlay={Boolean(background.overlay)}
+    style={{
+      '--gift-background': backgroundImage ? `url("${backgroundImage}")` : 'none',
+      '--gift-overlay': overlayImage ? `url("${overlayImage}")` : 'none',
+    }}>
+    {showPhoto && <img className="gift-card__photo" src={photo} alt="" loading="lazy" referrerPolicy="no-referrer"
+      onError={() => setFailedPhoto(photo)} />}
+    <div className="gift-card__summary">
+      <h3>{title}</h3>
+      {own && gift.fromOhmywishes && <span className="gift-card__source">Из Ohmywishes</span>}
+      {price && <p>{price}</p>}
+    </div>
+    {split && <SplitProgress state={split}
+      share={gift.selectedVariant?.price != null && split.taken > 0
+        ? formatPrice(gift.selectedVariant.price / split.taken) : ''} />}
+    {!split && badge && <p className="gift-card__badge">{badge}</p>}
+  </div>
+
   return (
     <li className="gift-slot" id={`wishlist-gift-${gift.id}`} tabIndex={-1}>
       <div className="gift-pendulum" data-pendulum>
         <div className="gift-handle" aria-hidden="true"><img src={clip} width="26" height="19" alt="" /></div>
         <div className="gift-perspective">
           <article className="gift-card" data-tilt data-flipped={flipped} data-back-active={backActive}>
-            <button type="button" className="gift-card__turn" aria-pressed={openDetails ? undefined : flipped}
-              aria-haspopup={openDetails ? 'dialog' : undefined}
-              aria-label={flipped && !openDetails ? returnLabel : `Подробнее: ${title}`}
-              onClick={activate} />
-            <div className="gift-card__inner">
-              <div className={`gift-card__face gift-card__front ${showPhoto ? '' : 'gift-card__front--text'}`}
-                data-tone={background.tone} data-has-overlay={Boolean(background.overlay)}
-                inert={flipped}
-                style={{
-                  '--gift-background': backgroundImage ? `url("${backgroundImage}")` : 'none',
-                  '--gift-overlay': overlayImage ? `url("${overlayImage}")` : 'none',
-                }}>
-                {showPhoto && <img className="gift-card__photo" src={photo} alt="" loading="lazy" referrerPolicy="no-referrer"
-                  onError={() => setFailedPhoto(photo)} />}
-                <div className="gift-card__summary">
-                  <h3>{title}</h3>
-                  {own && gift.fromOhmywishes && <span className="gift-card__source">Из Ohmywishes</span>}
-                  {price && <p>{price}</p>}
+            {variantDeck ? <GiftBackContent gift={gift} own={own} canSplit={canSplit} pending={pending}
+              onAction={onAction} deck={{
+                cover, flipped, title, openDetails,
+                onFlip: () => { if (openDetails && !flipped) onAction(gift, 'gift-details'); else setFlipped(!flipped) },
+              }} /> : <>
+              <button type="button" className="gift-card__turn" aria-pressed={openDetails && !flipped ? undefined : flipped}
+                aria-haspopup={openDetails ? 'dialog' : undefined}
+                aria-label={flipped ? returnLabel : `Подробнее: ${title}`}
+                onClick={activate} />
+              <div className="gift-card__inner">
+                {cloneElement(cover, { inert: flipped })}
+                <div className="gift-card__face gift-card__back" inert={!backActive}
+                  onPointerDown={captureControlPress} ref={back}>
+                  <GiftBackContent gift={gift} own={own} canSplit={canSplit} pending={pending}
+                    onAction={onAction} onCommentClick={activateFromComment} />
                 </div>
-                {split && <SplitProgress state={split} />}
-                {!split && badge && <p className="gift-card__badge">{badge}</p>}
               </div>
-              <div className="gift-card__face gift-card__back" inert={!backActive}
-                onPointerDown={captureControlPress} ref={back}>
-                <GiftBackContent gift={gift} own={own} canSplit={canSplit} pending={pending}
-                  onAction={onAction} onCommentClick={activateFromComment} />
-              </div>
-            </div>
+            </>}
           </article>
         </div>
       </div>

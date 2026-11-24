@@ -118,11 +118,15 @@ export function WishlistCompanyFilter({ companies, value, onChange }) {
   </div>
 }
 
-export function BoardFilters({ people, owner, onOwner }) {
+export function BoardFilters({ people, owner, onOwner, budget, onBudget }) {
   return (
     <div className="board-filters">
       {people.length > 0 && <FilterTabs label="Участники" value={owner} onChange={onOwner}
         options={[{ id: '', name: 'ПОЛНЫЙ СОСТАВ' }, ...people]} />}
+      <label className="board-budget">Бюджет до, ₽
+        <input type="number" min="0" step="0.01" inputMode="decimal" value={budget}
+          onChange={event => onBudget(event.target.value)} />
+      </label>
     </div>
   )
 }
