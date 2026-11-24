@@ -1015,48 +1015,37 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 }
 .variant-deck__model {
   min-block-size: 132px;
-  padding: 16px 48px;
+  padding: 16px 20px;
   gap: 10px;
 }
 .variant-deck__card[data-depth="0"] .variant-deck__model { background: var(--surface); }
 .variant-deck__model .gift-variant__details { display: grid; justify-items: start; gap: 6px; }
 .variant-deck__model strong { font-size: 1.25em; line-height: 1.15; }
 .variant-deck__model a { text-underline-offset: .14em; }
-.variant-deck__viewport:not(:has(.variant-deck__arrow)) .variant-deck__model { padding-inline: 20px; }
 .variant-deck:not(.variant-deck--board) { padding-block-start: 10px; }
-.variant-deck__arrow {
-  position: absolute;
-  z-index: 4;
-  inset-block-start: 50%;
-  inset-inline-start: 2px;
-  translate: 0 -50%;
-  inline-size: 44px;
-  block-size: 44px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  color: var(--accent-text);
-  background: var(--accent-tint);
-  transition: background-color var(--control-duration), color var(--control-duration);
-}
-.variant-deck__arrow:last-child {
-  inset-inline-start: auto;
-  inset-inline-end: 2px;
-}
-.variant-deck__arrow[aria-disabled="true"] { opacity: .5; }
-.variant-deck__chevron {
-  inline-size: 9px;
-  block-size: 9px;
-  border-block-start: 2px solid currentColor;
-  border-inline-end: 2px solid currentColor;
-  rotate: -135deg;
-}
-.variant-deck__arrow:last-child .variant-deck__chevron { rotate: 45deg; }
+/* The edge hit areas stay within the card padding so text and actions remain clickable. */
+.variant-deck__edge { display: none; }
 @media (hover: hover) and (pointer: fine) {
-  .variant-deck__arrow:not(:hover, :focus-visible) { background: transparent; }
-  .variant-deck__arrow:not([aria-disabled="true"]):hover { background: var(--accent-text); color: var(--surface); }
+  .variant-deck__edge {
+    position: absolute;
+    z-index: 4;
+    display: block;
+    inset-block: 20% 20%;
+    inline-size: min(5cqw, 16px);
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+  }
+  .variant-deck__edge--left {
+    left: 0;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M16 4l-8 8 8 8' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M16 4l-8 8 8 8' fill='none' stroke='%23356bb7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, w-resize;
+  }
+  .variant-deck__edge--right {
+    right: 0;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M8 4l8 8-8 8' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M8 4l8 8-8 8' fill='none' stroke='%23356bb7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, e-resize;
+  }
+  .variant-deck__edge[aria-disabled="true"] { cursor: default; }
 }
 .variant-deck__position {
   margin: 0;
@@ -1098,12 +1087,6 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   padding: 5cqw;
   gap: 3.5cqw;
 }
-.variant-deck--board .variant-deck__position {
-  position: absolute;
-  inset: calc(50% + 20px) 44px auto;
-  z-index: 5;
-  pointer-events: none;
-}
 .variant-deck__flip {
   position: absolute;
   z-index: 5;
@@ -1122,7 +1105,7 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .variant-deck--board .variant-deck__faces, .variant-deck__arrow { transition: none; }
+  .variant-deck--board .variant-deck__faces { transition: none; }
 }
 
 .gift-variant__description { flex-basis: 100%; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
