@@ -16,6 +16,7 @@ export function VariantDetails({ variant, selected = false, card = false, canDel
     <strong>{selected ? 'Выбранный вариант: ' : ''}{variant.title}</strong>
     <span>{formatPrice(variant.price) || 'Цена не указана'}</span>
     {link && <a href={link} target="_blank" rel="noreferrer" aria-label={`Где купить: ${variant.title}`}>Где купить</a>}
+    {variant.description && <p className="gift-variant__description">{variant.description}</p>}
   </div>
 }
 
@@ -154,7 +155,8 @@ export function GiftVariants({ gift, choose = false, pending = false, renderActi
     const velocity = Math.abs(dx) / Math.max(1, event.timeStamp - active.time)
     const step = dx < 0 ? 1 : -1
     const commit = !cancelled && !pending && Math.abs(dx) > Math.abs(dy) * 1.25 &&
-      (Math.abs(dx) >= event.currentTarget.clientWidth * .24 || Math.abs(dx) >= 24 && velocity >= .45)
+      (Math.abs(dx) >= Math.min(72, event.currentTarget.clientWidth * .24) ||
+        Math.abs(dx) >= 24 && velocity >= .45)
     settle(commit ? neighbor(step) : index, step)
   }
 
@@ -213,7 +215,8 @@ export function GiftVariants({ gift, choose = false, pending = false, renderActi
       </>}
     </div>
     {board && <button type="button" className="variant-deck__flip" onClick={board.onFlip}
-      disabled={moving} aria-pressed={opened}
+      disabled={moving} aria-pressed={board.openDetails ? undefined : opened}
+      aria-haspopup={board.openDetails ? 'dialog' : undefined}
       aria-label={opened ? `Показать лицевую сторону: ${board.title}` : `Подробнее: ${board.title}`} />}
     {opened && multiple && <p className="variant-deck__position" role="status">
       <span className="sr-only">{variant.title}, вариант </span>{index + 1} из {count}

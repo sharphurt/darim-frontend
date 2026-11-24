@@ -162,6 +162,8 @@ export function GiftEditorFields({ gift, company, companies, pending }) {
             <legend>Вариант {index + 1}</legend>
             <input name="variantIds" type="hidden" value={variant.id ?? ''} />
             <label>Название модели<input name="variantTitles" required maxLength={maxTitleLength} defaultValue={variant.title} /></label>
+            <label>Описание варианта<textarea name="variantDescriptions" rows="2" maxLength="2000"
+              defaultValue={variant.description} /></label>
             <label>Ссылка<input name="variantUrls" inputMode="url" maxLength="2048" defaultValue={variant.url} /></label>
             <label>Цена, ₽<input name="variantPrices" type="number" inputMode="decimal"
               min="0" max="100000000" step={priceStep} defaultValue={variant.price} /></label>
