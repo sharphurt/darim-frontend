@@ -1110,3 +1110,56 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 
 .gift-variant__description { flex-basis: 100%; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .variant-deck--board .gift-card__comment p + p { margin-block-start: .6em; }
+
+.mobile-variants { display: grid; min-inline-size: 0; gap: 10px; }
+.mobile-variants__heading { margin: 0; font-size: var(--ui-tertiary-size); font-weight: 600; }
+.mobile-variants__track {
+  --variant-peek: 32px;
+  --variant-gap: 10px;
+  position: relative;
+  display: flex;
+  gap: var(--variant-gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.mobile-variants__track::-webkit-scrollbar { display: none; }
+.mobile-variants__track::after {
+  content: '';
+  flex: 0 0 calc(var(--variant-peek) - var(--variant-gap));
+}
+.mobile-variants__track:focus-visible { outline-offset: -2px; }
+.mobile-variants__slide {
+  min-inline-size: 0;
+  flex: 0 0 calc(100% - var(--variant-peek));
+  scroll-snap-align: start;
+  padding: 14px;
+  border: 1px solid #e3e3e3;
+  border-radius: 14px;
+  background: var(--page-background);
+}
+.mobile-variants__slide .gift-variant__details { display: grid; justify-items: start; gap: 5px; }
+.mobile-variants__slide strong { line-height: 1.2; }
+.mobile-variants__slide a { text-underline-offset: .14em; }
+.mobile-variants__navigation { display: grid; gap: 2px; justify-items: center; }
+.mobile-variants__hint { margin: 0; font-size: .875rem; color: #545454; text-align: center; }
+.mobile-variants__dots { display: flex; flex-wrap: wrap; justify-content: center; }
+.mobile-variants__dots button {
+  inline-size: 36px;
+  block-size: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+.mobile-variants__dots button::before {
+  content: '';
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 50%;
+  background: #767676;
+}
+.mobile-variants__dots button[aria-current="true"]::before { background: var(--accent-text); scale: 1.25; }

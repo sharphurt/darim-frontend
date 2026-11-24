@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { formatPrice, safeLink } from './giftPresentation.js'
 
 export function VariantDetails({ variant, selected = false, card = false, canDelete = false }) {
@@ -37,7 +37,84 @@ function depthAt(position, active, count) {
   return distance === count - 1 ? 2 : 3
 }
 
-export function GiftVariants({ gift, choose = false, pending = false, renderActions, board }) {
+const mobileLayout = window.matchMedia('(max-width: 760px)')
+
+function subscribeLayout(listener) {
+  mobileLayout.addEventListener('change', listener)
+  return () => mobileLayout.removeEventListener('change', listener)
+}
+
+export function GiftVariants(props) {
+  const mobile = useSyncExternalStore(subscribeLayout, () => mobileLayout.matches)
+  if (mobile && !props.board) return <MobileVariants {...props} />
+  return <DesktopVariants {...props} />
+}
+
+function MobileVariants({ gift, choose = false, pending = false, renderActions }) {
+  const variants = gift.variants ?? []
+  const [index, setIndex] = useState(0)
+  const [hasSwiped, setHasSwiped] = useState(false)
+  const [scrolling, setScrolling] = useState(false)
+  const track = useRef(null)
+  const variant = variants[index]
+  const multiple = variants.length > 1
+  if (!variant) return null
+
+  function scrollTo(position) {
+    const element = track.current
+    if (pending || !element.children[position]) return
+    if (position !== index) setScrolling(true)
+    element.scrollTo({
+      left: element.children[position].offsetLeft - element.firstElementChild.offsetLeft,
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+    })
+  }
+
+  function updatePosition(event) {
+    const element = event.currentTarget
+    const distance = element.children[1].offsetLeft - element.firstElementChild.offsetLeft
+    const position = Math.max(0, Math.min(variants.length - 1, Math.round(element.scrollLeft / distance)))
+    const aligned = Math.abs(element.scrollLeft - position * distance) <= 2
+    setScrolling(!aligned)
+    if (!aligned) return
+    setIndex(position)
+    if (position !== 0) setHasSwiped(true)
+  }
+
+  return <section className="mobile-variants" data-deck-busy={scrolling} aria-label="Варианты подарка">
+    {choose && <>
+      <input type="hidden" name="variantsVersion" value={gift.variantsVersion} />
+      <input type="hidden" name="variantId" value={variant.id} />
+    </>}
+    {multiple ? <>
+      <p className="mobile-variants__heading" role="status">
+        Варианты · {index + 1} из {variants.length}<span className="sr-only">, {variant.title}</span>
+      </p>
+      <div className="mobile-variants__track" ref={track} onScroll={updatePosition}
+        role="group" aria-label="Листать варианты" tabIndex={0} onKeyDown={event => {
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+          event.preventDefault()
+          scrollTo(index + (event.key === 'ArrowLeft' ? -1 : 1))
+        }}>
+        {variants.map((item, position) => <div className="mobile-variants__slide" key={item.id}
+          inert={position !== index} aria-hidden={position !== index}>
+          <VariantDetails variant={item} />
+        </div>)}
+      </div>
+      <div className="mobile-variants__navigation">
+        {!hasSwiped && <p className="mobile-variants__hint">Листайте влево или вправо</p>}
+        <div className="mobile-variants__dots" role="group" aria-label="Выбрать вариант">
+          {variants.map((item, position) => <button type="button" key={item.id}
+            aria-label={`Вариант ${position + 1}: ${item.title}`} aria-current={index === position ? 'true' : undefined}
+            disabled={pending} onClick={() => scrollTo(position)} />)}
+        </div>
+      </div>
+    </> : <div className="mobile-variants__slide"><VariantDetails variant={variant} /></div>}
+    {renderActions && <div inert={scrolling}>{renderActions(variant)}</div>}
+  </section>
+}
+
+function DesktopVariants({ gift, choose = false, pending = false, renderActions, board }) {
   const variants = gift.variants ?? []
   const [index, setIndex] = useState(0)
   const [moving, setMoving] = useState(false)
