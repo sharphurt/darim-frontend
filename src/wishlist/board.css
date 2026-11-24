@@ -977,30 +977,8 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 }
 .gift-variant__details { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; overflow-wrap: anywhere; }
 
-.variant-stack {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  transform: perspective(920px) rotateY(0deg);
-  transition: transform var(--gift-flip-duration) cubic-bezier(.2,.7,.14,1);
-}
-.gift-card[data-flipped="true"] > .variant-stack { transform: perspective(920px) rotateY(180deg); }
-.variant-stack::before, .variant-stack::after {
-  content: '';
-  position: absolute;
-  inset: 2% 3% 1%;
-  border-radius: 7.5cqw;
-  background: #51ae9d;
-  transform: translate(6%, -5%) rotate(1deg);
-  transform-origin: 50% 75%;
-  box-shadow: 0 4px 12px #1b1b281c;
-}
-.variant-stack::after {
-  background: #6156af;
-  transform: translate(7%, -1%) rotate(5deg);
-}
-
 .variant-deck {
+  position: relative;
   display: grid;
   gap: 10px;
   min-inline-size: 0;
@@ -1008,60 +986,48 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
 .variant-deck__viewport {
   position: relative;
   isolation: isolate;
-  padding-block: 8px 22px;
-  touch-action: pan-y pinch-zoom;
 }
-.variant-deck__slides {
-  display: grid;
-  perspective: 700px;
-}
+.variant-deck[data-opened="true"] .variant-deck__viewport { touch-action: pan-y pinch-zoom; }
+.variant-deck__slides { position: relative; display: grid; }
 .variant-deck__card {
   grid-area: 1 / 1;
   position: relative;
-  display: grid;
-  align-items: center;
-  min-block-size: 124px;
-  padding: 16px 48px;
-  border: 1px solid #eddbd6;
-  border-radius: 16px;
-  background: #fff9f6;
+  transform: var(--deck-position);
   z-index: 3;
-  translate: var(--deck-drag, 0) 0;
-  transition: transform 320ms cubic-bezier(.2,.75,.28,1), opacity 220ms ease;
-}
-.variant-deck__card[inert] { pointer-events: none; }
-.variant-deck__card[inert] .variant-deck__model { visibility: hidden; }
-.variant-deck__card[data-depth="1"] {
-  z-index: 2;
-  background: #f5d8d0;
-  transform: translateY(12px) scale(.94) rotate(-3deg);
-}
-.variant-deck__card[data-depth="2"] {
-  z-index: 1;
-  background: #dce8f8;
-  transform: translateY(23px) scale(.87) rotate(3deg);
-}
-.variant-deck__card:not([data-depth="0"], [data-depth="1"], [data-depth="2"]) {
-  z-index: 0;
-  opacity: 0;
-  transform: translateY(23px) scale(.82);
-}
-.variant-deck__card:not([data-depth="0"]) { translate: none; }
-.variant-deck__viewport:not(:has(.variant-deck__arrow)) .variant-deck__card { padding-inline: 20px; }
-.variant-deck__model {
   min-inline-size: 0;
+  --deck-paper: #e4ddf5;
 }
-.variant-deck__model .gift-variant__details {
-  display: grid;
-  justify-items: start;
-  gap: 6px;
+.variant-deck__card:nth-child(3n + 2) { --deck-paper: #cde9e1; }
+.variant-deck__card:nth-child(3n + 3) { --deck-paper: #f5d1c7; }
+.variant-deck__card[data-depth="1"] { z-index: 2; }
+.variant-deck__card[data-depth="2"] { z-index: 1; }
+.variant-deck__card[data-depth="3"] { z-index: 0; opacity: 0; }
+.variant-deck__faces { display: grid; min-inline-size: 0; }
+.variant-deck__model, .variant-deck__cover {
+  grid-area: 1 / 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  min-inline-size: 0;
+  background: var(--deck-paper);
+  box-shadow: 0 7px 20px #1b1b2816;
 }
-.variant-deck__model strong { font-size: 1.125em; line-height: 1.15; }
+.variant-deck__model {
+  min-block-size: 132px;
+  padding: 16px 48px;
+  gap: 10px;
+}
+.variant-deck__card[data-depth="0"] .variant-deck__model { background: var(--surface); }
+.variant-deck__model .gift-variant__details { display: grid; justify-items: start; gap: 6px; }
+.variant-deck__model strong { font-size: 1.25em; line-height: 1.15; }
 .variant-deck__model a { text-underline-offset: .14em; }
+.variant-deck__viewport:not(:has(.variant-deck__arrow)) .variant-deck__model { padding-inline: 20px; }
+.variant-deck:not(.variant-deck--board) { padding-block-start: 10px; }
 .variant-deck__arrow {
   position: absolute;
   z-index: 4;
-  inset-block-start: calc(50% - 7px);
+  inset-block-start: 50%;
   inset-inline-start: 2px;
   translate: 0 -50%;
   inline-size: 44px;
@@ -1079,7 +1045,7 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   inset-inline-start: auto;
   inset-inline-end: 2px;
 }
-.variant-deck__arrow[aria-disabled="true"]:not(:focus-visible) { visibility: hidden; }
+.variant-deck__arrow[aria-disabled="true"] { opacity: .5; }
 .variant-deck__chevron {
   inline-size: 9px;
   block-size: 9px;
@@ -1105,61 +1071,54 @@ body { padding-top: var(--darim-safe-top, 0px); padding-bottom: var(--darim-safe
   gap: 8px;
 }
 .variant-deck__actions .gift-action { min-block-size: 44px; }
-@media (prefers-reduced-motion: reduce) {
-  .variant-deck__card, .variant-deck__arrow { transition: none; }
-}
 
-.variant-deck--compact {
-  position: relative;
-  display: grid;
-  flex: 1;
+.variant-deck--board { min-block-size: var(--card-height); }
+.variant-deck--board .variant-deck__viewport { display: grid; }
+.variant-deck--board .variant-deck__faces {
+  transform: perspective(920px) rotateY(0deg);
+  transform-style: preserve-3d;
+  transition: transform var(--gift-flip-duration) cubic-bezier(.2,.7,.14,1);
+}
+.variant-deck--board[data-opened="true"] .variant-deck__faces { transform: perspective(920px) rotateY(180deg); }
+.variant-deck--board :is(.variant-deck__cover, .variant-deck__model) {
+  border-radius: 7.5cqw;
+  backface-visibility: hidden;
   min-block-size: var(--card-height);
-  pointer-events: auto;
 }
-.gift-card__back:has(.variant-deck--compact) {
-  padding: 0;
+.variant-deck--board .variant-deck__cover .gift-card__front {
+  transform: none;
+  transition: none;
+  flex: 1;
+}
+.variant-deck--board .variant-deck__model {
+  transform: rotateY(180deg);
+  padding: 52px 12px 14px;
+  gap: 8px;
+}
+.variant-deck--board .variant-deck__model .gift-variant__details { margin-block: auto; padding-inline: 34px; }
+.variant-deck--board .variant-deck__actions { display: grid; }
+.variant-deck--board .variant-deck__position {
+  position: absolute;
+  inset: 17px 42px auto;
+  z-index: 5;
+  pointer-events: none;
+}
+.variant-deck__flip {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  border: 0;
+  border-radius: 7.5cqw;
   background: transparent;
-  box-shadow: none;
 }
-.gift-card[data-flipped="true"]:has(.variant-deck--compact) > .gift-card__turn {
+.variant-deck[data-opened="true"] .variant-deck__flip {
   inset: 8px auto auto 10px;
-  z-index: 3;
   padding: 8px;
   min-height: 40px;
   color: var(--accent-text);
   background: var(--surface);
   font-size: 14px;
 }
-.variant-deck--compact .variant-deck__viewport {
-  display: grid;
-  padding-block: 0;
-  overflow: clip;
+@media (prefers-reduced-motion: reduce) {
+  .variant-deck--board .variant-deck__faces, .variant-deck__arrow { transition: none; }
 }
-.variant-deck--compact .variant-deck__card {
-  min-block-size: var(--card-height);
-  padding: 54px 12px 14px;
-  border: 0;
-  border-radius: 0;
-  background: var(--surface);
-  align-items: stretch;
-}
-.variant-deck--compact .variant-deck__model { display: flex; flex-direction: column; gap: 8px; min-block-size: 0; }
-.variant-deck--compact .variant-deck__model .gift-variant__details { padding-inline: 34px; margin-block: auto; }
-.variant-deck--compact .variant-deck__viewport:not(:has(.variant-deck__arrow)) .variant-deck__card { padding-inline: 12px; }
-.variant-deck--compact .variant-deck__position {
-  position: absolute;
-  inset: 20px 42px auto;
-  pointer-events: none;
-}
-.variant-deck--compact .variant-deck__card[data-depth="1"] { transform: translateX(34%) scale(.91); }
-.variant-deck--compact .variant-deck__card[data-depth="2"] { transform: translateX(52%) scale(.84); }
-.variant-deck--compact .variant-deck__arrow {
-  inset-block-start: 50%;
-  inset-inline-start: 0;
-}
-.variant-deck--compact .variant-deck__arrow:last-child {
-  inset-inline-start: auto;
-  inset-inline-end: 0;
-}
-.variant-deck--compact .variant-deck__actions { display: grid; }
-.variant-deck--compact .variant-deck__actions .gift-action { font-size: inherit; }

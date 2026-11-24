@@ -130,6 +130,7 @@ export function BoardDialog({ dialog, me, company, companies, managedCompanies, 
         </section>
       ) : <div className="board-dialog__body"><form inert={closing} onSubmit={event => {
         event.preventDefault()
+        if (event.currentTarget.querySelector('[data-deck-busy="true"]')) return
         if (!pending && !closing && !link && !splitDetails && !manageCompanies && !unavailable) onSubmit(new FormData(event.currentTarget))
       }}>
         <h2 id="dialog-title">{title}</h2>
